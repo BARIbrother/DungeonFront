@@ -14,9 +14,9 @@
 | 종류 | 예시 |
 |------|------|
 | itemId | `iron_ore`, `iron` (snake_case 영문) |
-| machineDefId | `채굴기_1`, `용광로_1`, `모루_1` |
-| machineTypeId | `채굴기`, `용광로`, `모루` |
-| recipeId | `채굴기_iron_ore`, `용광로_iron`, `모루_iron_rod` |
+| machineDefId | `채굴기_1`, `용광로_1`, `제작기_1`, `창고_1` |
+| machineTypeId | `채굴기`, `용광로`, `제작기`, `창고` |
+| recipeId | `채굴기_iron_ore`, `용광로_iron`, `제작기_iron_rod` |
 
 ### C# 클래스 (필수 필드)
 
@@ -28,7 +28,7 @@
 
 - `id`, `machineTypeId`, `tier`, `displayName`, `prefab`
 - `recipeIds` (string[])
-- `requiresManualWork` (bool — 모루 `true`)
+- `requiresManualWork` (bool — 제작기·창고 `true`)
 - **Week 1 추가 여유**: `gridWidth`, `gridHeight` (점유 칸), 입·출력 포트 방향/오프셋
 
 #### `RecipeDefinition` : ScriptableObject
@@ -54,10 +54,11 @@
 | Item | `iron` | 철 (용광로 출력용 placeholder) |
 | Machine | `채굴기_1` | prefab → 채굴기 Prefab |
 | Machine | `용광로_1` | prefab → 용광로 Prefab |
-| Machine | `모루_1` | prefab → 모루 Prefab, `requiresManualWork=true` |
+| Machine | `제작기_1` | prefab → 제작기 Prefab, `requiresManualWork=true` |
+| Machine | `창고_1` | prefab → 창고 Prefab, `requiresManualWork=true` |
 | Recipe | `채굴기_iron_ore` | 입력 없음, 출력 iron_ore, durationTicks placeholder |
 | Recipe | `용광로_iron` | 입력 iron_ore, 출력 iron (수치는 placeholder) |
-| Recipe | `모루_iron_rod` | manualClickCount placeholder |
+| Recipe | `제작기_iron_rod` | manualClickCount placeholder |
 
 - 레시피 **수치 밸런스**는 Week 1 미완이어도 됨. **필드가 채워져 조회되면** OK.
 
@@ -70,5 +71,5 @@
 
 - [ ] Definition 클래스 3종 + ItemGroup 컴파일
 - [ ] Database 3종에서 `Get("채굴기_1")` 등이 null이 아님
-- [ ] Machine SO 3개의 `prefab` 필드가 [03-machine-prefabs](./03-machine-prefabs.md)와 연결됨
+- [ ] Machine SO 4개의 `prefab` 필드가 [03-machine-prefabs](./03-machine-prefabs.md)와 연결됨
 - [ ] 에디터에서 SO 에셋을 열어 필드가 보인다

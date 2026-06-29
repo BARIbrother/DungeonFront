@@ -10,7 +10,7 @@
     "Assets/Scenes": true,
     "Assets/Settings": true,
     "Assets/*.asset": true,
-    "Assets/*.meta": true,
-    "Assets/*.inputactions": true
+    "Assets/*.inputactions": true,
+    "**/*.meta": true
   }
 }

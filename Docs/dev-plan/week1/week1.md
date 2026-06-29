@@ -11,9 +11,9 @@ Factory(준비·생산) + Settlement(결산) **하루 1회전** + 기계 10종+ 
 - [ ] Factory — 탑다운 맵·WASD·철광석 노드
 - [ ] **생산 시작** → 5분 타이머 (카운트)
 - [ ] Prepare → Production → **Settlement** → 다음 날 → Prepare
-- [ ] 새 게임: 인벤 기계 3종, 골드·명성 0
+- [ ] 새 게임: 인벤 기계 4종, 골드·명성 0
 - [ ] 글로벌 HUD: 일차·페이즈·골드·명성
-- [ ] 기계 10종+ v0.1 · 스타일 가이드 · 주인공 초상 · idle/walk
+- [ ] 기계 10종+ v0.1 ([03-machine-plan.md](../../planning/03-machine-plan.md)) · 스타일 가이드 · 주인공 초상 · idle/walk
 
 ## 역할
 
