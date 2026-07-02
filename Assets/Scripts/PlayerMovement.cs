@@ -8,6 +8,7 @@ public class PlayerMovement : MonoBehaviour
     private static readonly int MoveYHash = Animator.StringToHash("MoveY");
 
     [SerializeField] private GridManager gridManager;
+    [SerializeField] private Camera mainCamera;
     [SerializeField] private Animator animator;
     // 초당 이동 픽셀 수
     [SerializeField] private float pixelsPerSecond = 96f;
@@ -36,6 +37,32 @@ public class PlayerMovement : MonoBehaviour
             if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) input.x += 1f;
             if (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed) input.y += 1f;
             if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) input.y -= 1f;
+        }
+
+        if (keyboard != null && keyboard.digit1Key.wasPressedThisFrame && gridManager != null)
+        {
+            Vector2Int playerGrid = gridManager.WorldToGrid(transform.position);
+            gridManager.TryPlaceResourceNode(playerGrid);
+        }
+
+        if (keyboard != null && gridManager != null)
+        {
+            Vector3 mouseWorld = GetMouseWorldPosition();
+
+            if (keyboard.digit2Key.wasPressedThisFrame)
+            {
+                gridManager.TryPlaceSmelterMachine(mouseWorld);
+            }
+
+            if (keyboard.digit3Key.wasPressedThisFrame)
+            {
+                gridManager.TryPlaceAssemblerMachine(mouseWorld);
+            }
+
+            if (keyboard.digit4Key.wasPressedThisFrame)
+            {
+                gridManager.TryPlaceMinerMachine(mouseWorld);
+            }
         }
 
         if (input.sqrMagnitude > 1f)
@@ -85,5 +112,27 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool(IsMovingHash, isMoving);
         animator.SetFloat(MoveXHash, facing.x);
         animator.SetFloat(MoveYHash, facing.y);
+    }
+
+    // 마우스 스크린 좌표를 XY 평면 월드 좌표로 변환한다.
+    private Vector3 GetMouseWorldPosition()
+    {
+        Camera camera = mainCamera != null ? mainCamera : Camera.main;
+        if (camera == null)
+        {
+            return transform.position;
+        }
+
+        Mouse mouse = Mouse.current;
+        if (mouse == null)
+        {
+            return transform.position;
+        }
+
+        Vector3 screen = mouse.position.ReadValue();
+        screen.z = -camera.transform.position.z;
+        Vector3 world = camera.ScreenToWorldPoint(screen);
+        world.z = 0f;
+        return world;
     }
 }

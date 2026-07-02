@@ -4,4 +4,6 @@ public enum OccupantKind
     Machine = 0,
     Belt = 1,
     Outputter = 2,
+    ResourceNode = 3,
+    MachineOnResourceNode = 4,
 }

@@ -443,7 +443,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 4483504832982471387, guid: ce0a45a211223a84687901be994b7fda, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -702,6 +702,12 @@ MonoBehaviour:
   tilePixelSize: 32
   pixelsPerUnit: 32
   tilePivot: {x: 0.5, y: 0.5}
+  resourceNodePrefab: {fileID: 8012345678901234001, guid: c9d5f3a2b0145678e9f0a1b2c3d4e5f6, type: 3}
+  smelterMachinePrefab: {fileID: 9012345678901234001, guid: d4e5f6a7b80911223344556677889900, type: 3}
+  assemblerMachinePrefab: {fileID: 8012345678901235001, guid: d2e3f4a5b6c748899011223344556788, type: 3}
+  minerMachinePrefab: {fileID: 7012345678901234001, guid: c1d2e3f4a5b647899011223344556677, type: 3}
+  resourceNodesRoot: {fileID: 3141592653589793201}
+  machinesRoot: {fileID: 0}
 --- !u!4 &2133904199
 Transform:
   m_ObjectHideFlags: 0
@@ -734,6 +740,37 @@ MonoBehaviour:
   tiles:
   - Type: 1
     Tile: {fileID: 11400000, guid: 483ba1f57123cd6419e19edfa83bfdb9, type: 2}
+--- !u!1 &3141592653589793200
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3141592653589793201}
+  m_Layer: 0
+  m_Name: ResourceNodes
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3141592653589793201
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3141592653589793200}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -742,3 +779,4 @@ SceneRoots:
   - {fileID: 2133904199}
   - {fileID: 821514145}
   - {fileID: 982987822}
+  - {fileID: 3141592653589793201}
