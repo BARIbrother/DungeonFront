@@ -187,7 +187,32 @@
 
 ---
 
-## 7주 일정 (영역별 요약)
+---
+
+## Dev·Art 일정 (구 7주 그대로)
+
+| 주차 | Dev | Art |
+|------|-----|-----|
+| **2** | 인벤·의뢰 UI, 결산 의뢰 목록, HUD, 의뢰 풀, 의뢰 에셋 v1 | 수리·작업 모션, **이브** 초상화 |
+| **3** | 튜토 패널 1차, HUD, Lead 틱 연동 | **레이** 초상화, 주인공 모션 보완 |
+
+상세: [week2/week2.md](./week2/week2.md) · [week3/week3.md](./week3/week3.md)
+
+---
+
+## Lead 3주 일정
+
+> Week 1 **완료**. 구 4~7주 → Week 2·3에 압축. 상세: [lead-plan.md](./lead-plan.md)
+
+| 주차 | Lead |
+|------|------|
+| **1** | *(완료)* Factory 씬·이동·Prefab·SO·생산 UI·기획 표 |
+| **2** | 배치·레시피 데이터·생산 틱·철 체인·6종+·WIP·고장·**출력기** |
+| **3** | **10종+·벨트·출력기·수작업·레시피 lock·스토리·MVP** *(구 4~7주)* |
+
+---
+
+## 7주 일정 (Dev·Art·기획 — 참고)
 
 | 주차 | 기획 | 개발 | 아트 |
 |------|------|------|------|
@@ -208,7 +233,10 @@
 - `../02-data-structure.md` — SO·세이브 스키마
 - `../99-further_implementation.md` — MVP 이후 보류 항목
 - `dev-gaps.md` — **미정 항목·공백** (사고 플레이 점검, 직접 채움)
-- `week1.md` — **1주차** 개요·데모·연동
-- `week1-lead.md` — 1주차 Lead
-- `week1-dev.md` — 1주차 Dev
-- `week1-art.md` — 1주차 Art
+- `lead-plan.md` — **Lead 3주** (W1 완료 · W2~3에 구 4~7주 압축)
+- `week1.md` — 1주차 개요
+- `week2/week2.md` — 2주차 개요 (Dev·Art = 구 7주 2주)
+- `week3/week3.md` — 3주차 개요 (Dev·Art = 구 7주 3주)
+- `week1-lead/` · `week2-lead/` · `week3-lead/` — Lead Issue
+- `week1-dev/` · `week2-dev/` · `week3-dev/` — Dev Issue
+- `week1-art/` · `week2-art/` · `week3-art/` — Art Issue

@@ -19,7 +19,7 @@ Factory(준비·생산) + Settlement(결산) **하루 1회전** + 기계 10종+ 
 
 | 역할 | 범위 | 문서 |
 |------|------|------|
-| **Lead** | 공장 안 (씬·Prefab·SO·생산 UI) | [week1-lead.md](./week1-lead.md) |
+| **Lead** | 공장 안 (씬·Prefab·SO·생산 UI) — **W1 완료** | [lead-plan.md](../lead-plan.md) · [week1-lead/](./week1-lead/) |
 | **Dev** | 공장 밖 (세션·결산·씬 흐름·HUD) | [week1-dev.md](./week1-dev.md) |
 | **Art** | 초상화·주인공 모션 | [week1-art.md](./week1-art.md) |
 
