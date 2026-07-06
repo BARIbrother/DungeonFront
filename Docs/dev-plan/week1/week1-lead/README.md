@@ -8,7 +8,7 @@
 | [03-machine-prefabs.md](./03-machine-prefabs.md) | `[Week1][Lead] 기계·자원 노드 Prefab` |
 | [04-factory-data.md](./04-factory-data.md) | `[Week1][Lead] Factory SO·Database` |
 | [05-factory-production-ui.md](./05-factory-production-ui.md) | `[Week1][Lead] Factory 생산 UI` |
-| [06-planning-machine-list.md](./06-planning-machine-list.md) | `[Week1][Lead] MVP 기계 10종+ 목록 초안` |
+| [06-planning-machine-list.md](./06-planning-machine-list.md) | `[Week1][Lead] MVP 기계 10종+ 목록 초안` → [03-machine-plan.md](../../planning/03-machine-plan.md) |
 | [07-planning-quest-story.md](./07-planning-quest-story.md) | `[Week1][Lead] 튜토 의뢰 수치·1일차 스토리 초안` |
 | [08-team-integration.md](./08-team-integration.md) | `[Week1][Lead] Dev·Art 팀 연동` |
 

@@ -1,5 +1,7 @@
 # Project-specific
 /Presentation/
+/.codegraph/
+.cursor/rules/caveman.mdc
 
 # Unity
 .utmp/

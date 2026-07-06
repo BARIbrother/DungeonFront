@@ -19,3 +19,9 @@ globs: Assets/Scripts/**/*.cs
 
 - 구현 시 목적과 세부 사항은 **기존 주석**을 먼저 확인한다.
 - 주석이 없으면 구현과 동시에 목적·세부 사항을 설명하는 주석을 추가한다.
+
+# RTK (Rust Token Killer) Optimization
+- We have RTK installed globally to compress CLI output.
+- If RTK is not installed, notify to the user once for agent.
+- When running verbose terminal commands (e.g., test runners, git diff, docker logs, build lints), make sure they run via the bash shell hook so RTK can strip unnecessary tokens.
+- If needed, you can explicitly prefix heavy commands with `rtk` (e.g., `rtk cargo test`).

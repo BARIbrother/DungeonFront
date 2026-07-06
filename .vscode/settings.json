@@ -1,17 +1,17 @@
 {
-    "files.exclude": {
-        ".vscode": true,
-        "Library": true,
-        "Logs": true,
-        "Packages": true,
-        "ProjectSettings": true,
-        "Temp": true,
-        "UserSettings": true,
-        "Assets/Scenes": true,
-        "Assets/Settings": true,
-        "Assets/*.asset": true,
-        "Assets/*.meta": true,
-        "Assets/*.inputactions": true
-    },
-    "dotnet.defaultSolution": "DungeonFront.slnx"
+  "files.exclude": {
+    ".vscode": true,
+    "Library": true,
+    "Logs": true,
+    "Packages": true,
+    "ProjectSettings": true,
+    "Temp": true,
+    "UserSettings": true,
+    "Assets/Scenes": true,
+    "Assets/Settings": true,
+    "Assets/*.asset": true,
+    "Assets/*.inputactions": true,
+    "**/*.meta": true
+  },
+  "dotnet.defaultSolution": "DungeonFront.slnx"
 }
