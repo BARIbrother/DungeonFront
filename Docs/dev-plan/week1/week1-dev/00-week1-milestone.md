@@ -10,7 +10,7 @@ Factory 맵·Prefab·생산 UI·기계 SO **콘텐츠**는 Lead 담당.
 | # | 작업물 | Issue |
 |---|--------|-------|
 | 1 | `GameSessionState` + 페이즈 + 5분 타이머 상태 | [01-session-phase](./01-session-phase.md) |
-| 2 | `NewGame()` + 인벤토리 (기계 3종 인벤) | [02-new-game-inventory](./02-new-game-inventory.md) |
+| 2 | `NewGame()` + 인벤토리 (기계 4종 인벤) | [02-new-game-inventory](./02-new-game-inventory.md) |
 | 3 | 글로벌 HUD (일차·페이즈·골드·명성) | [03-global-hud](./03-global-hud.md) |
 | 4 | Settlement 씬/UI 스텁 + 다음 날 | [04-settlement-stub](./04-settlement-stub.md) |
 | 5 | 씬 로드 + Lead API 연동 | [05-scene-flow](./05-scene-flow.md) |

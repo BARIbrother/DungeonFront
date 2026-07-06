@@ -43,13 +43,14 @@
 ### 기계 type `machineTypeId`
 
 - `01-core-loop.md`의 **type**과 동일한 문자열 (한글 허용 — 기획 문서와 1:1 대응)
-- MVP: `채굴기`, `용광로`, `모루`
+- MVP 10종 전체: [planning/03-machine-plan.md](planning/03-machine-plan.md)
+- 철 체인 예: `채굴기`, `용광로`, `제작기`, `창고`
 
 ### 기계 정의 `machineDefId`
 
 - **티어까지 포함**한 정적 정의 ID
 - 형식: `{machineTypeId}_{tier}` (tier는 1부터)
-- MVP 예: `채굴기_1`, `용광로_1`, `모루_1` (수동 모루 = tier 1)
+- MVP 예: `채굴기_1`, `용광로_1`, `제작기_1` (수동 제작대 = tier 1), `창고_1`
 
 ### 기계 인스턴스 `instanceId`
 
@@ -59,7 +60,7 @@
 ### 레시피 `recipeId`
 
 - 형식: `{machineTypeId}_{outputItemId}` 또는 출력이 겹치면 suffix 추가
-- MVP 예: `채굴기_iron_ore`, `용광로_iron`, `모루_iron_rod`, `모루_iron_plate`
+- MVP 예: `채굴기_iron_ore`, `용광로_iron`, `제작기_iron_rod`, `제작기_iron_plate`
 
 ### 의뢰 `questId`
 
@@ -94,10 +95,10 @@
 | `id` | string | `machineDefId` |
 | `machineTypeId` | string | type (`채굴기` 등) |
 | `tier` | int | 티어 (1 = 최저) |
-| `displayName` | string | 티어 이름 (예: 수동 모루) |
+| `displayName` | string | 티어 이름 (예: 수동 제작대) |
 | `prefab` | GameObject | 배치용 프리팹 참조 |
 | `recipeIds` | string[] | 이 기계가 선택 가능한 레시피 |
-| `requiresManualWork` | bool | 수작업(클릭) 여부 — 모루 true |
+| `requiresManualWork` | bool | 수작업(클릭) 여부 — 제작기·창고 true |
 
 ### RecipeDefinition
 
@@ -300,7 +301,7 @@ public class SaveData
 
 ## MVP 데이터 목록 (기준)
 
-`01-core-loop.md`와 동기화. SO·Database 초기 데이터 작성 시 참고.
+`01-core-loop.md`·[planning/03-machine-plan.md](planning/03-machine-plan.md)와 동기화. SO·Database 초기 데이터 작성 시 참고.
 
 ### 시작 지급
 
@@ -308,7 +309,8 @@ public class SaveData
 |--------------|------|
 | `채굴기_1` | 1 |
 | `용광로_1` | 1 |
-| `모루_1` | 1 |
+| `제작기_1` | 1 |
+| `창고_1` | 1 |
 
 ### 레시피 (요약)
 
@@ -316,8 +318,8 @@ public class SaveData
 |----------|---------------|------|------|---------------|------------------|
 | `채굴기_iron_ore` | `채굴기` | — | iron_ore ×1 | 30 | 0 |
 | `용광로_iron` | `용광로` | iron_ore ×1 | iron ×1 | 15 | 0 |
-| `모루_iron_rod` | `모루` | iron ×1 | iron_rod ×1 | 0 | 5 |
-| `모루_iron_plate` | `모루` | iron ×1 | iron_plate ×1 | 0 | 5 |
+| `제작기_iron_rod` | `제작기` | iron ×1 | iron_rod ×1 | 0 | 5 |
+| `제작기_iron_plate` | `제작기` | iron ×1 | iron_plate ×1 | 0 | 5 |
 
 ### 의뢰
 
