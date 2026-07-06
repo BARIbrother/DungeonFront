@@ -373,6 +373,7 @@ GameObject:
   - component: {fileID: 821514144}
   - component: {fileID: 821514143}
   - component: {fileID: 821514146}
+  - component: {fileID: 821514147}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -393,7 +394,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   gridManager: {fileID: 2133904198}
+  playerInventory: {fileID: 821514147}
   animator: {fileID: 821514146}
+  key1MachineItem: {fileID: 11400000, guid: d116ff2fbec594546bffb40878cee973, type: 2}
+  key2MachineItem: {fileID: 11400000, guid: d116ff2fbec594546bffb40878cee973, type: 2}
+  key3MachineItem: {fileID: 11400000, guid: 93307e8deb70f47cd84eb03865df9681, type: 2}
   pixelsPerSecond: 64
   pixelsPerUnit: 32
 --- !u!212 &821514144
@@ -494,6 +499,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &821514147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821514142}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3071358b7c4b2144a01aea97e34944e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
 --- !u!1 &982987820
 GameObject:
   m_ObjectHideFlags: 0
@@ -666,6 +683,53 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &1971306877
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1971306879}
+  - component: {fileID: 1971306878}
+  m_Layer: 0
+  m_Name: PlacementManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1971306878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1971306877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c4f83ef1651f4067b81e05d41e6ffb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlacementController
+  gridManager: {fileID: 2133904198}
+  playerInventory: {fileID: 821514147}
+  mainCamera: {fileID: 519420031}
+--- !u!4 &1971306879
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1971306877}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 539.67346, y: 137.1986, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2133904196
 GameObject:
   m_ObjectHideFlags: 0
@@ -780,3 +844,4 @@ SceneRoots:
   - {fileID: 821514145}
   - {fileID: 982987822}
   - {fileID: 3141592653589793201}
+  - {fileID: 1971306879}

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3188b21b206c4552848d56916d014e9, type: 3}
   m_Name: Minor
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
-  id: 
-  displayName: 
+  id: Minor
+  displayName: "\uCC44\uAD74\uAE30"
   icon: {fileID: 0}
   category: 0
-  machinePrefab: {fileID: 0}
+  machinePrefab: {fileID: 7012345678901234001, guid: c1d2e3f4a5b647899011223344556677, type: 3}

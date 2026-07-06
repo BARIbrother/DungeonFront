@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3188b21b206c4552848d56916d014e9, type: 3}
   m_Name: Smelter
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
-  id: 
-  displayName: 
+  id: Smelter
+  displayName: "\uC6A9\uAD11\uB85C"
   icon: {fileID: 0}
   category: 0
-  machinePrefab: {fileID: 0}
+  machinePrefab: {fileID: 9012345678901234001, guid: d4e5f6a7b80911223344556677889900, type: 3}
