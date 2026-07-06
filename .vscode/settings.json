@@ -12,5 +12,6 @@
     "Assets/*.asset": true,
     "Assets/*.inputactions": true,
     "**/*.meta": true
-  }
+  },
+  "dotnet.defaultSolution": "DungeonFront.slnx"
 }
