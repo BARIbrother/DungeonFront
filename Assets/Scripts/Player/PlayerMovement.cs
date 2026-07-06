@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
@@ -15,6 +16,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private ItemDef_Machine key1MachineItem;
     [SerializeField] private ItemDef_Machine key2MachineItem;
     [SerializeField] private ItemDef_Machine key3MachineItem;
+    // 4키로 철광석 노드 배치 모드를 토글한다.
+    private bool isResourceNodePlacementMode;
     // 초당 이동 픽셀 수
     [SerializeField] private float pixelsPerSecond = 96f;
     // 픽셀당 월드 유닛 (GridManager PixelsPerUnit 기본값)
@@ -60,6 +63,17 @@ public class PlayerMovement : MonoBehaviour
             {
                 TryAddMachineItem(key3MachineItem);
             }
+
+            if (keyboard.digit4Key.wasPressedThisFrame)
+            {
+                isResourceNodePlacementMode = !isResourceNodePlacementMode;
+                Debug.Log($"[PlayerMovement] 철광석 노드 배치 모드: {(isResourceNodePlacementMode ? "ON" : "OFF")}");
+            }
+        }
+
+        if (isResourceNodePlacementMode)
+        {
+            TryPlaceResourceNodeAtMouse();
         }
 
         if (input.sqrMagnitude > 1f)
@@ -109,6 +123,43 @@ public class PlayerMovement : MonoBehaviour
         animator.SetBool(IsMovingHash, isMoving);
         animator.SetFloat(MoveXHash, facing.x);
         animator.SetFloat(MoveYHash, facing.y);
+    }
+
+    // 4키 배치 모드에서 마우스가 가리키는 그리드 칸에 철광석 노드를 놓는다.
+    private void TryPlaceResourceNodeAtMouse()
+    {
+        if (gridManager == null)
+        {
+            return;
+        }
+
+        Mouse mouse = Mouse.current;
+        if (mouse == null || !mouse.leftButton.wasPressedThisFrame)
+        {
+            return;
+        }
+
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+
+        Camera camera = Camera.main;
+        if (camera == null)
+        {
+            return;
+        }
+
+        Vector3 screen = mouse.position.ReadValue();
+        screen.z = -camera.transform.position.z;
+        Vector3 mouseWorld = camera.ScreenToWorldPoint(screen);
+        mouseWorld.z = 0f;
+
+        Vector2Int gridCoord = gridManager.WorldToGrid(mouseWorld);
+        if (gridManager.TryPlaceResourceNode(gridCoord))
+        {
+            Debug.Log($"[PlayerMovement] 철광석 노드 배치 성공: ({gridCoord.x}, {gridCoord.y})");
+        }
     }
 
     // ItemDef_Machine 정의로 인벤토리에 기계 인스턴스 1개 추가한다.

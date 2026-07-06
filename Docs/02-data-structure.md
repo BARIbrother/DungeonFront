@@ -80,6 +80,19 @@
 에셋은 `Assets/` 아래 기획용 폴더에 둔다 (코드는 `Assets/Scripts/`).  
 각 SO는 **`id` 필드 하나로** 런타임·세이브에서 조회한다.
 
+### 계약 에셋 (팀 병렬 개발용)
+
+역할 간 SO 참조 의존을 막기 위해 **id 고정** 경로. 상세: [dev-plan/dev-contract.md](dev-plan/dev-contract.md)
+
+| 경로 | 용도 | 소유 |
+|------|------|------|
+| `Assets/Data/Contracts/Items/` | Quest·레시피가 공통 참조하는 Item | Lead |
+| `Assets/Data/Contracts/Machines/` | NewGame 시작 기계 4종 | Lead |
+| `Assets/Data/Quests/` | Quest SO | Dev2 |
+| `Assets/Data/Items/` | Lead 전용 확장 Item | Lead |
+
+Dev2 Quest SO는 **`Contracts/Items`만** 참조한다.
+
 ### ItemDefinition
 
 | 필드 | 타입 | 설명 |
@@ -262,6 +275,7 @@ public enum MachinePlacement
 
 - 파일명 예: `save_slot_0.json`
 - `GameSessionState`에서 직렬화 가능한 필드만 `[Serializable]` DTO로 복사
+- **W4 병렬 전 `SaveData` 시그니처 동결** — Dev1 DTO, Dev2는 `quests[]` 직렬화만 ([dev-plan/dev-contract.md](dev-plan/dev-contract.md))
 - Unity `JsonUtility`는 `Dictionary` 미지원 → 인벤 등은 **`ItemGroup`** (`List<ItemGroupEntry>`)으로 변환
 
 ```csharp

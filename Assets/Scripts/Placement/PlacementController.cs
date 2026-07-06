@@ -14,8 +14,10 @@ public class PlacementController : MonoBehaviour
     private PlacementPreview placementPreview;
     private MachineInventoryEntry selectedMachine;
     private bool isPlacementMode;
+    private bool isPickupMode;
 
     public bool IsPlacementMode => isPlacementMode;
+    public bool IsPickupMode => isPickupMode;
     public MachineInventoryEntry SelectedMachine => selectedMachine;
 
     public event Action<bool> OnPlacementModeChanged;
@@ -95,7 +97,18 @@ public class PlacementController : MonoBehaviour
 
         UpdatePlacementPreview();
 
-        if (!isPlacementMode || selectedMachine == null || gridManager == null)
+        if (!isPlacementMode)
+        {
+            return;
+        }
+
+        if (isPickupMode)
+        {
+            TryPickupMachineAtMouse();
+            return;
+        }
+
+        if (selectedMachine == null || gridManager == null)
         {
             return;
         }
@@ -117,7 +130,7 @@ public class PlacementController : MonoBehaviour
         }
 
         Vector3 mouseWorld = GetMouseWorldPosition();
-        if (gridManager.TryPlaceMachine(selectedMachine.definition.machinePrefab, mouseWorld))
+        if (gridManager.TryPlaceMachine(selectedMachine.definition.machinePrefab, mouseWorld, selectedMachine))
         {
             playerInventory.TryRemoveMachine(selectedMachine.instanceId, out _);
             selectedMachine = null;
@@ -125,6 +138,68 @@ public class PlacementController : MonoBehaviour
             OnInventoryChanged?.Invoke();
             placementUI.Refresh();
         }
+    }
+
+    // 회수 모드에서 마우스가 가리키는 맵 기계를 인벤으로 되돌린다.
+    private void TryPickupMachineAtMouse()
+    {
+        if (gridManager == null || playerInventory == null)
+        {
+            return;
+        }
+
+        Mouse mouse = Mouse.current;
+        if (mouse == null || !mouse.leftButton.wasPressedThisFrame)
+        {
+            return;
+        }
+
+        if (IsPointerOverUi())
+        {
+            return;
+        }
+
+        Vector3 mouseWorld = GetMouseWorldPosition();
+        if (!gridManager.TryGetMachineAtWorldPosition(mouseWorld, out Machine machine))
+        {
+            return;
+        }
+
+        if (TryPickupMachine(machine))
+        {
+            OnInventoryChanged?.Invoke();
+            placementUI.Refresh();
+        }
+    }
+
+    // 맵 기계를 회수해 인벤으로 되돌린다. 성공 시 true.
+    public bool TryPickupMachine(Machine machine)
+    {
+        if (machine == null || gridManager == null || playerInventory == null)
+        {
+            return false;
+        }
+
+        MachineInventoryEntry entry = machine.CreateInventoryEntryForPickup();
+        if (entry == null)
+        {
+            return false;
+        }
+
+        TransferMachineContentsToInventory(machine);
+
+        if (!gridManager.TryRemoveMachine(machine))
+        {
+            return false;
+        }
+
+        playerInventory.ReturnMachine(entry);
+        return true;
+    }
+
+    // 추후 구현 예정: 기계 내부 inputPort·outputPort 아이템을 플레이어 인벤으로 반환한다.
+    private void TransferMachineContentsToInventory(Machine machine)
+    {
     }
 
     private void UpdatePlacementPreview()
@@ -135,6 +210,7 @@ public class PlacementController : MonoBehaviour
         }
 
         bool shouldShow = isPlacementMode
+            && !isPickupMode
             && selectedMachine != null
             && selectedMachine.definition != null
             && selectedMachine.definition.machinePrefab != null
@@ -161,6 +237,8 @@ public class PlacementController : MonoBehaviour
             return;
         }
 
+        SetPickupMode(false);
+
         foreach (MachineInventoryEntry machine in playerInventory.Machines)
         {
             if (machine.instanceId == instanceId)
@@ -172,6 +250,30 @@ public class PlacementController : MonoBehaviour
         }
     }
 
+    // PlacementUI 회수 버튼에서 회수 모드를 토글한다.
+    public void TogglePickupMode()
+    {
+        if (!isPlacementMode)
+        {
+            return;
+        }
+
+        SetPickupMode(!isPickupMode);
+    }
+
+    private void SetPickupMode(bool active)
+    {
+        isPickupMode = active;
+
+        if (active)
+        {
+            selectedMachine = null;
+            placementPreview?.Hide();
+        }
+
+        placementUI.Refresh();
+    }
+
     private void SetPlacementMode(bool active)
     {
         isPlacementMode = active;
@@ -179,6 +281,7 @@ public class PlacementController : MonoBehaviour
         if (!active)
         {
             selectedMachine = null;
+            isPickupMode = false;
             placementPreview?.Hide();
         }
 

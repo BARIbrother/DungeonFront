@@ -311,8 +311,46 @@ public class GridManager : MonoBehaviour
         return TryPlaceMachine(minerMachinePrefab, worldPosition);
     }
 
+    // worldPosition이 가리키는 그리드 셀에 배치된 기계를 반환한다.
+    public bool TryGetMachineAtWorldPosition(Vector3 worldPosition, out Machine machine)
+    {
+        machine = null;
+        Vector2Int gridCoord = WorldToGrid(worldPosition);
+
+        if (!IsInBounds(gridCoord.x, gridCoord.y))
+        {
+            return false;
+        }
+
+        GridCell cell = GetCell(gridCoord);
+        if (cell.Occupant == null)
+        {
+            return false;
+        }
+
+        machine = cell.Occupant.GetComponent<Machine>();
+        return machine != null;
+    }
+
+    // 맵에서 기계를 제거하고 그리드 점유를 해제한다. 성공 시 true.
+    public bool TryRemoveMachine(Machine machine)
+    {
+        if (machine == null)
+        {
+            return false;
+        }
+
+        Vector2Int anchor = machine.GridAnchor;
+        Vector2Int footprintSize = machine.GetFootprintSize();
+        ClearFootprint(anchor, footprintSize);
+        placedMachines.Remove(machine);
+        TickManager.Instance?.UnregisterMachine(machine);
+        Destroy(machine.gameObject);
+        return true;
+    }
+
     // worldPosition(마우스 등) 중심으로 기계를 배치한다. 성공 시 true.
-    public bool TryPlaceMachine(GameObject machinePrefab, Vector3 worldPosition)
+    public bool TryPlaceMachine(GameObject machinePrefab, Vector3 worldPosition, MachineInventoryEntry inventoryEntry = null)
     {
         if (machinePrefab == null)
         {
@@ -349,7 +387,13 @@ public class GridManager : MonoBehaviour
         }
 
         machine.Initialize(anchor);
+        if (inventoryEntry != null)
+        {
+            machine.BindInventoryEntry(inventoryEntry);
+        }
+
         placedMachines.Add(machine);
+        TickManager.Instance?.RegisterMachine(machine);
 
         OccupyFootprint(anchor, footprintSize, instance, machine.GetOccupantKind());
 
@@ -380,6 +424,22 @@ public class GridManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    // footprint 영역의 그리드 점유를 해제한다.
+    private void ClearFootprint(Vector2Int anchor, Vector2Int footprintSize)
+    {
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                Vector2Int coord = new Vector2Int(anchor.x + x, anchor.y + y);
+                GridCell cell = GetCell(coord);
+                cell.Occupant = null;
+                cell.OccupantKind = default;
+                SetCell(coord, cell);
+            }
+        }
     }
 
     // footprint 영역 전체 셀이 같은 occupant GameObject를 가리키도록 기록한다.

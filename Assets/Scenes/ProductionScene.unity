@@ -397,7 +397,7 @@ MonoBehaviour:
   playerInventory: {fileID: 821514147}
   animator: {fileID: 821514146}
   key1MachineItem: {fileID: 11400000, guid: d116ff2fbec594546bffb40878cee973, type: 2}
-  key2MachineItem: {fileID: 11400000, guid: d116ff2fbec594546bffb40878cee973, type: 2}
+  key2MachineItem: {fileID: 11400000, guid: 98a7336176fbf4a9ca69078fdfb7fe00, type: 2}
   key3MachineItem: {fileID: 11400000, guid: 93307e8deb70f47cd84eb03865df9681, type: 2}
   pixelsPerSecond: 64
   pixelsPerUnit: 32

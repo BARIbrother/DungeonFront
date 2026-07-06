@@ -8,16 +8,20 @@ using UnityEngine.UI;
 public class PlacementUI : MonoBehaviour
 {
     [SerializeField] private float panelHeight = 120f;
+    [SerializeField] private float pickupBarHeight = 40f;
     [SerializeField] private float slideSpeed = 900f;
 
     private PlacementController placementController;
     private PlayerInventory playerInventory;
     private Canvas canvas;
+    private RectTransform slideRootRect;
     private RectTransform panelRect;
     private RectTransform contentRect;
+    private Image pickupButtonImage;
     private readonly List<GameObject> machineButtons = new();
     private bool isVisible;
     private float targetAnchoredY;
+    private float slideHeight;
     private string selectedInstanceId;
 
     public void Initialize(PlacementController controller, PlayerInventory inventory)
@@ -38,24 +42,24 @@ public class PlacementUI : MonoBehaviour
 
     private void Update()
     {
-        if (panelRect == null)
+        if (slideRootRect == null)
         {
             return;
         }
 
-        Vector2 anchoredPosition = panelRect.anchoredPosition;
+        Vector2 anchoredPosition = slideRootRect.anchoredPosition;
         anchoredPosition.y = Mathf.MoveTowards(anchoredPosition.y, targetAnchoredY, slideSpeed * Time.deltaTime);
-        panelRect.anchoredPosition = anchoredPosition;
+        slideRootRect.anchoredPosition = anchoredPosition;
     }
 
     public void SetVisible(bool visible, bool instant = false)
     {
         isVisible = visible;
-        targetAnchoredY = visible ? 0f : -panelHeight;
+        targetAnchoredY = visible ? 0f : -slideHeight;
 
-        if (instant && panelRect != null)
+        if (instant && slideRootRect != null)
         {
-            panelRect.anchoredPosition = new Vector2(0f, targetAnchoredY);
+            slideRootRect.anchoredPosition = new Vector2(0f, targetAnchoredY);
         }
     }
 
@@ -75,6 +79,21 @@ public class PlacementUI : MonoBehaviour
         {
             CreateMachineButton(machine);
         }
+
+        RefreshPickupButton();
+    }
+
+    private void RefreshPickupButton()
+    {
+        if (pickupButtonImage == null || placementController == null)
+        {
+            return;
+        }
+
+        bool isPickupMode = placementController.IsPickupMode;
+        pickupButtonImage.color = isPickupMode
+            ? new Color(0.75f, 0.35f, 0.25f, 1f)
+            : new Color(0.2f, 0.22f, 0.28f, 1f);
     }
 
     private void EnsureUiHierarchy()
@@ -95,14 +114,64 @@ public class PlacementUI : MonoBehaviour
         canvasObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920f, 1080f);
         canvasObject.AddComponent<GraphicRaycaster>();
 
+        slideHeight = panelHeight + pickupBarHeight;
+
+        var slideRootObject = new GameObject("PlacementSlideRoot");
+        slideRootObject.transform.SetParent(canvasObject.transform, false);
+        slideRootRect = slideRootObject.AddComponent<RectTransform>();
+        slideRootRect.anchorMin = new Vector2(0f, 0f);
+        slideRootRect.anchorMax = new Vector2(1f, 0f);
+        slideRootRect.pivot = new Vector2(0.5f, 0f);
+        slideRootRect.sizeDelta = new Vector2(0f, slideHeight);
+        slideRootRect.anchoredPosition = new Vector2(0f, -slideHeight);
+
+        var pickupBarObject = new GameObject("PickupBar");
+        pickupBarObject.transform.SetParent(slideRootObject.transform, false);
+        var pickupBarRect = pickupBarObject.AddComponent<RectTransform>();
+        pickupBarRect.anchorMin = new Vector2(0f, 0f);
+        pickupBarRect.anchorMax = new Vector2(1f, 0f);
+        pickupBarRect.pivot = new Vector2(0.5f, 0f);
+        pickupBarRect.sizeDelta = new Vector2(0f, pickupBarHeight);
+        pickupBarRect.anchoredPosition = new Vector2(0f, panelHeight);
+
+        var pickupButtonObject = new GameObject("PickupButton");
+        pickupButtonObject.transform.SetParent(pickupBarObject.transform, false);
+        var pickupButtonRect = pickupButtonObject.AddComponent<RectTransform>();
+        pickupButtonRect.anchorMin = new Vector2(0f, 0.5f);
+        pickupButtonRect.anchorMax = new Vector2(0f, 0.5f);
+        pickupButtonRect.pivot = new Vector2(0f, 0.5f);
+        pickupButtonRect.anchoredPosition = new Vector2(12f, 0f);
+        pickupButtonRect.sizeDelta = new Vector2(96f, pickupBarHeight - 8f);
+
+        pickupButtonImage = pickupButtonObject.AddComponent<Image>();
+        pickupButtonImage.color = new Color(0.2f, 0.22f, 0.28f, 1f);
+
+        var pickupButton = pickupButtonObject.AddComponent<Button>();
+        pickupButton.onClick.AddListener(() => placementController.TogglePickupMode());
+
+        var pickupLabelObject = new GameObject("Label");
+        pickupLabelObject.transform.SetParent(pickupButtonObject.transform, false);
+        var pickupLabelRect = pickupLabelObject.AddComponent<RectTransform>();
+        pickupLabelRect.anchorMin = Vector2.zero;
+        pickupLabelRect.anchorMax = Vector2.one;
+        pickupLabelRect.offsetMin = Vector2.zero;
+        pickupLabelRect.offsetMax = Vector2.zero;
+
+        var pickupLabel = pickupLabelObject.AddComponent<Text>();
+        pickupLabel.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        pickupLabel.fontSize = 16;
+        pickupLabel.alignment = TextAnchor.MiddleCenter;
+        pickupLabel.color = Color.white;
+        pickupLabel.text = "회수";
+
         var panelObject = new GameObject("PlacementPanel");
-        panelObject.transform.SetParent(canvasObject.transform, false);
+        panelObject.transform.SetParent(slideRootObject.transform, false);
         panelRect = panelObject.AddComponent<RectTransform>();
         panelRect.anchorMin = new Vector2(0f, 0f);
         panelRect.anchorMax = new Vector2(1f, 0f);
         panelRect.pivot = new Vector2(0.5f, 0f);
         panelRect.sizeDelta = new Vector2(0f, panelHeight);
-        panelRect.anchoredPosition = new Vector2(0f, -panelHeight);
+        panelRect.anchoredPosition = Vector2.zero;
 
         var panelImage = panelObject.AddComponent<Image>();
         panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.92f);

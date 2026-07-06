@@ -11,7 +11,7 @@
 | 항목 | 값 |
 |------|-----|
 | 속도 | 10 tick/s |
-| 생산 | 3000 tick = 5분 (Dev 타이머 동기) |
+| 생산 | 3000 tick = 5분 (Dev1 타이머 동기, W3 `IFactoryProduction` 연동) |
 
 ### 프레임워크
 
@@ -25,8 +25,15 @@
 
 채굴기(노드) → 용광로 → 제작기. [06-outputter](./06-outputter.md) 또는 **수동 투입**으로 연결.
 
+### Dev1 계약 (W2 스텁 · W3 본격)
+
+- [ ] `IFactoryProduction` — `StartTick()`, `StopTick()`, `IsRunning` 인터페이스 정의
+- [ ] W2: Dev1 `StartProduction()` 없이 Lead 테스트 씬에서 틱 단독 검증 OK
+- [ ] W3: Dev1 `OnPhaseChanged(Production)` → `StartTick()` 연동
+
 ### 완료 기준
 
 - [ ] Production 중 채굴기 틱으로 iron_ore 출력
 - [ ] 용광로·제작기 연결 (수동 투입 OK)
 - [ ] Production 종료 시 틱 정지
+- [ ] `IFactoryProduction` 스텁 구현체 존재

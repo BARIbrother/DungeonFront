@@ -232,11 +232,12 @@
 - `../01-core-loop.md` — 일차·레시피·의뢰 (기획이 채움)
 - `../02-data-structure.md` — SO·세이브 스키마
 - `../99-further_implementation.md` — MVP 이후 보류 항목
-- `dev-gaps.md` — **미정 항목·공백** (사고 플레이 점검, 직접 채움)
+- `dev-contract.md` — **팀 간 API·에셋 계약**
+- `dev-gaps.md` — 미정 항목
 - `lead-plan.md` — **Lead 3주** (W1 완료 · W2~3에 구 4~7주 압축)
 - `week1.md` — 1주차 개요
 - `week2/week2.md` — 2주차 개요 (Dev·Art = 구 7주 2주)
 - `week3/week3.md` — 3주차 개요 (Dev·Art = 구 7주 3주)
 - `week1-lead/` · `week2-lead/` · `week3-lead/` — Lead Issue
-- `week1-dev/` · `week2-dev/` · `week3-dev/` — Dev Issue
+- `week1-dev/` · `week2-dev1/` · `week2-dev2/` · `week3-dev/` — Dev Issue (W2부터 Dev1/Dev2 분리)
 - `week1-art/` · `week2-art/` · `week3-art/` — Art Issue

@@ -1,6 +1,6 @@
 # Week 2 — Lead Issue
 
-> 상위: [week2.md](../week2.md)
+> 상위: [week2.md](../week2.md) · [parallel-roadmap.md](../../parallel-roadmap.md)
 
 | 파일 | Issue 제목 |
 |------|------------|
@@ -11,4 +11,6 @@
 | [04-machines-6plus.md](./04-machines-6plus.md) | `[Week2][Lead] 기계 6종+ Prefab` |
 | [05-wip-malfunction.md](./05-wip-malfunction.md) | `[Week2][Lead] WIP·고장·수리` |
 | [06-outputter.md](./06-outputter.md) | `[Week2][Lead] 출력기 (전방향 포트 접근)` |
-| [07-team-integration.md](./07-team-integration.md) | `[Week2][Lead] Dev·Art 연동` |
+| [07-team-integration.md](./07-team-integration.md) | `[Week2][Lead] 통합 게이트` |
+
+통합: [team-integration.md](../team-integration.md)

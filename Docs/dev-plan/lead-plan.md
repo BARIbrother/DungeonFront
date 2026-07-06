@@ -73,6 +73,6 @@ Issue: [week1/week1-lead/](./week1/week1-lead/)
 ## 관련 문서
 
 - [week1/week1-lead/](./week1/week1-lead/) — 1주 (완료)
-- [week2/week2.md](./week2/week2.md) — 2주 개요 · [week2-lead/](./week2/week2-lead/) · [week2-dev/](./week2/week2-dev/) · [week2-art/](./week2/week2-art/)
+- [week2/week2.md](./week2/week2.md) — 2주 개요 · [week2-lead/](./week2/week2-lead/) · [week2-dev1/](./week2/week2-dev1/) · [week2-dev2/](./week2/week2-dev2/) · [week2-art/](./week2/week2-art/)
 - [week3/week3.md](./week3/week3.md) — 3주 개요 · [week3-lead/](./week3/week3-lead/) · [week3-dev/](./week3/week3-dev/) · [week3-art/](./week3/week3-art/)
 - [03-machine-plan.md](../03-machine-plan.md) — 기계 목록

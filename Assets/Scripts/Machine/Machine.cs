@@ -11,7 +11,13 @@ public abstract class Machine : MonoBehaviour
     // GridManager가 배치한 footprint 좌하단 anchor
     private Vector2Int gridAnchor;
 
+    // 배치 시 인벤 MachineInventoryEntry와 연결해 회수 시 동일 instanceId를 복원한다.
+    private string inventoryInstanceId;
+    private ItemDef_Machine machineDefinition;
+
     public Vector2Int GridAnchor => gridAnchor;
+    public bool HasInventoryBinding =>
+        !string.IsNullOrEmpty(inventoryInstanceId) && machineDefinition != null;
 
     // 배치·점유 계산에 쓰는 footprint 크기. 서브클래스에서 고정값을 반환한다.
     public virtual Vector2Int GetFootprintSize() => size;
@@ -29,6 +35,33 @@ public abstract class Machine : MonoBehaviour
     public void Initialize(Vector2Int anchor)
     {
         gridAnchor = anchor;
+    }
+
+    // PlacementController가 배치 직후 인벤 엔트리를 연결한다.
+    public void BindInventoryEntry(MachineInventoryEntry entry)
+    {
+        if (entry == null)
+        {
+            return;
+        }
+
+        inventoryInstanceId = entry.instanceId;
+        machineDefinition = entry.definition;
+    }
+
+    // 회수 시 PlayerInventory로 되돌릴 인벤 엔트리를 만든다.
+    public MachineInventoryEntry CreateInventoryEntryForPickup()
+    {
+        if (!HasInventoryBinding)
+        {
+            return null;
+        }
+
+        return new MachineInventoryEntry
+        {
+            instanceId = inventoryInstanceId,
+            definition = machineDefinition,
+        };
     }
 
     // footprint의 coord 칸에 이 기계를 배치할 수 있는지 확인한다.

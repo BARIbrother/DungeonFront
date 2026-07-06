@@ -104,4 +104,16 @@ public class PlayerInventory : MonoBehaviour
 
         return false;
     }
+
+    // 맵에서 회수한 기계 인스턴스를 인벤에 되돌린다.
+    public void ReturnMachine(MachineInventoryEntry entry)
+    {
+        if (entry == null || entry.definition == null)
+        {
+            return;
+        }
+
+        machines.Add(entry);
+        OnMachinesChanged?.Invoke();
+    }
 }

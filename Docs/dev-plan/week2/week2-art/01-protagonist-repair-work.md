@@ -18,7 +18,7 @@ Factory **고장 수리**·**수작업(제작기 클릭)** 시 탑다운 모션.
 ### Lead 연동
 
 - [ ] Animator 파라미터명 전달 (예: `Repair`, `Work`, `Facing`)
-- [ ] `Assets/Art/Player/` import
+- [ ] `Assets/Art/Characters/Protagonist/` import
 
 ### 완료 기준
 

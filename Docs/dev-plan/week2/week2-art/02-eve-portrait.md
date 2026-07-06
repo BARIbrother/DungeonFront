@@ -18,12 +18,12 @@
 | 배경 | 투명 |
 | 파일명 | `eve_portrait.png` |
 
-### 전달
+### 전달 (drop zone)
 
-- [ ] `Assets/Art/UI/` — Dev 대화 UI (Week 4 본격 연동 전 **파일 전달**)
+- [ ] `Assets/Art/UI/Portraits/eve_portrait.png` — Dev2 의뢰 UI (Week 4 대화 UI 전 **파일 전달**)
 - [ ] 팀 채널 공유
 
 ### 완료 기준
 
 - [ ] PNG 1종, 가이드 팔레트 일치
-- [ ] Dev import 가능
+- [ ] Dev2 import 가능
