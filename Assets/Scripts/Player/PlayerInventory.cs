@@ -1,9 +1,14 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerInventory : MonoBehaviour
 {
     private readonly Dictionary<string, int> items = new();
+    private readonly List<MachineInventoryEntry> machines = new();
+
+    public IReadOnlyList<MachineInventoryEntry> Machines => machines;
+    public event Action OnMachinesChanged;
 
     public void Add(ItemEntry entry)
     {
@@ -59,5 +64,44 @@ public class PlayerInventory : MonoBehaviour
         }
 
         return removed;
+    }
+
+    // ItemDef_Machine 정의로 인벤에 기계 인스턴스 1개를 추가한다.
+    public void AddMachine(ItemDef_Machine definition)
+    {
+        MachineInventoryEntry entry = MachineInventoryEntry.Create(definition);
+        if (entry == null)
+        {
+            return;
+        }
+
+        machines.Add(entry);
+        OnMachinesChanged?.Invoke();
+    }
+
+    // instanceId에 해당하는 기계를 인벤에서 제거한다. 성공 시 true.
+    public bool TryRemoveMachine(string instanceId, out MachineInventoryEntry removed)
+    {
+        removed = null;
+
+        if (string.IsNullOrEmpty(instanceId))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < machines.Count; i++)
+        {
+            if (machines[i].instanceId != instanceId)
+            {
+                continue;
+            }
+
+            removed = machines[i];
+            machines.RemoveAt(i);
+            OnMachinesChanged?.Invoke();
+            return true;
+        }
+
+        return false;
     }
 }

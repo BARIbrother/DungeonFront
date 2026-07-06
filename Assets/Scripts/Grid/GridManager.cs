@@ -45,6 +45,10 @@ public class GridManager : MonoBehaviour
     public float PixelsPerUnit => pixelsPerUnit;
     public float CellSize => tilePixelSize / pixelsPerUnit;
 
+    public GameObject MinerMachinePrefab => minerMachinePrefab;
+    public GameObject SmelterMachinePrefab => smelterMachinePrefab;
+    public GameObject AssemblerMachinePrefab => assemblerMachinePrefab;
+
     // 셀 데이터가 변경될 때 발생한다. TilemapRenderer 등이 구독한다.
     public event Action<Vector2Int, GridCell> CellChanged;
 

@@ -8,8 +8,13 @@ public class PlayerMovement : MonoBehaviour
     private static readonly int MoveYHash = Animator.StringToHash("MoveY");
 
     [SerializeField] private GridManager gridManager;
-    [SerializeField] private Camera mainCamera;
+    [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private Animator animator;
+
+    // 디버그용 기계 정의 SO. 1·2·3키로 인벤에 1개씩 추가한다.
+    [SerializeField] private ItemDef_Machine key1MachineItem;
+    [SerializeField] private ItemDef_Machine key2MachineItem;
+    [SerializeField] private ItemDef_Machine key3MachineItem;
     // 초당 이동 픽셀 수
     [SerializeField] private float pixelsPerSecond = 96f;
     // 픽셀당 월드 유닛 (GridManager PixelsPerUnit 기본값)
@@ -39,29 +44,21 @@ public class PlayerMovement : MonoBehaviour
             if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) input.y -= 1f;
         }
 
-        if (keyboard != null && keyboard.digit1Key.wasPressedThisFrame && gridManager != null)
+        if (keyboard != null)
         {
-            Vector2Int playerGrid = gridManager.WorldToGrid(transform.position);
-            gridManager.TryPlaceResourceNode(playerGrid);
-        }
-
-        if (keyboard != null && gridManager != null)
-        {
-            Vector3 mouseWorld = GetMouseWorldPosition();
+            if (keyboard.digit1Key.wasPressedThisFrame)
+            {
+                TryAddMachineItem(key1MachineItem);
+            }
 
             if (keyboard.digit2Key.wasPressedThisFrame)
             {
-                gridManager.TryPlaceSmelterMachine(mouseWorld);
+                TryAddMachineItem(key2MachineItem);
             }
 
             if (keyboard.digit3Key.wasPressedThisFrame)
             {
-                gridManager.TryPlaceAssemblerMachine(mouseWorld);
-            }
-
-            if (keyboard.digit4Key.wasPressedThisFrame)
-            {
-                gridManager.TryPlaceMinerMachine(mouseWorld);
+                TryAddMachineItem(key3MachineItem);
             }
         }
 
@@ -114,25 +111,52 @@ public class PlayerMovement : MonoBehaviour
         animator.SetFloat(MoveYHash, facing.y);
     }
 
-    // 마우스 스크린 좌표를 XY 평면 월드 좌표로 변환한다.
-    private Vector3 GetMouseWorldPosition()
+    // ItemDef_Machine 정의로 인벤토리에 기계 인스턴스 1개 추가한다.
+    private void TryAddMachineItem(ItemDef_Machine definition)
     {
-        Camera camera = mainCamera != null ? mainCamera : Camera.main;
-        if (camera == null)
+        if (definition == null || definition.machinePrefab == null)
         {
-            return transform.position;
+            return;
         }
 
-        Mouse mouse = Mouse.current;
-        if (mouse == null)
+        PlayerInventory inventory = GetPlayerInventory();
+        if (inventory == null)
         {
-            return transform.position;
+            return;
         }
 
-        Vector3 screen = mouse.position.ReadValue();
-        screen.z = -camera.transform.position.z;
-        Vector3 world = camera.ScreenToWorldPoint(screen);
-        world.z = 0f;
-        return world;
+        int countBefore = inventory.Machines.Count;
+        inventory.AddMachine(definition);
+
+        if (inventory.Machines.Count <= countBefore)
+        {
+            return;
+        }
+
+        MachineInventoryEntry added = inventory.Machines[inventory.Machines.Count - 1];
+        Debug.Log($"[PlayerMovement] 기계 지급 성공: {definition.displayName} ({definition.id}), instanceId={added.instanceId}, 인벤 총 {inventory.Machines.Count}대");
+    }
+
+    private PlayerInventory GetPlayerInventory()
+    {
+        if (playerInventory != null)
+        {
+            return playerInventory;
+        }
+
+        playerInventory = GetComponent<PlayerInventory>();
+        if (playerInventory != null)
+        {
+            return playerInventory;
+        }
+
+        playerInventory = FindAnyObjectByType<PlayerInventory>();
+        if (playerInventory != null)
+        {
+            return playerInventory;
+        }
+
+        playerInventory = gameObject.AddComponent<PlayerInventory>();
+        return playerInventory;
     }
 }
