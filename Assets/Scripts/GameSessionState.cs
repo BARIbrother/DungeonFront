@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem; // 새 인풋 시스템 필수
 
 // 타 이슈 연동용 스텁(Stub) 클래스 정의
-public class InventoryState { }
+//public class InventoryState { }
 public class FactoryState { }
 public class AcceptedQuestState { }
 
@@ -15,6 +15,7 @@ public class GameSessionState : MonoBehaviour
 
     // 페이즈 변경을 외부 시스템(Lead/UI)이 감지할 수 있도록 액션 이벤트 제공
     public event Action<GamePhase> OnPhaseChanged;
+    public event Action OnNewGame;
 
     [Header("[임시 UI 오브젝트 연결]")]
     public GameObject orderWindow;      // 의뢰창
@@ -98,7 +99,29 @@ public class GameSessionState : MonoBehaviour
         quests.Clear();                   
         productionEndTime = 0f;
 
+        inventory.machines.Add(new MachineInstanceState
+        {
+            instanceId = Guid.NewGuid().ToString(),
+            machineDefId = "채굴기_1",
+            placement = MachinePlacement.InInventory
+        });
+
+        inventory.machines.Add(new MachineInstanceState
+        {
+            instanceId = Guid.NewGuid().ToString(),
+            machineDefId = "용광로_1",
+            placement = MachinePlacement.InInventory
+        });
+
+        inventory.machines.Add(new MachineInstanceState
+        {
+            instanceId = Guid.NewGuid().ToString(),
+            machineDefId = "모루_1",
+            placement = MachinePlacement.InInventory
+        });
+
         Debug.Log($"[NewGame] 게임 시작 - 일차: {day}, 페이즈: {phase}");
+        Debug.Log($"[NewGame] day={day}, phase={phase}, gold={gold}, reputation={reputation}, machines={inventory.machines.Count}");
         
         // 씬 로드 직후 Hierarchy 창에서 UI 오브젝트들을 자동으로 찾아서 연결합니다.
         FindUIObjectsAutomatically();
@@ -106,6 +129,7 @@ public class GameSessionState : MonoBehaviour
         // 초기 UI 상태 세팅 강제 호출
         ApplyUIState(phase);
         OnPhaseChanged?.Invoke(phase);
+        OnNewGame?.Invoke();
     }
 
     // 페이즈 전환 제어 및 유효성 검사
