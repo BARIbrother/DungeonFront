@@ -342,8 +342,15 @@ public class GridManager : MonoBehaviour
 
         Vector2Int anchor = machine.GridAnchor;
         Vector2Int footprintSize = machine.GetFootprintSize();
+
+        if (machine is ConveyerBelt removedBelt)
+        {
+            removedBelt.ClearNeighbors();
+        }
+
         ClearFootprint(anchor, footprintSize);
         placedMachines.Remove(machine);
+        RefreshBeltNeighborsAtFootprint(anchor, footprintSize);
         TickManager.Instance?.UnregisterMachine(machine);
         Destroy(machine.gameObject);
         return true;
@@ -396,6 +403,7 @@ public class GridManager : MonoBehaviour
         TickManager.Instance?.RegisterMachine(machine);
 
         OccupyFootprint(anchor, footprintSize, instance, machine.GetOccupantKind());
+        RefreshBeltNeighborsForMachine(machine);
 
         return true;
     }
@@ -456,6 +464,44 @@ public class GridManager : MonoBehaviour
                 SetCell(coord, cell);
             }
         }
+    }
+
+    // 기계 배치·제거 시 인접 벨트의 upstream/downstream 캐시를 갱신한다.
+    private void RefreshBeltNeighborsForMachine(Machine machine)
+    {
+        RefreshBeltNeighborsAtFootprint(machine.GridAnchor, machine.GetFootprintSize(), machine);
+    }
+
+    private void RefreshBeltNeighborsAtFootprint(Vector2Int anchor, Vector2Int footprintSize, Machine changedMachine = null)
+    {
+        if (changedMachine is ConveyerBelt placedBelt)
+        {
+            placedBelt.RefreshNeighbors(this);
+        }
+
+        for (int i = 0; i < placedMachines.Count; i++)
+        {
+            if (placedMachines[i] is not ConveyerBelt belt || belt == changedMachine)
+            {
+                continue;
+            }
+
+            Vector2Int upstreamCoord = belt.GridAnchor - belt.FlowDirection;
+            Vector2Int downstreamCoord = belt.GridAnchor + belt.FlowDirection;
+            if (FootprintContainsCoord(anchor, footprintSize, upstreamCoord)
+                || FootprintContainsCoord(anchor, footprintSize, downstreamCoord))
+            {
+                belt.RefreshNeighbors(this);
+            }
+        }
+    }
+
+    private static bool FootprintContainsCoord(Vector2Int anchor, Vector2Int footprintSize, Vector2Int coord)
+    {
+        return coord.x >= anchor.x
+            && coord.x < anchor.x + footprintSize.x
+            && coord.y >= anchor.y
+            && coord.y < anchor.y + footprintSize.y;
     }
 
     // resourceNodesRoot가 없으면 런타임에 빈 부모를 만든다.

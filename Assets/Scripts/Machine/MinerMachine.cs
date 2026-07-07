@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class MinerMachine : Machine
+public class MinerMachine : Machine, IFactoryProduction
 {
     public override Vector2Int GetFootprintSize() => new Vector2Int(1, 1);
 
@@ -36,15 +36,13 @@ public class MinerMachine : Machine
     {
     }
 
-    public override void Tick()
+    public void TickCompleteProduction()
     {
+        CompleteProductionTick();
     }
 
-    public override void PutintoInputPort(ItemEntry IE)
+    public void TickStartProduction()
     {
-    }
-
-    public override void TakeoutOutputPort(ItemEntry IE)
-    {
+        StartProductionTick();
     }
 }

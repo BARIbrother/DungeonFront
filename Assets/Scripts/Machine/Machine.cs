@@ -26,10 +26,88 @@ public abstract class Machine : MonoBehaviour
     public ItemEntryList outputPort;
     public Recipe currentRecipe;
 
+    // 자동 생산 WIP. 시작 시 입력 소비, 완료 시 출력 생성.
+    protected int progressTicks;
+    protected bool hasActiveWip;
+
     public abstract void InitializeMachine();
-    public abstract void Tick();
-    public abstract void PutintoInputPort(ItemEntry IE);
-    public abstract void TakeoutOutputPort(ItemEntry IE);
+
+    public virtual void PutintoInputPort(ItemEntry IE)
+    {
+        inputPort?.TryAddToRecipeInput(IE, currentRecipe);
+    }
+
+    public virtual void TakeoutOutputPort(ItemEntry IE)
+    {
+        outputPort?.TryTake(IE);
+    }
+
+    // 물류 페이즈 훅. 컨베이어 등이 override한다.
+    public virtual void TickLogistics()
+    {
+    }
+
+    // 생산 완료 페이즈 공통 로직.
+    protected void CompleteProductionTick()
+    {
+        if (!hasActiveWip || currentRecipe == null)
+        {
+            return;
+        }
+
+        int duration = currentRecipe.durationByTick;
+        if (progressTicks < duration)
+        {
+            progressTicks++;
+            return;
+        }
+
+        if (outputPort == null || !outputPort.CanFit(currentRecipe.outputEntryList))
+        {
+            return;
+        }
+
+        if (!outputPort.TryAddOutputs(currentRecipe.outputEntryList))
+        {
+            return;
+        }
+
+        progressTicks = 0;
+        hasActiveWip = false;
+    }
+
+    // 생산 시작 페이즈 공통 로직.
+    protected void StartProductionTick()
+    {
+        if (hasActiveWip || currentRecipe == null)
+        {
+            return;
+        }
+
+        if (inputPort == null || !inputPort.MatchesRecipe(currentRecipe))
+        {
+            return;
+        }
+
+        if (outputPort == null || !outputPort.CanFit(currentRecipe.outputEntryList))
+        {
+            return;
+        }
+
+        if (!inputPort.TryConsume(currentRecipe.inputEntryList))
+        {
+            return;
+        }
+
+        hasActiveWip = true;
+        progressTicks = 0;
+    }
+
+    protected void ResetProductionWip()
+    {
+        progressTicks = 0;
+        hasActiveWip = false;
+    }
 
     // GridManager가 배치 직후 그리드 anchor를 주입한다.
     public void Initialize(Vector2Int anchor)
@@ -130,8 +208,9 @@ public abstract class Machine : MonoBehaviour
 
     public virtual void ChangeRecipe(Recipe newRecipe)
     {
-        ReturnPortContentsToPlayerInventory(inputPort);
-        ReturnPortContentsToPlayerInventory(outputPort);
+        var savedInputItems = inputPort != null ? inputPort.CopyAllEntries() : null;
+        var savedOutputItems = outputPort != null ? outputPort.CopyAllEntries() : null;
+        ResetProductionWip();
 
         currentRecipe = newRecipe;
 
@@ -148,6 +227,9 @@ public abstract class Machine : MonoBehaviour
         outputPort.length = outputLength;
         inputPort.Resize();
         outputPort.Resize();
+
+        RestoreInputPortItems(savedInputItems);
+        RestoreOutputPortItems(savedOutputItems);
     }
 
     private void EnsurePortLists()
@@ -161,6 +243,60 @@ public abstract class Machine : MonoBehaviour
         {
             outputPort = new ItemEntryList();
         }
+    }
+
+    private void RestoreInputPortItems(System.Collections.Generic.List<ItemEntry> savedItems)
+    {
+        if (savedItems == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < savedItems.Count; i++)
+        {
+            ItemEntry entry = savedItems[i];
+            if (!inputPort.TryAddToRecipeInput(entry, currentRecipe))
+            {
+                ReturnEntryToPlayerInventory(entry);
+            }
+        }
+    }
+
+    private void RestoreOutputPortItems(System.Collections.Generic.List<ItemEntry> savedItems)
+    {
+        if (savedItems == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < savedItems.Count; i++)
+        {
+            ItemEntry entry = savedItems[i];
+            if (!outputPort.TryAdd(entry))
+            {
+                ReturnEntryToPlayerInventory(entry);
+            }
+        }
+    }
+
+    private void ReturnEntryToPlayerInventory(ItemEntry entry)
+    {
+        if (entry == null || entry.item == null || entry.count <= 0)
+        {
+            return;
+        }
+
+        var inventory = playerInventory != null
+            ? playerInventory
+            : FindAnyObjectByType<PlayerInventory>();
+
+        if (inventory == null)
+        {
+            Debug.LogWarning($"[Machine] 포트 아이템을 플레이어 인벤으로 돌릴 수 없어 손실됨: {entry.item.id} x{entry.count}");
+            return;
+        }
+
+        inventory.Add(entry);
     }
 
     private void ReturnPortContentsToPlayerInventory(ItemEntryList port)
@@ -187,6 +323,12 @@ public abstract class Machine : MonoBehaviour
             ? playerInventory
             : FindAnyObjectByType<PlayerInventory>();
 
-        inventory?.Add(entry);
+        if (inventory == null)
+        {
+            Debug.LogWarning($"[Machine] PlayerInventory가 없어 아이템을 돌릴 수 없음: {entry.item.id} x{entry.count}");
+            return;
+        }
+
+        inventory.Add(entry);
     }
 }
