@@ -115,6 +115,34 @@ public abstract class Machine : MonoBehaviour
         hasActiveWip = false;
     }
 
+    // 맵에서 회수할 때 포트·진행 중 WIP 재료를 플레이어 인벤으로 돌린다.
+    public virtual void ReturnAllContentsToPlayerInventory()
+    {
+        RefundActiveWipToPlayerInventory();
+        ReturnPortContentsToPlayerInventory(inputPort);
+        ReturnPortContentsToPlayerInventory(outputPort);
+        ResetProductionWip();
+    }
+
+    // WIP 진행 중 소비됐던 레시피 입력을 환원한다. 채굴기 등은 override로 비운다.
+    protected virtual void RefundActiveWipToPlayerInventory()
+    {
+        if (!hasActiveWip || currentRecipe?.inputEntryList?.entries == null)
+        {
+            return;
+        }
+
+        foreach (ItemEntry input in currentRecipe.inputEntryList.entries)
+        {
+            if (input == null || input.item == null || input.count <= 0)
+            {
+                continue;
+            }
+
+            AddToPlayerInventory(new ItemEntry { item = input.item, count = input.count });
+        }
+    }
+
     // GridManager가 배치 직후 그리드 anchor를 주입한다.
     public void Initialize(Vector2Int anchor)
     {
@@ -401,7 +429,7 @@ public abstract class Machine : MonoBehaviour
         }
     }
 
-    private void AddToPlayerInventory(ItemEntry entry)
+    protected void AddToPlayerInventory(ItemEntry entry)
     {
         var inventory = playerInventory != null
             ? playerInventory

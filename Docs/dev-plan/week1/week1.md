@@ -1,30 +1,24 @@
-# Week 1 — 개발 계획 (개요)
+# Week 1 — 완료
 
-> `../00-vision.md` · `../01-core-loop.md` · [dev-plan.md](./dev-plan.md)
+> W1 구현 Issue 문서는 삭제됨. 기획 참고만 유지.
 
-## 공통 목표
+## 구현 완료 (코드)
 
-Factory(준비·생산) + Settlement(결산) **하루 1회전** + 기계 10종+ v0.1 + 아트(가이드·주인공 초상·idle/walk).
+| 영역 | 내용 |
+|------|------|
+| Lead | 그리드·Factory 씬·WASD·Prefab 4종·Item/Recipe SO·생산 타이머 UI·배치·생산 틱·벨트·WIP |
+| Dev1 | `GameSessionState`·페이즈·새 게임·씬 흐름(부분)·HUD 참조 |
+| Dev2 | `Quest`·`QuestManager` 골격 |
+| Art | 주인공 모션 placeholder·스타일 가이드 |
 
-## 데모 체크리스트
+## 남은 기획 참고
 
-- [ ] Factory — 탑다운 맵·WASD·철광석 노드
-- [ ] **생산 시작** → 5분 타이머 (카운트)
-- [ ] Prepare → Production → **Settlement** → 다음 날 → Prepare
-- [ ] 새 게임: 인벤 기계 4종, 골드·명성 0
-- [ ] 글로벌 HUD: 일차·페이즈·골드·명성
-- [ ] 기계 10종+ v0.1 ([03-machine-plan.md](../../planning/03-machine-plan.md)) · 스타일 가이드 · 주인공 초상 · idle/walk
+| 문서 | 용도 |
+|------|------|
+| [06-planning-machine-list](./week1-lead/06-planning-machine-list.md) | 기계 10종+ 목록 |
+| [07-planning-quest-story](./week1-lead/07-planning-quest-story.md) | 튜토·스토리·의뢰 수치 |
+| [01-style-guide](./week1-art/01-style-guide.md) | 아트 규격 |
 
-## 역할
+## 후속
 
-| 역할 | 범위 | 문서 |
-|------|------|------|
-| **Lead** | 공장 안 (씬·Prefab·SO·생산 UI) — **W1 완료** | [lead-plan.md](../lead-plan.md) · [week1-lead/](./week1-lead/) |
-| **Dev** | 공장 밖 (세션·결산·씬 흐름·HUD) | [week1-dev.md](./week1-dev.md) |
-| **Art** | 초상화·주인공 모션 | [week1-art.md](./week1-art.md) |
-
-## Issue
-
-| Lead | [week1-lead/](./week1-lead/) |
-| Dev | [week1-dev/](./week1-dev/) |
-| Art | [week1-art/](./week1-art/) |
+[week2](./week2/week2.md) · [week3](./week3/week3.md)

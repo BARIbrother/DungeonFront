@@ -129,6 +129,17 @@ public class ConveyerBelt : Machine
     {
     }
 
+    // 벨트 위 아이템을 인벤으로 돌린 뒤 포트 처리는 생략한다.
+    public override void ReturnAllContentsToPlayerInventory()
+    {
+        if (HasHeldItem)
+        {
+            AddToPlayerInventory(heldItem);
+            heldItem = null;
+            cellProgressTicks = 0;
+        }
+    }
+
     // GridManager가 배치·제거 시 호출해 upstream/downstream을 캐시한다.
     public void RefreshNeighbors(GridManager gridManager)
     {

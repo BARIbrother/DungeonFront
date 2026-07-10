@@ -215,9 +215,15 @@ public class PlacementController : MonoBehaviour
         return true;
     }
 
-    // 추후 구현 예정: 기계 내부 inputPort·outputPort 아이템을 플레이어 인벤으로 반환한다.
+    // 기계 내부 inputPort·outputPort·WIP 재료를 플레이어 인벤으로 반환한다.
     private void TransferMachineContentsToInventory(Machine machine)
     {
+        if (machine == null)
+        {
+            return;
+        }
+
+        machine.ReturnAllContentsToPlayerInventory();
     }
 
     private void UpdatePlacementPreview()

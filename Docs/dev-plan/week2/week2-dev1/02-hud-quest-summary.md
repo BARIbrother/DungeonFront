@@ -5,7 +5,7 @@
 
 ### 이 작업물
 
-[week1 글로벌 HUD](../../week1/week1-dev/03-global-hud.md) 확장.
+`GameSessionState`·`QuestManager` 이벤트 구독으로 의뢰·인벤 요약 표시.
 
 **코드**: `Assets/Scripts/GameFlow/` (예: `GlobalHUD.cs`)
 

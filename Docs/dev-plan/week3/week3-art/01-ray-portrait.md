@@ -7,7 +7,7 @@
 ### 캐릭터
 
 - 이브와 함께 등장하는 **주변 인물**
-- [week2 이브 초상](../../week2/week2-art/02-eve-portrait.md)·[week1 주인공](../../week1/week1-art/02-protagonist-portrait.md)과 동일 화풍
+- [week2 이브 초상](../../week2/week2-art/02-eve-portrait.md)·[01-style-guide](../../week1/week1-art/01-style-guide.md)와 동일 화풍
 
 ### 파일 규격
 

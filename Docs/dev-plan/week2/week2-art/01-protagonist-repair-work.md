@@ -3,7 +3,7 @@
 ### 이 작업물
 
 Factory **고장 수리**·**수작업(제작기 클릭)** 시 탑다운 모션.  
-[week1 03-protagonist-motions](../../week1/week1-art/03-protagonist-motions.md) idle/walk에 **추가**.
+[week2 idle/walk 모션 피드백](../../week2/week2-art/01-protagonist-repair-work.md) 기준으로 idle/walk에 **추가**.
 
 ### 모션 종류
 

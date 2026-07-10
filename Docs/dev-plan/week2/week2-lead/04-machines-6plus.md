@@ -8,7 +8,7 @@ Week 1 시작 4종 + **2종 이상** 추가. **출력기**는 [06-outputter](./0
 
 ### 작업
 
-- [ ] 6종+ `machineTypeId` Prefab ([week1 03-machine-prefabs](../../week1/week1-lead/03-machine-prefabs.md) 규칙)
+- [ ] 6종+ `machineTypeId` Prefab (기존 `Machine`·`PlacementController` 규칙 따름)
 - [ ] 점유 크기 (`Machine.size` / footprint)
 - [ ] **출력기** 1종 반드시 포함
 - [ ] [01-placement-mode](./01-placement-mode.md)로 배치 테스트

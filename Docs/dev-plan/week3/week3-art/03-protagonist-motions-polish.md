@@ -2,7 +2,7 @@
 
 ### 이 작업물
 
-[week1 idle/walk](../../week1/week1-art/03-protagonist-motions.md)·[week2 repair/work](./week2/week2-art/01-protagonist-repair-work.md) **피드백 반영** — 끊김·크기·피벗 수정.
+[week2 repair/work](../../week2/week2-art/01-protagonist-repair-work.md) 피드백 반영 — 끊김·크기·피벗.
 
 ### 보완 항목
 
@@ -20,4 +20,4 @@
 ### 완료 기준
 
 - [ ] Lead가 제기한 **크기·피벗** 이슈 0건 또는 문서화된 잔여만
-- [ ] 업데이트 시트 `Assets/Art/Player/` 반영
+- [ ] 업데이트 시트 `Assets/Art/Characters/Protagonist/` 반영

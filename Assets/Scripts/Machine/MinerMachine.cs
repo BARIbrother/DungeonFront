@@ -249,4 +249,9 @@ public class MinerMachine : Machine, IFactoryProduction
 
         return builder.Length > 0 ? builder.ToString() : "(없음)";
     }
+
+    protected override void RefundActiveWipToPlayerInventory()
+    {
+        // 채굴기는 WIP 시작 시 입력 재료를 소비하지 않는다.
+    }
 }
