@@ -134,11 +134,34 @@ public class GridManager : MonoBehaviour
         return GetCell(coord).Occupant;
     }
 
-    // coord에 배치된 Machine을 반환한다. 없으면 null.
+    // coord에 배치된 Machine을 반환한다. occupant가 없으면 footprint로도 찾는다.
     public Machine GetMachineAt(Vector2Int coord)
     {
         GameObject occupant = GetOccupantAt(coord);
-        return occupant != null ? occupant.GetComponent<Machine>() : null;
+        if (occupant != null)
+        {
+            Machine occupantMachine = occupant.GetComponent<Machine>();
+            if (occupantMachine != null)
+            {
+                return occupantMachine;
+            }
+        }
+
+        for (int i = 0; i < placedMachines.Count; i++)
+        {
+            Machine machine = placedMachines[i];
+            if (machine == null)
+            {
+                continue;
+            }
+
+            if (FootprintContainsCoord(machine.GridAnchor, machine.GetFootprintSize(), coord))
+            {
+                return machine;
+            }
+        }
+
+        return null;
     }
 
     // 그리드 좌표 (x, y)를 월드 좌표로 변환한다. tilePivot·CellSize·plane을 반영한다.
@@ -357,7 +380,11 @@ public class GridManager : MonoBehaviour
     }
 
     // worldPosition(마우스 등) 중심으로 기계를 배치한다. 성공 시 true.
-    public bool TryPlaceMachine(GameObject machinePrefab, Vector3 worldPosition, MachineInventoryEntry inventoryEntry = null)
+    public bool TryPlaceMachine(
+        GameObject machinePrefab,
+        Vector3 worldPosition,
+        MachineInventoryEntry inventoryEntry = null,
+        Vector2Int? beltFlowDirection = null)
     {
         if (machinePrefab == null)
         {
@@ -398,6 +425,14 @@ public class GridManager : MonoBehaviour
         {
             machine.BindInventoryEntry(inventoryEntry);
         }
+
+        if (beltFlowDirection.HasValue && machine is ConveyerBelt placedBelt)
+        {
+            placedBelt.SetFlowDirection(beltFlowDirection.Value);
+        }
+
+        // 배치 직후 기계별 초기화 훅 호출 (예: 드릴의 전용 레시피 자동 설정).
+        machine.InitializeMachine();
 
         placedMachines.Add(machine);
         TickManager.Instance?.RegisterMachine(machine);

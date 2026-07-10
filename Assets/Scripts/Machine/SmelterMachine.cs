@@ -11,6 +11,7 @@ public class SmelterMachine : Machine, IFactoryProduction
 
     public override void InitializeMachine()
     {
+        ApplySelectedRecipe();
     }
 
     public void TickCompleteProduction()

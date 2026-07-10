@@ -7,22 +7,88 @@ public class ConveyerBelt : Machine
     [SerializeField] private Vector2Int flowDirection = Vector2Int.right;
 
     private ItemEntry heldItem;
-    private int progressTicks;
+    private int cellProgressTicks;
     private ConveyerBeltItemView itemView;
     private GridManager cachedGridManager;
-    private Machine upstreamMachine;
-    private Machine downstreamMachine;
+    // 디버깅용. flowDirection 기준 이전(입구) 기계. RefreshNeighbors가 갱신한다.
+    [SerializeField] private Machine upstreamMachine;
+    // 디버깅용. flowDirection 기준 다음(출구) 기계. RefreshNeighbors가 갱신한다.
+    [SerializeField] private Machine downstreamMachine;
 
     public Vector2Int FlowDirection => flowDirection;
+
+    // 배치 시 R키 회전 등으로 flowDirection을 설정한다. 스프라이트도 같은 각도로 돌린다.
+    public void SetFlowDirection(Vector2Int direction)
+    {
+        if (direction == Vector2Int.zero)
+        {
+            return;
+        }
+
+        flowDirection = direction;
+        transform.rotation = Quaternion.Euler(0f, 0f, GetVisualRotationZ(direction));
+    }
+
+    // 시계 방향으로 한 칸 회전한 flowDirection을 반환한다.
+    public static Vector2Int RotateFlowDirectionClockwise(Vector2Int direction)
+    {
+        if (direction == Vector2Int.right)
+        {
+            return Vector2Int.down;
+        }
+
+        if (direction == Vector2Int.down)
+        {
+            return Vector2Int.left;
+        }
+
+        if (direction == Vector2Int.left)
+        {
+            return Vector2Int.up;
+        }
+
+        if (direction == Vector2Int.up)
+        {
+            return Vector2Int.right;
+        }
+
+        return Vector2Int.right;
+    }
+
+    // 오른쪽을 가리키는 스프라이트를 flowDirection에 맞게 돌릴 Z 각도.
+    public static float GetVisualRotationZ(Vector2Int direction)
+    {
+        if (direction == Vector2Int.right)
+        {
+            return 0f;
+        }
+
+        if (direction == Vector2Int.down)
+        {
+            return -90f;
+        }
+
+        if (direction == Vector2Int.left)
+        {
+            return 180f;
+        }
+
+        if (direction == Vector2Int.up)
+        {
+            return 90f;
+        }
+
+        return 0f;
+    }
 
     public bool HasHeldItem => heldItem != null && heldItem.item != null && heldItem.count > 0;
 
     public ItemDefinition HeldItemDefinition => heldItem?.item;
 
     // 벨트 칸 내 진행도 (0=입구, TicksPerCell=출구). 시각화에 사용한다.
-    public int ProgressTicks => progressTicks;
+    public int ProgressTicks => cellProgressTicks;
 
-    public float NormalizedProgress => HasHeldItem ? progressTicks / (float)TicksPerCell : 0f;
+    public float NormalizedProgress => HasHeldItem ? cellProgressTicks / (float)TicksPerCell : 0f;
 
     public override Vector2Int GetFootprintSize() => new Vector2Int(1, 1);
 
@@ -31,6 +97,22 @@ public class ConveyerBelt : Machine
     private void Awake()
     {
         size = GetFootprintSize();
+
+        if (inputPort == null)
+        {
+            inputPort = new ItemEntryList();
+        }
+
+        if (outputPort == null)
+        {
+            outputPort = new ItemEntryList();
+        }
+
+        inputPort.length = 1;
+        outputPort.length = 1;
+        inputPort.Resize();
+        outputPort.Resize();
+
         itemView = GetComponent<ConveyerBeltItemView>();
         if (itemView == null)
         {
@@ -67,6 +149,25 @@ public class ConveyerBelt : Machine
         downstreamMachine = gridManager.GetMachineAt(downstreamCoord);
     }
 
+    // pull/push 직전에 flowDirection 기준 이웃 기계 캐시를 그리드에서 다시 읽는다.
+    private void RefreshNeighborMachinesFromGrid()
+    {
+        GridManager gridManager = GetGridManager();
+        if (gridManager == null)
+        {
+            upstreamMachine = null;
+            downstreamMachine = null;
+            return;
+        }
+
+        Vector2Int upstreamCoord = GridAnchor - flowDirection;
+        Vector2Int downstreamCoord = GridAnchor + flowDirection;
+
+        Machine upstream = gridManager.GetMachineAt(upstreamCoord);
+        upstreamMachine = upstream != null && upstream is not ConveyerBelt ? upstream : null;
+        downstreamMachine = gridManager.GetMachineAt(downstreamCoord);
+    }
+
     public void ClearNeighbors()
     {
         upstreamMachine = null;
@@ -81,18 +182,18 @@ public class ConveyerBelt : Machine
             return;
         }
 
-        if (progressTicks >= TicksPerCell)
+        if (cellProgressTicks >= TicksPerCell)
         {
             if (TryPushToDownstream())
             {
                 heldItem = null;
-                progressTicks = 0;
+                cellProgressTicks = 0;
             }
 
             return;
         }
 
-        progressTicks++;
+        cellProgressTicks++;
     }
 
     // 물류 틱이 모두 끝난 뒤 TickManager가 호출한다.
@@ -146,13 +247,20 @@ public class ConveyerBelt : Machine
     // 다운스트림 벨트·기계로 아이템을 넘긴다. 입구(progress 0)에서만 수신한다.
     public bool ReceiveItem(ItemEntry item, ConveyerBelt sourceBelt = null)
     {
-        if (HasHeldItem || item == null || item.item == null || item.count <= 0)
+        if (HasHeldItem)
         {
+            Debug.Log($"[ConveyerBelt] 수신 거부 @ {GridAnchor} : 이미 아이템 보유 중");
+            return false;
+        }
+
+        if (item == null || item.item == null || item.count <= 0)
+        {
+            Debug.Log($"[ConveyerBelt] 수신 거부 @ {GridAnchor} : 유효하지 않은 아이템");
             return false;
         }
 
         heldItem = new ItemEntry { item = item.item, count = item.count };
-        progressTicks = 0;
+        cellProgressTicks = 0;
 
         if (sourceBelt != null)
         {
@@ -165,28 +273,53 @@ public class ConveyerBelt : Machine
         }
 
         itemView?.ApplyItemSprite(item.item);
+        string sourceName = sourceBelt != null ? sourceBelt.name : "unknown";
+        Debug.Log($"[ConveyerBelt] 수신 성공 @ {GridAnchor} : {DescribeItemEntry(item)} from {sourceName}");
         return true;
     }
 
     // 캐시된 upstream 기계 outputPort에서만 당긴다.
     private void TryPullFromUpstreamMachine()
     {
-        if (upstreamMachine?.outputPort == null)
+        RefreshNeighborMachinesFromGrid();
+
+        if (upstreamMachine == null)
         {
+            GridManager gridManager = GetGridManager();
+            Vector2Int upstreamCoord = GridAnchor - flowDirection;
+            GameObject occupant = gridManager != null ? gridManager.GetOccupantAt(upstreamCoord) : null;
+            string downstreamHint = downstreamMachine != null
+                ? $", downstream={downstreamMachine.name}"
+                : string.Empty;
+            Debug.Log(
+                $"[ConveyerBelt] pull 스킵 @ {GridAnchor} : upstream 기계 없음 "
+                + $"(upstreamCoord={upstreamCoord}, flow={flowDirection}, occupant={DescribeOccupant(occupant)}{downstreamHint})");
+            return;
+        }
+
+        if (upstreamMachine.outputPort == null)
+        {
+            Debug.Log($"[ConveyerBelt] pull 스킵 @ {GridAnchor} : upstream outputPort 없음 ({upstreamMachine.name})");
             return;
         }
 
         if (upstreamMachine.outputPort.TryTakeFirst(out ItemEntry taken))
         {
             heldItem = taken;
-            progressTicks = 0;
+            cellProgressTicks = 0;
             itemView?.InheritWorldPosition(GetItemWorldPosition(0f));
             itemView?.ApplyItemSprite(taken.item);
+            Debug.Log($"[ConveyerBelt] pull 성공 @ {GridAnchor} : {DescribeItemEntry(taken)} from {upstreamMachine.name}");
+            return;
         }
+
+        Debug.Log($"[ConveyerBelt] pull 실패 @ {GridAnchor} : outputPort 비어 있음 ({upstreamMachine.name}, slots={upstreamMachine.outputPort.length})");
     }
 
     private bool TryPushToDownstream()
     {
+        RefreshNeighborMachinesFromGrid();
+
         if (downstreamMachine == null)
         {
             return false;
@@ -225,5 +358,40 @@ public class ConveyerBelt : Machine
         }
 
         return worldFlow.normalized;
+    }
+
+    private static string DescribeItemEntry(ItemEntry entry)
+    {
+        if (entry?.item == null || entry.count <= 0)
+        {
+            return "(없음)";
+        }
+
+        string itemName = string.IsNullOrEmpty(entry.item.displayName)
+            ? entry.item.id
+            : entry.item.displayName;
+        return $"{itemName} x{entry.count}";
+    }
+
+    private static string DescribeOccupant(GameObject occupant)
+    {
+        if (occupant == null)
+        {
+            return "없음";
+        }
+
+        Machine machine = occupant.GetComponent<Machine>();
+        if (machine == null)
+        {
+            return $"{occupant.name} (Machine 아님)";
+        }
+
+        string typeName = machine.GetType().Name;
+        if (machine is ConveyerBelt)
+        {
+            return $"{occupant.name} ({typeName}, upstream pull 대상 아님)";
+        }
+
+        return $"{occupant.name} ({typeName})";
     }
 }

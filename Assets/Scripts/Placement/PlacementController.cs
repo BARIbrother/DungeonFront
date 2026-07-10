@@ -15,6 +15,8 @@ public class PlacementController : MonoBehaviour
     private MachineInventoryEntry selectedMachine;
     private bool isPlacementMode;
     private bool isPickupMode;
+    // 컨베이어 선택 시 R키로 바꿀 배치 방향. 기본은 오른쪽.
+    private Vector2Int pendingBeltFlowDirection = Vector2Int.right;
 
     public bool IsPlacementMode => isPlacementMode;
     public bool IsPickupMode => isPickupMode;
@@ -118,6 +120,11 @@ public class PlacementController : MonoBehaviour
             return;
         }
 
+        if (keyboard != null && keyboard.rKey.wasPressedThisFrame && IsSelectedConveyerBelt())
+        {
+            pendingBeltFlowDirection = ConveyerBelt.RotateFlowDirectionClockwise(pendingBeltFlowDirection);
+        }
+
         Mouse mouse = Mouse.current;
         if (mouse == null || !mouse.leftButton.wasPressedThisFrame)
         {
@@ -130,11 +137,22 @@ public class PlacementController : MonoBehaviour
         }
 
         Vector3 mouseWorld = GetMouseWorldPosition();
-        if (gridManager.TryPlaceMachine(selectedMachine.definition.machinePrefab, mouseWorld, selectedMachine))
+        Vector2Int? beltFlowDirection = IsSelectedConveyerBelt() ? pendingBeltFlowDirection : null;
+        if (gridManager.TryPlaceMachine(
+            selectedMachine.definition.machinePrefab,
+            mouseWorld,
+            selectedMachine,
+            beltFlowDirection))
         {
+            string placedDefinitionId = selectedMachine.definition.id;
             playerInventory.TryRemoveMachine(selectedMachine.instanceId, out _);
-            selectedMachine = null;
-            placementPreview?.Hide();
+            selectedMachine = FindFirstMachineOfType(placedDefinitionId);
+
+            if (selectedMachine == null)
+            {
+                placementPreview?.Hide();
+            }
+
             OnInventoryChanged?.Invoke();
             placementUI.Refresh();
         }
@@ -226,28 +244,29 @@ public class PlacementController : MonoBehaviour
         placementPreview.UpdatePreview(
             gridManager,
             selectedMachine.definition.machinePrefab,
-            GetMouseWorldPosition());
+            GetMouseWorldPosition(),
+            IsSelectedConveyerBelt() ? pendingBeltFlowDirection : null);
     }
 
-    // Dev 인벤 UI·PlacementUI에서 기계 행 클릭 시 호출한다.
-    public void SelectMachine(string instanceId)
+    // PlacementUI에서 기계 종류 버튼 클릭 시 호출한다.
+    public void SelectMachineDefinition(string definitionId)
     {
-        if (!isPlacementMode || playerInventory == null || string.IsNullOrEmpty(instanceId))
+        if (!isPlacementMode || playerInventory == null || string.IsNullOrEmpty(definitionId))
         {
             return;
         }
 
         SetPickupMode(false);
 
-        foreach (MachineInventoryEntry machine in playerInventory.Machines)
+        MachineInventoryEntry machine = FindFirstMachineOfType(definitionId);
+        if (machine == null)
         {
-            if (machine.instanceId == instanceId)
-            {
-                selectedMachine = machine;
-                placementUI.Refresh();
-                return;
-            }
+            return;
         }
+
+        ResetPendingBeltFlowDirectionIfNeeded(machine.definition);
+        selectedMachine = machine;
+        placementUI.Refresh();
     }
 
     // PlacementUI 회수 버튼에서 회수 모드를 토글한다.
@@ -282,6 +301,7 @@ public class PlacementController : MonoBehaviour
         {
             selectedMachine = null;
             isPickupMode = false;
+            ResetPendingBeltFlowDirection();
             placementPreview?.Hide();
         }
 
@@ -352,5 +372,43 @@ public class PlacementController : MonoBehaviour
         Vector3 world = camera.ScreenToWorldPoint(screen);
         world.z = 0f;
         return world;
+    }
+
+    private bool IsSelectedConveyerBelt()
+    {
+        return selectedMachine?.definition?.machinePrefab?.GetComponent<ConveyerBelt>() != null;
+    }
+
+    private void ResetPendingBeltFlowDirection()
+    {
+        pendingBeltFlowDirection = Vector2Int.right;
+    }
+
+    // 컨베이어 연속 배치 시 회전을 유지하고, 다른 종류 선택 시에만 초기화한다.
+    private void ResetPendingBeltFlowDirectionIfNeeded(ItemDef_Machine newDefinition)
+    {
+        bool newIsBelt = newDefinition?.machinePrefab?.GetComponent<ConveyerBelt>() != null;
+        if (!newIsBelt || !IsSelectedConveyerBelt())
+        {
+            ResetPendingBeltFlowDirection();
+        }
+    }
+
+    private MachineInventoryEntry FindFirstMachineOfType(string definitionId)
+    {
+        if (playerInventory == null || string.IsNullOrEmpty(definitionId))
+        {
+            return null;
+        }
+
+        foreach (MachineInventoryEntry machine in playerInventory.Machines)
+        {
+            if (machine?.definition != null && machine.definition.id == definitionId)
+            {
+                return machine;
+            }
+        }
+
+        return null;
     }
 }

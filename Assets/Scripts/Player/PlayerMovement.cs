@@ -12,11 +12,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private Animator animator;
 
-    // 디버그용 기계 정의 SO. 1·2·3키로 인벤에 1개씩 추가한다.
+    // 디버그용 기계 정의 SO. 1·2·3·4키로 인벤에 1개씩 추가한다.
     [SerializeField] private ItemDef_Machine key1MachineItem;
     [SerializeField] private ItemDef_Machine key2MachineItem;
     [SerializeField] private ItemDef_Machine key3MachineItem;
-    // 4키로 철광석 노드 배치 모드를 토글한다.
+    [SerializeField] private ItemDef_Machine key4MachineItem;
+    // 0키로 철광석 노드 배치 모드를 토글한다.
     private bool isResourceNodePlacementMode;
     // 초당 이동 픽셀 수
     [SerializeField] private float pixelsPerSecond = 96f;
@@ -64,10 +65,15 @@ public class PlayerMovement : MonoBehaviour
                 TryAddMachineItem(key3MachineItem);
             }
 
-            if (keyboard.digit4Key.wasPressedThisFrame)
+            if (keyboard.digit0Key.wasPressedThisFrame)
             {
                 isResourceNodePlacementMode = !isResourceNodePlacementMode;
                 Debug.Log($"[PlayerMovement] 철광석 노드 배치 모드: {(isResourceNodePlacementMode ? "ON" : "OFF")}");
+            }
+
+            if (keyboard.digit4Key.wasPressedThisFrame)
+            {
+                TryAddMachineItem(key4MachineItem);
             }
         }
 
@@ -125,7 +131,7 @@ public class PlayerMovement : MonoBehaviour
         animator.SetFloat(MoveYHash, facing.y);
     }
 
-    // 4키 배치 모드에서 마우스가 가리키는 그리드 칸에 철광석 노드를 놓는다.
+    // 0키 배치 모드에서 마우스가 가리키는 그리드 칸에 철광석 노드를 놓는다.
     private void TryPlaceResourceNodeAtMouse()
     {
         if (gridManager == null)

@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff78e7977d68e6e4c92531d3559c200b, type: 3}
-  m_Name: Iron_ore
+  m_Name: Iron_ingot
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
-  id: iron_ore
-  displayName: Iron ore
-  icon: {fileID: 21300000, guid: 8de1d99a7a6d952439cbbbc1951915fe, type: 3}
+  id: iron_bar
+  displayName: Iron bar
+  icon: {fileID: 21300000, guid: fa307116f4fc87145b38857daa8c172a, type: 3}
   category: 0

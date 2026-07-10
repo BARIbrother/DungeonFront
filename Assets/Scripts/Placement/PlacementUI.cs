@@ -22,7 +22,7 @@ public class PlacementUI : MonoBehaviour
     private bool isVisible;
     private float targetAnchoredY;
     private float slideHeight;
-    private string selectedInstanceId;
+    private string selectedDefinitionId;
 
     public void Initialize(PlacementController controller, PlayerInventory inventory)
     {
@@ -73,11 +73,34 @@ public class PlacementUI : MonoBehaviour
         ClearMachineButtons();
 
         MachineInventoryEntry selectedMachine = placementController != null ? placementController.SelectedMachine : null;
-        selectedInstanceId = selectedMachine != null ? selectedMachine.instanceId : null;
+        selectedDefinitionId = selectedMachine?.definition != null ? selectedMachine.definition.id : null;
+
+        var groupedMachines = new List<(ItemDef_Machine definition, int count)>();
+        var indexByDefinitionId = new Dictionary<string, int>();
 
         foreach (MachineInventoryEntry machine in playerInventory.Machines)
         {
-            CreateMachineButton(machine);
+            if (machine?.definition == null || string.IsNullOrEmpty(machine.definition.id))
+            {
+                continue;
+            }
+
+            string definitionId = machine.definition.id;
+            if (indexByDefinitionId.TryGetValue(definitionId, out int index))
+            {
+                (ItemDef_Machine definition, int count) entry = groupedMachines[index];
+                groupedMachines[index] = (entry.definition, entry.count + 1);
+            }
+            else
+            {
+                indexByDefinitionId[definitionId] = groupedMachines.Count;
+                groupedMachines.Add((machine.definition, 1));
+            }
+        }
+
+        foreach ((ItemDef_Machine definition, int count) group in groupedMachines)
+        {
+            CreateMachineButton(group.definition, group.count);
         }
 
         RefreshPickupButton();
@@ -234,26 +257,26 @@ public class PlacementUI : MonoBehaviour
         eventSystemObject.AddComponent<InputSystemUIInputModule>();
     }
 
-    private void CreateMachineButton(MachineInventoryEntry machine)
+    private void CreateMachineButton(ItemDef_Machine definition, int count)
     {
-        if (machine?.definition == null)
+        if (definition == null)
         {
             return;
         }
 
-        var buttonObject = new GameObject($"Machine_{machine.instanceId}");
+        var buttonObject = new GameObject($"Machine_{definition.id}");
         buttonObject.transform.SetParent(contentRect, false);
 
         var buttonRect = buttonObject.AddComponent<RectTransform>();
         buttonRect.sizeDelta = new Vector2(96f, 96f);
 
         var buttonImage = buttonObject.AddComponent<Image>();
-        bool isSelected = machine.instanceId == selectedInstanceId;
+        bool isSelected = definition.id == selectedDefinitionId;
         buttonImage.color = isSelected ? new Color(0.35f, 0.55f, 0.85f, 1f) : new Color(0.2f, 0.22f, 0.28f, 1f);
 
         var button = buttonObject.AddComponent<Button>();
-        string instanceId = machine.instanceId;
-        button.onClick.AddListener(() => placementController.SelectMachine(instanceId));
+        string definitionId = definition.id;
+        button.onClick.AddListener(() => placementController.SelectMachineDefinition(definitionId));
 
         var labelObject = new GameObject("Label");
         labelObject.transform.SetParent(buttonObject.transform, false);
@@ -268,7 +291,7 @@ public class PlacementUI : MonoBehaviour
         label.fontSize = 14;
         label.alignment = TextAnchor.MiddleCenter;
         label.color = Color.white;
-        label.text = machine.definition.displayName;
+        label.text = $"{definition.displayName}\nx{count}";
         label.horizontalOverflow = HorizontalWrapMode.Wrap;
         label.verticalOverflow = VerticalWrapMode.Truncate;
 

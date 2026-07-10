@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 // Production 틱 진행. 그리드에 배치된 기계 목록을 유지하고 페이즈별로 틱을 호출한다.
 public class TickManager : MonoBehaviour
@@ -52,6 +53,8 @@ public class TickManager : MonoBehaviour
             GameSessionState.Instance.OnPhaseChanged -= HandlePhaseChanged;
             GameSessionState.Instance.OnPhaseChanged += HandlePhaseChanged;
         }
+
+        Debug.Log("[TickManager] T 키로 생산 틱을 시작/정지합니다.");
     }
 
     private void OnEnable()
@@ -80,6 +83,8 @@ public class TickManager : MonoBehaviour
 
     private void Update()
     {
+        HandleStartTickInput();
+
         if (!isRunning)
         {
             return;
@@ -115,11 +120,49 @@ public class TickManager : MonoBehaviour
         machinesOnGrid.Remove(machine);
     }
 
-    public void StartTick()
+    // T키로 생산 틱을 시작/정지한다.
+    private void HandleStartTickInput()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null || !keyboard.tKey.wasPressedThisFrame)
+        {
+            return;
+        }
+
+        if (isRunning)
+        {
+            StopTick();
+            Debug.Log("[TickManager] 생산 틱 정지 (T)");
+            return;
+        }
+
+        if (GameSessionState.Instance != null)
+        {
+            if (GameSessionState.Instance.Phase == GamePhase.Prepare)
+            {
+                GameSessionState.Instance.StartProduction();
+            }
+            else
+            {
+                StartTick(resetProductionCounter: false);
+            }
+        }
+        else
+        {
+            StartTick();
+        }
+
+        Debug.Log("[TickManager] 생산 틱 시작 (T)");
+    }
+
+    public void StartTick(bool resetProductionCounter = true)
     {
         isRunning = true;
         tickAccumulator = 0f;
-        productionTick = 0;
+        if (resetProductionCounter)
+        {
+            productionTick = 0;
+        }
     }
 
     public void StopTick()

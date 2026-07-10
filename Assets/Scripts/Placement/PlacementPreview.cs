@@ -19,8 +19,12 @@ public class PlacementPreview : MonoBehaviour
         }
     }
 
-    // mouseWorld 기준으로 고스트 위치·색(가능/불가)을 갱신한다.
-    public void UpdatePreview(GridManager gridManager, GameObject machinePrefab, Vector3 mouseWorld)
+    // mouseWorld 기준으로 고스트 위치·색(가능/불가)을 갱신한다. beltFlowDirection은 컨베이어 미리보기 회전에 쓴다.
+    public void UpdatePreview(
+        GridManager gridManager,
+        GameObject machinePrefab,
+        Vector3 mouseWorld,
+        Vector2Int? beltFlowDirection = null)
     {
         if (gridManager == null || machinePrefab == null)
         {
@@ -47,6 +51,9 @@ public class PlacementPreview : MonoBehaviour
         bool canPlace = gridManager.CanPlaceFootprintAt(anchor, footprintSize, machine);
 
         ghostObject.transform.position = centerWorld;
+        ghostObject.transform.rotation = beltFlowDirection.HasValue
+            ? Quaternion.Euler(0f, 0f, ConveyerBelt.GetVisualRotationZ(beltFlowDirection.Value))
+            : Quaternion.identity;
         ghostRenderer.color = canPlace ? validColor : invalidColor;
         ghostObject.SetActive(true);
     }

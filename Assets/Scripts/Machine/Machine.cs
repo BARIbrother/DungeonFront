@@ -1,5 +1,6 @@
 using System.Text;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public abstract class Machine : MonoBehaviour
 {
@@ -26,6 +27,10 @@ public abstract class Machine : MonoBehaviour
     public ItemEntryList outputPort;
     public Recipe currentRecipe;
 
+    // 이 기계가 선택할 수 있는 레시피 목록. 그중 하나만 currentRecipe로 사용한다.
+    [SerializeField] private RecipePool AvailableRecipes;
+    [SerializeField] private Recipe selectedRecipe;
+
     // 자동 생산 WIP. 시작 시 입력 소비, 완료 시 출력 생성.
     protected int progressTicks;
     protected bool hasActiveWip;
@@ -47,33 +52,34 @@ public abstract class Machine : MonoBehaviour
     {
     }
 
-    // 생산 완료 페이즈 공통 로직.
-    protected void CompleteProductionTick()
+    // 생산 완료 페이즈 공통 로직. 이번 틱에 출력이 산출되면 true를 반환한다.
+    protected bool CompleteProductionTick()
     {
         if (!hasActiveWip || currentRecipe == null)
         {
-            return;
+            return false;
         }
 
         int duration = currentRecipe.durationByTick;
         if (progressTicks < duration)
         {
             progressTicks++;
-            return;
+            return false;
         }
 
         if (outputPort == null || !outputPort.CanFit(currentRecipe.outputEntryList))
         {
-            return;
+            return false;
         }
 
         if (!outputPort.TryAddOutputs(currentRecipe.outputEntryList))
         {
-            return;
+            return false;
         }
 
         progressTicks = 0;
         hasActiveWip = false;
+        return true;
     }
 
     // 생산 시작 페이즈 공통 로직.
@@ -157,10 +163,33 @@ public abstract class Machine : MonoBehaviour
         EnsureClickCollider();
     }
 
-    // 클릭 시 InputPort·OutputPort 보유 아이템을 콘솔에 출력한다.
+    // 클릭 시 레시피 선택 UI를 띄우거나(지원 기계) 포트 내용을 로그한다.
     private void OnMouseDown()
     {
+        if (IsPointerOverUi() || IsPlacementInteractionBlockingClick())
+        {
+            return;
+        }
+
+        if (SupportsRecipeSelectionUi())
+        {
+            MachineRecipeUI.ShowFor(this);
+            return;
+        }
+
         LogPortContents();
+    }
+
+    private static bool IsPointerOverUi()
+    {
+        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+    }
+
+    // 배치·회수 모드 중에는 기계 클릭을 배치 시스템에 맡긴다.
+    private static bool IsPlacementInteractionBlockingClick()
+    {
+        PlacementController placementController = FindAnyObjectByType<PlacementController>();
+        return placementController != null && placementController.IsPlacementMode;
     }
 
     private void LogPortContents()
@@ -206,8 +235,63 @@ public abstract class Machine : MonoBehaviour
         boxCollider.size = new Vector2(size.x, size.y);
     }
 
+    public RecipePool GetAvailableRecipes() => AvailableRecipes;
+
+    public Recipe GetSelectedRecipe() => selectedRecipe;
+
+    // 레시피 선택 UI를 띄울 수 있는지 여부. 채굴기 등은 override로 막는다.
+    public virtual bool SupportsRecipeSelectionUi()
+    {
+        RecipePool pool = GetAvailableRecipes();
+        return pool != null && pool.recipes != null && pool.recipes.Length > 0;
+    }
+
+    public string GetMachineDisplayName()
+    {
+        if (machineDefinition != null && !string.IsNullOrEmpty(machineDefinition.displayName))
+        {
+            return machineDefinition.displayName;
+        }
+
+        return name;
+    }
+
+    // AvailableRecipes에 포함된 레시피만 선택해 currentRecipe로 적용한다.
+    public virtual void SelectRecipe(Recipe recipe)
+    {
+        if (recipe != null && AvailableRecipes != null && !AvailableRecipes.Contains(recipe))
+        {
+            Debug.LogWarning($"[Machine] 레시피 '{recipe.id}'는 AvailableRecipes에 없습니다.");
+            return;
+        }
+
+        selectedRecipe = recipe;
+        ChangeRecipe(recipe);
+    }
+
+    // selectedRecipe 또는 풀의 첫 레시피를 적용한다.
+    protected void ApplySelectedRecipe()
+    {
+        Recipe recipe = selectedRecipe;
+        if (recipe == null && AvailableRecipes != null)
+        {
+            recipe = AvailableRecipes.GetFirst();
+        }
+
+        if (recipe != null)
+        {
+            SelectRecipe(recipe);
+        }
+    }
+
     public virtual void ChangeRecipe(Recipe newRecipe)
     {
+        if (newRecipe != null && AvailableRecipes != null && !AvailableRecipes.Contains(newRecipe))
+        {
+            Debug.LogWarning($"[Machine] 레시피 '{newRecipe.id}'는 AvailableRecipes에 없습니다.");
+            return;
+        }
+
         var savedInputItems = inputPort != null ? inputPort.CopyAllEntries() : null;
         var savedOutputItems = outputPort != null ? outputPort.CopyAllEntries() : null;
         ResetProductionWip();
