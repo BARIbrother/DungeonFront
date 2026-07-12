@@ -187,6 +187,11 @@ public class ConveyerBelt : Machine
 
     public override void TickLogistics()
     {
+        if (IsBroken)
+        {
+            return;
+        }
+
         if (!HasHeldItem)
         {
             TryPullFromUpstreamMachine();
@@ -260,13 +265,13 @@ public class ConveyerBelt : Machine
     {
         if (HasHeldItem)
         {
-            Debug.Log($"[ConveyerBelt] 수신 거부 @ {GridAnchor} : 이미 아이템 보유 중");
+            // Debug.Log($"[ConveyerBelt] 수신 거부 @ {GridAnchor} : 이미 아이템 보유 중");
             return false;
         }
 
         if (item == null || item.item == null || item.count <= 0)
         {
-            Debug.Log($"[ConveyerBelt] 수신 거부 @ {GridAnchor} : 유효하지 않은 아이템");
+            // Debug.Log($"[ConveyerBelt] 수신 거부 @ {GridAnchor} : 유효하지 않은 아이템");
             return false;
         }
 
@@ -284,8 +289,7 @@ public class ConveyerBelt : Machine
         }
 
         itemView?.ApplyItemSprite(item.item);
-        string sourceName = sourceBelt != null ? sourceBelt.name : "unknown";
-        Debug.Log($"[ConveyerBelt] 수신 성공 @ {GridAnchor} : {DescribeItemEntry(item)} from {sourceName}");
+        // Debug.Log($"[ConveyerBelt] 수신 성공 @ {GridAnchor} : {DescribeItemEntry(item)} from {sourceName}");
         return true;
     }
 
@@ -296,21 +300,15 @@ public class ConveyerBelt : Machine
 
         if (upstreamMachine == null)
         {
-            GridManager gridManager = GetGridManager();
-            Vector2Int upstreamCoord = GridAnchor - flowDirection;
-            GameObject occupant = gridManager != null ? gridManager.GetOccupantAt(upstreamCoord) : null;
-            string downstreamHint = downstreamMachine != null
-                ? $", downstream={downstreamMachine.name}"
-                : string.Empty;
-            Debug.Log(
-                $"[ConveyerBelt] pull 스킵 @ {GridAnchor} : upstream 기계 없음 "
-                + $"(upstreamCoord={upstreamCoord}, flow={flowDirection}, occupant={DescribeOccupant(occupant)}{downstreamHint})");
+            // Debug.Log(
+            //     $"[ConveyerBelt] pull 스킵 @ {GridAnchor} : upstream 기계 없음 "
+            //     + $"(upstreamCoord={upstreamCoord}, flow={flowDirection}, occupant={DescribeOccupant(occupant)}{downstreamHint})");
             return;
         }
 
         if (upstreamMachine.outputPort == null)
         {
-            Debug.Log($"[ConveyerBelt] pull 스킵 @ {GridAnchor} : upstream outputPort 없음 ({upstreamMachine.name})");
+            // Debug.Log($"[ConveyerBelt] pull 스킵 @ {GridAnchor} : upstream outputPort 없음 ({upstreamMachine.name})");
             return;
         }
 
@@ -320,11 +318,11 @@ public class ConveyerBelt : Machine
             cellProgressTicks = 0;
             itemView?.InheritWorldPosition(GetItemWorldPosition(0f));
             itemView?.ApplyItemSprite(taken.item);
-            Debug.Log($"[ConveyerBelt] pull 성공 @ {GridAnchor} : {DescribeItemEntry(taken)} from {upstreamMachine.name}");
+            // Debug.Log($"[ConveyerBelt] pull 성공 @ {GridAnchor} : {DescribeItemEntry(taken)} from {upstreamMachine.name}");
             return;
         }
 
-        Debug.Log($"[ConveyerBelt] pull 실패 @ {GridAnchor} : outputPort 비어 있음 ({upstreamMachine.name}, slots={upstreamMachine.outputPort.length})");
+        // Debug.Log($"[ConveyerBelt] pull 실패 @ {GridAnchor} : outputPort 비어 있음 ({upstreamMachine.name}, slots={upstreamMachine.outputPort.length})");
     }
 
     private bool TryPushToDownstream()

@@ -27,11 +27,34 @@ public class TickManager : MonoBehaviour
     {
         if (FindAnyObjectByType<TickManager>() != null)
         {
+            EnsureProductionEventManager();
             return;
         }
 
         var tickObject = new GameObject("TickManager");
         tickObject.AddComponent<TickManager>();
+        EnsureProductionEventManager();
+    }
+
+    private static void EnsureProductionEventManager()
+    {
+        if (FindAnyObjectByType<ProductionEventManager>() != null)
+        {
+            return;
+        }
+
+        var eventObject = new GameObject("ProductionEventManager");
+        eventObject.AddComponent<ProductionEventManager>();
+    }
+
+    private static ProductionEventManager GetProductionEventManager()
+    {
+        if (ProductionEventManager.Instance != null)
+        {
+            return ProductionEventManager.Instance;
+        }
+
+        return FindAnyObjectByType<ProductionEventManager>();
     }
 
     private void Awake()
@@ -162,6 +185,7 @@ public class TickManager : MonoBehaviour
         if (resetProductionCounter)
         {
             productionTick = 0;
+            GetProductionEventManager()?.NotifyProductionSessionStarted();
         }
     }
 
@@ -260,6 +284,7 @@ public class TickManager : MonoBehaviour
         if (productionTick < ProductionPhaseTicks)
         {
             productionTick++;
+            GetProductionEventManager()?.NotifyProductionTick(productionTick);
         }
     }
 

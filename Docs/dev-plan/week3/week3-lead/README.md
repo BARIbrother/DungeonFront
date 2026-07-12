@@ -9,7 +9,5 @@
 | [03-manual-interaction.md](./03-manual-interaction.md) | `[Week3][Lead] 수작업·운반·회수` |
 | [04-recipe-ui-summary.md](./04-recipe-ui-summary.md) | `[Week3][Lead] 생산 종료 요약` |
 | [05-recipe-data-lock.md](./05-recipe-data-lock.md) | `[Week3][Lead] 레시피·SO lock` |
-| [06-story-hooks.md](./06-story-hooks.md) | `[Week3][Lead] 스토리 트리거·연동` |
-| [07-mvp-integration.md](./07-mvp-integration.md) | `[Week3][Lead] MVP 통합·버그` |
-
-> 벨트·레시피 UI·틱 연동 — 구현 완료 (Issue 삭제)
+| [06-story-hooks.md](./06-story-hooks.md) | `[Week3][Lead] 스토리 트리거` |
+| [07-mvp-integration.md](./07-mvp-integration.md) | `[Week3][Lead] 통합·버그` |

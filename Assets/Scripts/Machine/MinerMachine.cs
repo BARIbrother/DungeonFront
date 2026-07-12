@@ -115,6 +115,11 @@ public class MinerMachine : Machine, IFactoryProduction
 
     public void TickStartProduction()
     {
+        if (IsBroken)
+        {
+            return;
+        }
+
         if (hasActiveWip || currentRecipe == null)
         {
             return;
@@ -132,6 +137,11 @@ public class MinerMachine : Machine, IFactoryProduction
 
     public void TickCompleteProduction()
     {
+        if (IsBroken)
+        {
+            return;
+        }
+
         if (!hasActiveWip || currentRecipe == null)
         {
             return;

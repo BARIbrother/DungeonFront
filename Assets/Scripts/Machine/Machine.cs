@@ -34,6 +34,9 @@ public abstract class Machine : MonoBehaviour
     // 자동 생산 WIP. 시작 시 입력 소비, 완료 시 출력 생성.
     protected int progressTicks;
     protected bool hasActiveWip;
+    private bool isBroken;
+
+    public bool IsBroken => isBroken;
 
     public abstract void InitializeMachine();
 
@@ -50,11 +53,25 @@ public abstract class Machine : MonoBehaviour
     // 물류 페이즈 훅. 컨베이어 등이 override한다.
     public virtual void TickLogistics()
     {
+        if (isBroken)
+        {
+            return;
+        }
+    }
+
+    public void SetBroken(bool broken)
+    {
+        isBroken = broken;
     }
 
     // 생산 완료 페이즈 공통 로직. 이번 틱에 출력이 산출되면 true를 반환한다.
     protected bool CompleteProductionTick()
     {
+        if (isBroken)
+        {
+            return false;
+        }
+
         if (!hasActiveWip || currentRecipe == null)
         {
             return false;
@@ -85,6 +102,11 @@ public abstract class Machine : MonoBehaviour
     // 생산 시작 페이즈 공통 로직.
     protected void StartProductionTick()
     {
+        if (isBroken)
+        {
+            return;
+        }
+
         if (hasActiveWip || currentRecipe == null)
         {
             return;

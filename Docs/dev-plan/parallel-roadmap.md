@@ -80,7 +80,7 @@ gantt
     section Art
     W1 주인공·가이드 ✅         :done, art1, 2026-06-30, 7d
     W2 수리모션·이브초상        :art2, 2026-07-07, 7d
-    W3 레이·네메시스·lock       :art3, after art2, 7d
+    W3 레이·표정·모션보완       :art3, after art2, 7d
 
     section 통합
     W1 통합 ✅                  :milestone, done, 2026-07-04, 1d
@@ -169,7 +169,7 @@ flowchart TB
     end
 
     subgraph Art_W3["Art — 독립"]
-        A3A[레이·네메시스·lock]
+        A3A[레이·표정·모션]
     end
 
     MVP{{"MVP"}}
