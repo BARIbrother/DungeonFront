@@ -1,45 +1,64 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using UnityEngine.InputSystem; // 새 인풋 시스템 필수
+using UnityEngine.InputSystem; 
+using TMPro; 
+using UnityEngine.UI; 
 
-// 타 이슈 연동용 스텁(Stub) 클래스 정의
 public class InventoryState { }
 public class FactoryState { }
-public class AcceptedQuestState { }
+
+[System.Serializable]
+public class AcceptedQuestState 
+{
+    public int questId;
+    public string questName;
+    public AcceptedQuestState(int id, string name) { this.questId = id; this.questName = name; }
+}
 
 public class GameSessionState : MonoBehaviour
 {
-    // 싱글톤 패턴으로 어디서나 접근 가능하게 설정
     public static GameSessionState Instance { get; private set; }
 
-    // 페이즈 변경을 외부 시스템(Lead/UI)이 감지할 수 있도록 액션 이벤트 제공
+    // [체크리스트 명세 연동] 페이즈 변경 및 뉴게임 이벤트
     public event Action<GamePhase> OnPhaseChanged;
+    public event Action OnNewGame; 
 
-    [Header("[임시 UI 오브젝트 연결]")]
-    public GameObject orderWindow;      // 의뢰창
-    public GameObject shopWindow;       // 구매창
-    public GameObject minimapUI;        // 미니맵 UI
-    public GameObject inventoryUI;      // 인벤토리 UI
+    [Header("[테스트 설정]")]
+    [SerializeField] private bool isTestMode = true; 
 
-    [Header("[게임 데이터 필드]")]
-    public int day { get; private set; }
-    public GamePhase phase { get; private set; }
-    public int gold { get; private set; }
-    public int reputation { get; private set; }
+    [Header("[UI 오브젝트 연결]")]
+    public GameObject orderWindow;      
+    public GameObject shopWindow;       
+    public GameObject minimapUI;        
+    public GameObject inventoryUI;      
+    public GameObject settlementUI;    
+
+    [Header("[시각화 UI 텍스트 연결]")]
+    public TextMeshProUGUI dayText;     
+    public TextMeshProUGUI timerText;   
+    public TextMeshProUGUI goldText;    
+    public TextMeshProUGUI reputationText; 
+
+    [Header("[시각화 UI 버튼 연결]")]
+    public Button startProductionButton; 
+    public Button advanceDayButton;      
+
+    [Header("[기획서 명세 데이터 필드]")]
+    public int day { get; private set; } = 1;               
+    public GamePhase phase { get; private set; } = GamePhase.Prepare; 
+    public int gold { get; private set; } = 0;               
+    public int reputation { get; private set; } = 0;         
     
-    // 스텁 필드들
-    public InventoryState inventory { get; private set; }
-    public FactoryState factory { get; private set; }
-    public List<AcceptedQuestState> quests { get; private set; } = new List<AcceptedQuestState>();
+    public InventoryState inventory { get; private set; }   
+    public FactoryState factory { get; private set; }       
+    public List<AcceptedQuestState> quests { get; set; } = new List<AcceptedQuestState>(); 
 
-    // 생산 종료 시간 (타이머 체크용)
-    private float productionEndTime = 0f;
+    private float productionEndTime = 0f;                   
+    private float TargetProductionTime => isTestMode ? 10f : 300f;
 
-    // 외부용 프로퍼티
     public GamePhase Phase => phase;
     
-    // Production일 때만 남은 시간 계산, 아닐 때는 0 반환
     public float ProductionRemainingSeconds
     {
         get
@@ -55,7 +74,7 @@ public class GameSessionState : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // 씬이 넘어가도 데이터가 유지되도록 설정
+            DontDestroyOnLoad(gameObject); 
         }
         else
         {
@@ -65,50 +84,52 @@ public class GameSessionState : MonoBehaviour
 
     private void Start()
     {
-        NewGame();
+        FindUIObjectsAutomatically();
+        UpdateDayText(); 
+        UpdateTimerUI(); 
+        UpdateGoodsUI(); 
+        ApplyUIState(phase);
     }
 
     private void Update()
     {
-        // 1. 생산(Production) 중 매 프레임 타이머 체크
         if (phase == GamePhase.Production)
         {
+            UpdateTimerUI(); 
+
             if (Time.time >= productionEndTime)
             {
-                SetPhase(GamePhase.Settlement); // 시간 만료 시 결산 단계로 자동 전환
+                SetPhase(GamePhase.Settlement); 
             }
         }
 
-        // 2. 준비(Prepare) 단계에서만 키보드 입력으로 창 열고 닫기 허용
-        if (phase == GamePhase.Prepare)
+        if (phase == GamePhase.Prepare || phase == GamePhase.Production)
         {
-            HandlePrepareInput();
+            HandleGlobalInput();
         }
     }
 
-    // 새 게임 시작 기능 (초기 데이터 세팅)
     public void NewGame()
     {
         day = 1;
         phase = GamePhase.Prepare;
-        gold = 0;
-        reputation = 0;
+        gold = 100; 
+        reputation = 10; 
         inventory = new InventoryState(); 
         factory = new FactoryState();     
         quests.Clear();                   
-        productionEndTime = 0f;
+        productionEndTime = 0f; 
 
-        Debug.Log($"[NewGame] 게임 시작 - 일차: {day}, 페이즈: {phase}");
-        
-        // 씬 로드 직후 Hierarchy 창에서 UI 오브젝트들을 자동으로 찾아서 연결합니다.
-        FindUIObjectsAutomatically();
-        
-        // 초기 UI 상태 세팅 강제 호출
+        Debug.Log($"[NewGame] 데이터 리셋 완료");
+        UpdateDayText();
+        UpdateTimerUI();
+        UpdateGoodsUI();
         ApplyUIState(phase);
-        OnPhaseChanged?.Invoke(phase);
+
+        // [체크리스트] OnNewGame 이벤트 발생 -> 외부 스폰 로직 트리거용
+        OnNewGame?.Invoke();
     }
 
-    // 페이즈 전환 제어 및 유효성 검사
     public void SetPhase(GamePhase next)
     {
         bool isValidTransition = false;
@@ -126,65 +147,101 @@ public class GameSessionState : MonoBehaviour
                 break;
         }
 
-        // 유효하지 않은 전환은 차단하고 경고 로그를 남깁니다.
         if (!isValidTransition)
         {
             Debug.LogWarning($"[GameSession] 유효하지 않은 페이즈 전환 시도 거부됨: {phase} -> {next}");
             return;
         }
 
-        // 상태 전환 수행
         phase = next;
+        
+        if (phase != GamePhase.Production)
+        {
+            productionEndTime = 0f;
+        }
+
         Debug.Log($"[GameSession] 페이즈 전환 완료 -> {phase}");
         
-        // 씬 전환이나 리로드 직후에도 정상 작동하도록 UI를 다시 한 번 자동으로 감지합니다.
-        FindUIObjectsAutomatically();
-        
-        // 전환된 페이즈에 따라 UI 상태 적용 및 이벤트 전파
         ApplyUIState(phase);
+        UpdateTimerUI(); 
+        
+        // [체크리스트] 페이즈 변경 이벤트 알림 -> GameFlowController가 수신
         OnPhaseChanged?.Invoke(phase);
     }
 
-    // Hierarchy 계층 구조에서 이름이 일치하는 UI 오브젝트를 자동으로 찾아 연결하는 함수
-    private void FindUIObjectsAutomatically()
-    {
-        // 인스펙터 연결이 Missing(유실)되었거나 비어있을 때만 이름으로 찾습니다.
-        if (orderWindow == null) orderWindow = GameObject.Find("orderWindow");
-        if (shopWindow == null) shopWindow = GameObject.Find("shopWindow");
-        if (minimapUI == null) minimapUI = GameObject.Find("minimapUI");
-        if (inventoryUI == null) inventoryUI = GameObject.Find("inventoryUI");
-    }
+    [Header("[결산 화면 전용 텍스트 추가]")]
+    public TextMeshProUGUI settlementTitleText; // "결산" 또는 "X일차 결산"
+    public TextMeshProUGUI settlementDayText;   // 결산창 내부 일차 표시용 (session.day)
 
-    // 페이즈별 UI 활성화/비활성화 규칙 처리 함수
     private void ApplyUIState(GamePhase currentPhase)
     {
+        if (timerText != null) timerText.gameObject.SetActive(true);
+
         switch (currentPhase)
         {
             case GamePhase.Prepare:
+                // [기획서 요건] 정비 단계 시 Factory 요소 표시
                 if (minimapUI != null) minimapUI.SetActive(true);
                 if (inventoryUI != null) inventoryUI.SetActive(true);
-                if (orderWindow != null) orderWindow.SetActive(false);
                 if (shopWindow != null) shopWindow.SetActive(false);
+                if (settlementUI != null) settlementUI.SetActive(false); // 결산 가리기
+                if (orderWindow != null) orderWindow.SetActive(false); 
+
+                if (startProductionButton != null) startProductionButton.gameObject.SetActive(true);
+                if (advanceDayButton != null) advanceDayButton.gameObject.SetActive(false);
                 break;
 
             case GamePhase.Production:
-                // 생산에 돌입하면 의뢰창과 구매창을 강제로 닫고 잠금
-                if (orderWindow != null) orderWindow.SetActive(false);
-                if (shopWindow != null) shopWindow.SetActive(false);
+                if (shopWindow != null) shopWindow.SetActive(false); 
                 if (minimapUI != null) minimapUI.SetActive(true);
                 if (inventoryUI != null) inventoryUI.SetActive(true);
+                if (settlementUI != null) settlementUI.SetActive(false);
+
+                if (startProductionButton != null) startProductionButton.gameObject.SetActive(false);
+                if (advanceDayButton != null) advanceDayButton.gameObject.SetActive(false);
                 break;
 
             case GamePhase.Settlement:
-                // 결산 단계 진입 시 팩토리 UI 정리 (이후 다른 씬/결과창 제어용)
+                // [기획서 요건] Settlement가 되면 이 화면만 보임 (Factory 숨김 시뮬레이션)
                 if (orderWindow != null) orderWindow.SetActive(false);
                 if (shopWindow != null) shopWindow.SetActive(false);
+                if (minimapUI != null) minimapUI.SetActive(false);    // 맵 숨기기
+                if (inventoryUI != null) inventoryUI.SetActive(false);  // 인벤토리 숨기기
+                
+                if (settlementUI != null) settlementUI.SetActive(true); // 결산 창만 활성화
+
+                // 결산 화면 내 요소 실시간 반영 (명세서 요건)
+                if (settlementTitleText != null) settlementTitleText.text = $"Day{day} Settlement"; // n일차 결산
+                if (settlementDayText != null) settlementDayText.text = $"Day Progress: {day}"; // 진행일차 : n일
+
+                if (startProductionButton != null) startProductionButton.gameObject.SetActive(false);
+                if (advanceDayButton != null) advanceDayButton.gameObject.SetActive(true); // 다음날 버튼 표시
                 break;
         }
     }
 
-    // 준비 단계 키 입력 처리 (O키: 의뢰창 토글, P키: 구매창 토글)
-    private void HandlePrepareInput()
+    // 오브젝트 자동 찾기 기능에 결산 텍스트 2개 추가
+    public void FindUIObjectsAutomatically()
+    {
+        if (orderWindow == null) orderWindow = GameObject.Find("OrderWindow");
+        if (shopWindow == null) shopWindow = GameObject.Find("ShopWindow");
+        if (minimapUI == null) minimapUI = GameObject.Find("MinimapUI");
+        if (inventoryUI == null) inventoryUI = GameObject.Find("InventoryUI");
+        if (settlementUI == null) settlementUI = GameObject.Find("SettlementUI");
+        
+        if (dayText == null) dayText = GameObject.Find("DayText")?.GetComponent<TextMeshProUGUI>();
+        if (timerText == null) timerText = GameObject.Find("TimerText")?.GetComponent<TextMeshProUGUI>();
+        if (goldText == null) goldText = GameObject.Find("GoldText")?.GetComponent<TextMeshProUGUI>();
+        if (reputationText == null) reputationText = GameObject.Find("ReputationText")?.GetComponent<TextMeshProUGUI>();
+
+        if (settlementTitleText == null) settlementTitleText = GameObject.Find("SettlementTitleText")?.GetComponent<TextMeshProUGUI>();
+        if (settlementDayText == null) settlementDayText = GameObject.Find("SettlementDayText")?.GetComponent<TextMeshProUGUI>();
+
+        if (startProductionButton == null) startProductionButton = GameObject.Find("StartProductionButton")?.GetComponent<Button>();
+        if (advanceDayButton == null) advanceDayButton = GameObject.Find("AdvanceDayButton")?.GetComponent<Button>();
+    }
+
+    private void HandleGlobalInput()
     {
         if (Keyboard.current == null) return;
 
@@ -193,45 +250,93 @@ public class GameSessionState : MonoBehaviour
             orderWindow.SetActive(!orderWindow.activeSelf);
         }
 
-        if (Keyboard.current.pKey.wasPressedThisFrame && shopWindow != null)
+        if (phase == GamePhase.Prepare)
         {
-            shopWindow.SetActive(!shopWindow.activeSelf);
+            if (Keyboard.current.pKey.wasPressedThisFrame && shopWindow != null)
+            {
+                shopWindow.SetActive(!shopWindow.activeSelf);
+            }
         }
     }
 
-    // 생산 시작 버튼 클릭 시 호출할 API
+    public bool TryAcceptQuest(int id, string name)
+    {
+    // [수정] 1. 이미 수락한 의뢰인지 검사 -> 있으면 취소 처리
+    if (quests.Exists(q => q.questId == id))
+    {
+        quests.RemoveAll(q => q.questId == id);
+        Debug.Log($"<color=orange>[의뢰 취소] {name} 취소됨. (현재: {quests.Count}/3)</color>");
+        return true; // 상태 전환 성공으로 리턴
+    }
+
+    // 2. 이미 3개를 수락했는지 개수 검사
+    if (quests.Count >= 3)
+    {
+        Debug.LogWarning($"[의뢰 실패] 이미 최대치(3개)의 의뢰를 수락했습니다.");
+        return false; // 자리가 없으므로 실패 리턴
+    }
+
+    // 3. 의뢰 추가
+    quests.Add(new AcceptedQuestState(id, name));
+    Debug.Log($"<color=cyan>[의뢰 수락] {name} 추가됨. (현재: {quests.Count}/3)</color>");
+    return true;
+    }
+
+    public void RemoveQuest(int id)
+    {
+        quests.RemoveAll(q => q.questId == id);
+    }
+
     public void StartProduction()
     {
-        if (phase != GamePhase.Prepare)
-        {
-            Debug.LogWarning("[GameSession] Prepare 단계가 아닐 때는 생산을 시작할 수 없습니다.");
-            return;
-        }
-
-        productionEndTime = Time.time + 300f; // 현재 시간에 300초(5분) 더함
+        if (phase != GamePhase.Prepare) return;
+        productionEndTime = Time.time + TargetProductionTime; 
         SetPhase(GamePhase.Production);
     }
 
-    // 결산 화면에서 「다음 날」 버튼을 누르면 호출할 API
     public void AdvanceDay()
     {
-        if (phase != GamePhase.Settlement)
-        {
-            Debug.LogWarning("[GameSession] Settlement 단계가 아닐 때는 다음 날로 진행할 수 없습니다.");
-            return;
-        }
-
+        if (phase != GamePhase.Settlement) return;
         day++;
+        UpdateDayText(); 
         SetPhase(GamePhase.Prepare);
-        productionEndTime = 0f;
     }
 
-    // 테스트용 디버그 기능: 즉시 생산 종료 트리거
+    private void UpdateDayText()
+    {
+        if (dayText != null) dayText.text = $"Day : {day}";
+    }
+
+    private void UpdateTimerUI()
+    {
+        if (timerText == null) return;
+
+        switch (phase)
+        {
+            case GamePhase.Prepare:
+                timerText.text = $"Time Left: {TargetProductionTime:F1}s";
+                break;
+            case GamePhase.Production:
+                float remaining = ProductionRemainingSeconds;
+                timerText.text = $"Producing: {remaining:F1}s";
+                break;
+            case GamePhase.Settlement:
+                timerText.text = $"Production Complete: 0.0s";
+                break;
+        }
+    }
+
+    public void UpdateGoodsUI()
+    {
+        if (goldText != null) goldText.text = $"Gold: {gold:G}";
+        if (reputationText != null) reputationText.text = $"Reputation: {reputation:G}";
+    }
+
+    public void AddGold(int amount) { gold += amount; UpdateGoodsUI(); }
+    public void AddReputation(int amount) { reputation += amount; UpdateGoodsUI(); }
+
     public void ForceEndProduction()
     {
-        if (phase == GamePhase.Production)
-        {
-            productionEndTime = Time.time;
-        }
+        if (phase == GamePhase.Production) productionEndTime = Time.time;
     }
 }

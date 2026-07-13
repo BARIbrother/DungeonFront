@@ -315,14 +315,11 @@ public class PlacementController : MonoBehaviour
 
     private bool IsPreparePhase()
     {
+        // [수정 핵심] 삭제된 GameFlowController 검사 부분을 깨끗하게 걷어내고,
+        // 우리가 완성한 GameSessionState의 싱글톤 변수만 안전하게 추적하도록 변경했습니다.
         if (GameSessionState.Instance != null)
         {
             return GameSessionState.Instance.Phase == GamePhase.Prepare;
-        }
-
-        if (GameFlowController.Instance != null)
-        {
-            return GameFlowController.Instance.currentPhase == GamePhase.Prepare;
         }
 
         return true;
