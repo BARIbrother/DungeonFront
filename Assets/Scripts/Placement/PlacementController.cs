@@ -346,11 +346,6 @@ public class PlacementController : MonoBehaviour
             return GameSessionState.Instance.Phase == GamePhase.Prepare;
         }
 
-        if (GameFlowController.Instance != null)
-        {
-            return GameFlowController.Instance.currentPhase == GamePhase.Prepare;
-        }
-
         return true;
     }
 
