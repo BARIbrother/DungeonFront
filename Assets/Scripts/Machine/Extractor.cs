@@ -17,16 +17,4 @@ public class Extractor : Machine
     public override void InitializeMachine()
     {
     }
-
-    public override void Tick()
-    {
-    }
-
-    public override void PutintoInputPort(ItemEntry IE)
-    {
-    }
-
-    public override void TakeoutOutputPort(ItemEntry IE)
-    {
-    }
 }

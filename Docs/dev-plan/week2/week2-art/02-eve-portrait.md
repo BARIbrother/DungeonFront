@@ -7,7 +7,7 @@
 ### 캐릭터
 
 - 주인공에게 **첫 의뢰·튜토** 안내
-- 톤: 밝은 경영 시뮬, [week1 주인공 초상](../../week1/week1-art/02-protagonist-portrait.md)과 **같은 화풍**
+- 톤: [01-style-guide](../../week1/week1-art/01-style-guide.md) · 주인공 placeholder 모션과 같은 화풍
 
 ### 파일 규격
 

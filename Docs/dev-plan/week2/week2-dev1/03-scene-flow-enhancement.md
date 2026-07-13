@@ -4,7 +4,7 @@
 
 ### 이 작업물
 
-[week1 씬·페이즈 흐름](../../week1/week1-dev/05-scene-flow.md) 위에 Week 2 **안정화**.  
+`GameSessionState` 단일 소스로 통합. `GameFlowController`와 페이즈·씬 로드 중복 정리.  
 `GameSessionState`를 **단일 세션 소스**로 정리하고 `GameFlowController`는 **제거·통합**한다.
 
 **코드**: `Assets/Scripts/GameFlow/`  

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff78e7977d68e6e4c92531d3559c200b, type: 3}
   m_Name: Iron_ore
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
-  id: Iron_ore
+  id: iron_ore
   displayName: Iron ore
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8de1d99a7a6d952439cbbbc1951915fe, type: 3}
   category: 0

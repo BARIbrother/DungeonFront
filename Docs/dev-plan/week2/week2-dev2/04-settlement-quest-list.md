@@ -5,7 +5,7 @@
 
 ### 이 작업물
 
-[week1 결산 스텁](../../week1/week1-dev/04-settlement-stub.md) 확장 — **수락한 의뢰 목록** 표시. 납품·보상은 Week 3.
+결산 단계 **수락한 의뢰 목록** 표시. 납품·보상은 [05-delivery-rewards](./05-delivery-rewards.md).
 
 **코드**: `Assets/Scripts/Quest/` (예: `SettlementQuestListUI.cs`)  
 **데이터**: `QuestManager.ActiveQuests` · `Quest.requiredItems`

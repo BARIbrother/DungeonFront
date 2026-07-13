@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SmelterMachine : Machine
+public class SmelterMachine : Machine, IFactoryProduction
 {
     public override Vector2Int GetFootprintSize() => new Vector2Int(2, 2);
 
@@ -11,17 +11,16 @@ public class SmelterMachine : Machine
 
     public override void InitializeMachine()
     {
+        ApplySelectedRecipe();
     }
 
-    public override void Tick()
+    public void TickCompleteProduction()
     {
+        CompleteProductionTick();
     }
 
-    public override void PutintoInputPort(ItemEntry IE)
+    public void TickStartProduction()
     {
-    }
-
-    public override void TakeoutOutputPort(ItemEntry IE)
-    {
+        StartProductionTick();
     }
 }

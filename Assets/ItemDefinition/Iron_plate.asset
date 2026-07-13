@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff78e7977d68e6e4c92531d3559c200b, type: 3}
   m_Name: Iron_plate
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
-  id: Iron_plate
+  id: iron_plate
   displayName: Iron plate
   icon: {fileID: 0}
   category: 0

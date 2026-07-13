@@ -134,11 +134,34 @@ public class GridManager : MonoBehaviour
         return GetCell(coord).Occupant;
     }
 
-    // coord에 배치된 Machine을 반환한다. 없으면 null.
+    // coord에 배치된 Machine을 반환한다. occupant가 없으면 footprint로도 찾는다.
     public Machine GetMachineAt(Vector2Int coord)
     {
         GameObject occupant = GetOccupantAt(coord);
-        return occupant != null ? occupant.GetComponent<Machine>() : null;
+        if (occupant != null)
+        {
+            Machine occupantMachine = occupant.GetComponent<Machine>();
+            if (occupantMachine != null)
+            {
+                return occupantMachine;
+            }
+        }
+
+        for (int i = 0; i < placedMachines.Count; i++)
+        {
+            Machine machine = placedMachines[i];
+            if (machine == null)
+            {
+                continue;
+            }
+
+            if (FootprintContainsCoord(machine.GridAnchor, machine.GetFootprintSize(), coord))
+            {
+                return machine;
+            }
+        }
+
+        return null;
     }
 
     // 그리드 좌표 (x, y)를 월드 좌표로 변환한다. tilePivot·CellSize·plane을 반영한다.
@@ -342,15 +365,26 @@ public class GridManager : MonoBehaviour
 
         Vector2Int anchor = machine.GridAnchor;
         Vector2Int footprintSize = machine.GetFootprintSize();
+
+        if (machine is ConveyerBelt removedBelt)
+        {
+            removedBelt.ClearNeighbors();
+        }
+
         ClearFootprint(anchor, footprintSize);
         placedMachines.Remove(machine);
+        RefreshBeltNeighborsAtFootprint(anchor, footprintSize);
         TickManager.Instance?.UnregisterMachine(machine);
         Destroy(machine.gameObject);
         return true;
     }
 
     // worldPosition(마우스 등) 중심으로 기계를 배치한다. 성공 시 true.
-    public bool TryPlaceMachine(GameObject machinePrefab, Vector3 worldPosition, MachineInventoryEntry inventoryEntry = null)
+    public bool TryPlaceMachine(
+        GameObject machinePrefab,
+        Vector3 worldPosition,
+        MachineInventoryEntry inventoryEntry = null,
+        Vector2Int? beltFlowDirection = null)
     {
         if (machinePrefab == null)
         {
@@ -392,10 +426,19 @@ public class GridManager : MonoBehaviour
             machine.BindInventoryEntry(inventoryEntry);
         }
 
+        if (beltFlowDirection.HasValue && machine is ConveyerBelt placedBelt)
+        {
+            placedBelt.SetFlowDirection(beltFlowDirection.Value);
+        }
+
+        // 배치 직후 기계별 초기화 훅 호출 (예: 드릴의 전용 레시피 자동 설정).
+        machine.InitializeMachine();
+
         placedMachines.Add(machine);
         TickManager.Instance?.RegisterMachine(machine);
 
         OccupyFootprint(anchor, footprintSize, instance, machine.GetOccupantKind());
+        RefreshBeltNeighborsForMachine(machine);
 
         return true;
     }
@@ -456,6 +499,44 @@ public class GridManager : MonoBehaviour
                 SetCell(coord, cell);
             }
         }
+    }
+
+    // 기계 배치·제거 시 인접 벨트의 upstream/downstream 캐시를 갱신한다.
+    private void RefreshBeltNeighborsForMachine(Machine machine)
+    {
+        RefreshBeltNeighborsAtFootprint(machine.GridAnchor, machine.GetFootprintSize(), machine);
+    }
+
+    private void RefreshBeltNeighborsAtFootprint(Vector2Int anchor, Vector2Int footprintSize, Machine changedMachine = null)
+    {
+        if (changedMachine is ConveyerBelt placedBelt)
+        {
+            placedBelt.RefreshNeighbors(this);
+        }
+
+        for (int i = 0; i < placedMachines.Count; i++)
+        {
+            if (placedMachines[i] is not ConveyerBelt belt || belt == changedMachine)
+            {
+                continue;
+            }
+
+            Vector2Int upstreamCoord = belt.GridAnchor - belt.FlowDirection;
+            Vector2Int downstreamCoord = belt.GridAnchor + belt.FlowDirection;
+            if (FootprintContainsCoord(anchor, footprintSize, upstreamCoord)
+                || FootprintContainsCoord(anchor, footprintSize, downstreamCoord))
+            {
+                belt.RefreshNeighbors(this);
+            }
+        }
+    }
+
+    private static bool FootprintContainsCoord(Vector2Int anchor, Vector2Int footprintSize, Vector2Int coord)
+    {
+        return coord.x >= anchor.x
+            && coord.x < anchor.x + footprintSize.x
+            && coord.y >= anchor.y
+            && coord.y < anchor.y + footprintSize.y;
     }
 
     // resourceNodesRoot가 없으면 런타임에 빈 부모를 만든다.
