@@ -1,132 +1,109 @@
-// GameFlowController.cs
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.InputSystem; // 새 인풋 시스템 필수 필수!
 
 public class GameFlowController : MonoBehaviour
 {
     public static GameFlowController Instance { get; private set; }
 
-    [Header("[게임 상태 및 시간]")]
-    public GamePhase currentPhase = GamePhase.Prepare;
-    public int currentDay = 1;
-    public float productionDuration = 300f; 
-    private float productionRemainingSeconds;
-    public float ProductionRemainingSeconds => productionRemainingSeconds;
-
-    [Header("[UI 오브젝트 연결]")]
-    public GameObject orderWindow;      
-    public GameObject shopWindow;       
-    public GameObject minimapUI;        
-    public GameObject inventoryUI;      
-    public GameObject resultWindow;     
+    [Header("[부트스트랩 설정]")]
+    [SerializeField] private bool playAutomatedNewGame = true; // Play 시 자동 NewGame() 수행 여부
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            // 단일 씬 안에서 관리되므로, 만약 씬 전환이 있더라도 파괴되지 않게 전역 HUD 및 흐름 보존
+            DontDestroyOnLoad(gameObject); 
         }
         else
         {
             Destroy(gameObject);
+            return;
         }
     }
 
     private void Start()
     {
-        NewGame();
-    }
-
-    private void Update()
-    {
-        if (currentPhase == GamePhase.Production)
+        // GameSessionState 이벤트 구독 등록
+        if (GameSessionState.Instance != null)
         {
-            if (productionRemainingSeconds > 0)
+            GameSessionState.Instance.OnPhaseChanged += HandlePhaseChanged;
+            GameSessionState.Instance.OnNewGame += HandleNewGameInvoked;
+
+            // [부트스트랩] 명세: Play 시 자동 NewGame() 혹은 디버그 스타트 처리
+            if (playAutomatedNewGame)
             {
-                productionRemainingSeconds -= Time.deltaTime;
-                if (productionRemainingSeconds <= 0)
-                {
-                    productionRemainingSeconds = 0;
-                    SetPhase(GamePhase.Settlement); 
-                }
+                GameSessionState.Instance.NewGame();
             }
         }
+    }
 
-        if (currentPhase == GamePhase.Prepare)
+    private void OnDestroy()
+    {
+        if (GameSessionState.Instance != null)
         {
-            HandlePrepareInput();
+            GameSessionState.Instance.OnPhaseChanged -= HandlePhaseChanged;
+            GameSessionState.Instance.OnNewGame -= HandleNewGameInvoked;
         }
     }
 
-    public void NewGame()
+    /// <summary>
+    /// [체크리스트 명세: 화면 흐름 제어]
+    /// 단일 씬 내부에서 UI 패널 활성화를 통해 화면 전환을 시뮬레이션하여 씬 중복 로드 크래시를 원천 방지합니다.
+    /// </summary>
+    private void HandlePhaseChanged(GamePhase currentPhase)
     {
-        currentDay = 1;
-        SetPhase(GamePhase.Prepare);
-        SceneManager.LoadScene("Factory");
-    }
-
-    public void SetPhase(GamePhase nextPhase)
-    {
-        currentPhase = nextPhase;
-        Debug.Log($"[GameFlow] 페이즈 전환 -> {currentPhase}");
+        if (GameSessionState.Instance == null) return;
 
         switch (currentPhase)
         {
             case GamePhase.Prepare:
-                if(minimapUI != null) minimapUI.SetActive(true);
-                if(inventoryUI != null) inventoryUI.SetActive(true);
-                if(orderWindow != null) orderWindow.SetActive(false);
-                if(shopWindow != null) shopWindow.SetActive(false);
-                if(resultWindow != null) resultWindow.SetActive(false);
+                Debug.Log("[GameFlowController] 정비 단계 활성화 -> Factory 요소 표시");
+                // 단일 씬이므로 씬을 로드하지 않고, 기존에 작성된 UI 바인딩 및 데이터를 즉시 갱신합니다.
+                GameSessionState.Instance.FindUIObjectsAutomatically();
+                GameSessionState.Instance.UpdateGoodsUI();
                 break;
 
             case GamePhase.Production:
-                productionRemainingSeconds = productionDuration;
-                if(orderWindow != null) orderWindow.SetActive(false);
-                if(shopWindow != null) shopWindow.SetActive(false);
-                if(minimapUI != null) minimapUI.SetActive(true);
-                if(inventoryUI != null) inventoryUI.SetActive(true);
+                Debug.Log("[GameFlowController] 생산 단계 활성화 -> 타이머 UI 집중 표시");
                 break;
 
             case GamePhase.Settlement:
-                SceneManager.LoadScene("Settlement");
-                if(resultWindow != null) resultWindow.SetActive(true);
+                Debug.Log("[GameFlowController] 결산 단계 활성화 -> Settlement 스텁 UI 표시");
+                // 단일 씬이므로 씬 로드 없이, GameSessionState 내부의 ApplyUIState에 의해 SettlementUI 패널이 켜집니다.
                 break;
         }
     }
 
-    private void HandlePrepareInput()
+    /// <summary>
+    /// [체크리스트 명세: OnNewGame -> Lead PlayerSpawner 호출 연동]
+    /// </summary>
+    private void HandleNewGameInvoked()
     {
-        if (Keyboard.current == null) return;
-
-        if (Keyboard.current.oKey.wasPressedThisFrame && orderWindow != null)
+        Debug.Log("[GameFlowController] NewGame 이벤트 수신 -> 게임 초기화 및 UI 리바인딩 완료");
+        
+        if (GameSessionState.Instance != null)
         {
-            orderWindow.SetActive(!orderWindow.activeSelf);
+            GameSessionState.Instance.FindUIObjectsAutomatically();
+            GameSessionState.Instance.UpdateGoodsUI();
         }
 
-        if (Keyboard.current.pKey.wasPressedThisFrame && shopWindow != null)
-        {
-            shopWindow.SetActive(!shopWindow.activeSelf);
-        }
+        // [체크리스트] OnNewGame시 동등 API나 PlayerSpawner를 호출하는 규칙 연동 처리
+        TriggerPlayerSpawner();
     }
 
-    public void StartProduction()
+    private void TriggerPlayerSpawner()
     {
-        if (currentPhase == GamePhase.Prepare)
+        // 의존성 해결을 위한 디버깅 및 PlayerSpawner 연동부
+        GameObject spawner = GameObject.Find("PlayerSpawner");
+        if (spawner != null)
         {
-            SetPhase(GamePhase.Production);
+            spawner.SendMessage("SpawnPlayer", SendMessageOptions.DontRequireReceiver);
+            Debug.Log("[GameFlowController] PlayerSpawner 연동 성공 및 트리거 완료");
         }
-    }
-
-    public void AdvanceDay()
-    {
-        if (currentPhase == GamePhase.Settlement)
+        else
         {
-            currentDay++;
-            SetPhase(GamePhase.Prepare);
-            SceneManager.LoadScene("Factory");
+            Debug.Log("[GameFlowController] PlayerSpawner 오브젝트가 현재 씬에 없으므로 스폰 트리거를 대기합니다.");
         }
     }
 }
