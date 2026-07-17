@@ -1,8 +1,8 @@
-# 병렬 개발 로드맵 (3주)
+# 병렬 개발 로드맵 (3주 MVP + Week 4 뒷산 완성)
 
 > **기준 문서**: [dev-plan.md](./dev-plan.md) · [lead-plan.md](./lead-plan.md) · [dev-contract.md](./dev-contract.md)  
 > **팀**: Lead · Dev1 · Dev2 · Art (4명)  
-> **목적**: **3주 안에 MVP 완료**. 각 주차에서 4명의 작업은 **서로 기다리지 않고** 병렬 진행, **금요일 통합**에서만 합친다.
+> **목적**: **3주 안에 MVP 골격**, **Week 4**에서 **뒷산 동굴만** 튜토~엔딩 완성. 복수 던전은 [99-further_implementation.md](../99-further_implementation.md)에 보류. 평일 Mock 병렬 · **금요일 통합**.
 
 ---
 
@@ -185,6 +185,50 @@ flowchart TB
 
 ---
 
+## Week 4 — 뒷산 동굴 완성
+
+> 정본: [week4/week4.md](./week4/week4.md) · [00-vision.md](../00-vision.md)  
+> **비범위**: 던전 복수화 ([99-further_implementation.md](../99-further_implementation.md))
+
+```mermaid
+flowchart TB
+    subgraph Lead_W4["Lead — 독립"]
+        L4A[01 공장 폴리시]
+        L4B[02 구역 확장]
+        L4C[03 맵·노드]
+        L4D[04 기계 피드백]
+        L4A --> L4B --> L4C --> L4D
+    end
+
+    subgraph Dev1_W4["Dev1 — 독립"]
+        D4A[01 UI 폴리시]
+        D4B[02 튜토 완성]
+        D4C[03 세이브]
+        D4D[04 엔딩]
+        D4A --> D4B --> D4C --> D4D
+    end
+
+    subgraph Dev2_W4["Dev2 — 독립"]
+        D4E[01~05 경제·의뢰·클리어]
+    end
+
+    subgraph Art_W4["Art — 독립"]
+        A4A[프레임·뒷산 타일·기계]
+    end
+
+    CLEAR{{"뒷산 엔딩"}}
+    L4D & D4D & D4E & A4A --> CLEAR
+```
+
+| 역할 | Issue | Mock (평일) |
+|------|-------|-------------|
+| Lead | [week4-lead/](./week4/week4-lead/) | ForceEnd · 디버그 배치 |
+| Dev1 | [week4-dev1/](./week4/week4-dev1/) | `StoryEventBus.RaiseMock` · quests `[]` |
+| Dev2 | [week4-dev2/](./week4/week4-dev2/) | Contracts Items `Add()` · 명성 임의값 |
+| Art | [week4-art/](./week4/week4-art/) | — |
+
+---
+
 ## 의존성 그래프 (통합 게이트만 연결)
 
 ```mermaid
@@ -206,10 +250,18 @@ flowchart TB
     A3["Art W3"]:::track
     MVP["MVP ✅"]:::gate
 
+    L4["Lead W4"]:::track
+    D14["Dev1 W4"]:::track
+    D24["Dev2 W4"]:::track
+    A4["Art W4"]:::track
+    CLEAR["뒷산 완성"]:::gate
+
     W1C --> L2 & D12 & D22 & A2
     L2 & D12 & D22 & A2 --> G2
     G2 --> L3 & D13 & D23 & A3
     L3 & D13 & D23 & A3 --> MVP
+    MVP --> L4 & D14 & D24 & A4
+    L4 & D14 & D24 & A4 --> CLEAR
 ```
 
 실선 = 해당 주 **내부** 순서. 다른 역할 간 화살표는 **금요일에만** 연결.
@@ -225,6 +277,8 @@ flowchart TB
 | Dev1 스토리 | Lead `StoryEventBus` | `RaiseMock(id)` 로컬 테스트 |
 | Dev2 의뢰 | `PlayerInventory` | Contracts Items `Add()` |
 | Dev2 경제 | 명성 해금 표 | reputation 임의값 |
+| Dev1 엔딩 | Dev2 클리어 훅 | `RaiseMock(ending)` |
+| Lead 구역 | Dev2 골드 | 인스펙터 골드 무한 |
 
 ---
 
@@ -245,13 +299,16 @@ flowchart TB
 | **W1** ✅ | Factory 이동 → 생산 타이머 → 결산 1회전 |
 | **W2** | NewGame → 인벤 UI → 의뢰 수락 → Lead 배치 → 생산 틱 → 결산 **납품·보상** → 다음 날 |
 | **W3** | 타이틀 슬롯 → 로드 → 튜토 2단계 → 10종+·벨트 체인 생산 → 스토리 이벤트 → 클리어 의뢰 납품 → 세이브·재시작 |
+| **W4** | 뒷산 튜토 → 구역 확장 → 필수 의뢰 체인 → 세이브/로드 → **스토리 엔딩** |
 
 ---
 
 ## 관련 문서
 
-- [dev-plan.md](./dev-plan.md) — MVP 범위·3주 일정표
+- [dev-plan.md](./dev-plan.md) — MVP 범위·일정표
 - [dev-contract.md](./dev-contract.md) — API·에셋 계약
 - [lead-plan.md](./lead-plan.md) — Lead 상세
 - [week2/team-integration.md](./week2/team-integration.md) — W2 통합 체크리스트
 - [week3/week3-dev1/06-team-integration.md](./week3/week3-dev1/06-team-integration.md) — W3 통합 체크리스트
+- [week4/week4-dev1/05-team-integration.md](./week4/week4-dev1/05-team-integration.md) — W4 통합 (뒷산 엔딩)
+- [99-further_implementation.md](../99-further_implementation.md) — 보류 (던전 복수화 등)

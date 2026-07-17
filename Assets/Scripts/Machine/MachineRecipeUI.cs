@@ -194,7 +194,7 @@ public class MachineRecipeUI : MonoBehaviour
         string recipeName = string.IsNullOrEmpty(recipe.id) ? "recipe" : recipe.id;
         string inputs = DescribeItemEntries(recipe.inputEntryList);
         string outputs = DescribeItemEntries(recipe.outputEntryList);
-        return $"{recipeName}  ({inputs} → {outputs}, {recipe.durationByTick}tick)";
+        return $"{recipeName}  ({inputs} → {outputs}, {recipe.recipeTime})";
     }
 
     private static string DescribeItemEntries(ItemEntryList list)

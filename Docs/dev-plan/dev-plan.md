@@ -41,8 +41,10 @@
 | **1** ✅ | *(그리드·배치·틱·벨트·WIP·SO 등 구현 완료)* | *(세션·페이즈·Quest 골격)* | | *(모션 placeholder)* |
 | **2** | **6종+·고장·출력기** | 인벤 UI·HUD·세션 통합·SaveDTO·타이틀 | 의뢰 UI·**납품·보상** | 수리 모션·**이브** 초상 |
 | **3** | **10종+·수작업·요약·lock·스토리·MVP** | 튜토·세이브·대화·스토리 | 멀티데이·경제·게임오버·lock | 이브·레이 초상·표정·모션 보완 |
+| **4** | 공장 폴리시·구역·맵/노드·기계 피드백 | UI·튜토 완성·세이브·엔딩 | 경제 lock·뒷산 의뢰·클리어 라인 | UI 프레임·뒷산 타일·기계 폴리시 |
 
-상세: [week1](./week1/week1.md) · [week2](./week2/week2.md) · [week3](./week3/week3.md)
+상세: [week1](./week1/week1.md) · [week2](./week2/week2.md) · [week3](./week3/week3.md) · [week4](./week4/week4.md)  
+W4 범위: **뒷산 동굴만** (복수 던전은 [99-further_implementation.md](../99-further_implementation.md))
 
 ---
 
@@ -69,6 +71,13 @@
 - [ ] Dev2 — 멀티데이·경제·게임오버·의뢰 lock
 - [ ] Art — 이브·레이 초상·캐릭터별 표정·모션 보완
 
+### Week 4 (뒷산 동굴 완성)
+
+- [ ] Lead — 공장 폴리시·구역 확장·맵/노드·기계 정보 패널
+- [ ] Dev1 — UI 폴리시·튜토 완성·세이브 안정화·엔딩
+- [ ] Dev2 — 경제 수치 lock·뒷산 의뢰·클리어 라인·결산 폴리시
+- [ ] Art — UI 프레임·뒷산 타일·기계 비주얼 폴리시
+
 ---
 
 ## 관련 문서
@@ -77,3 +86,4 @@
 - [dev-contract.md](./dev-contract.md)
 - [lead-plan.md](./lead-plan.md)
 - [dev-gaps.md](./dev-gaps.md)
+- [week4/week4.md](./week4/week4.md)

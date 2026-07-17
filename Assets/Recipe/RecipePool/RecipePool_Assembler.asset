@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8454ec19a32541c59096c671d07e9c39, type: 3}
   m_Name: RecipePool_Assembler
   m_EditorClassIdentifier: Assembly-CSharp::RecipePool
-  recipes: []
+  recipes:
+  - {fileID: 11400000, guid: 7a4bcc1d64f1f7c409bc3f5ac00c3802, type: 2}

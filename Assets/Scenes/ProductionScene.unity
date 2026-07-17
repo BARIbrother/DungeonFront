@@ -400,6 +400,7 @@ MonoBehaviour:
   key2MachineItem: {fileID: 11400000, guid: 98a7336176fbf4a9ca69078fdfb7fe00, type: 2}
   key3MachineItem: {fileID: 11400000, guid: 93307e8deb70f47cd84eb03865df9681, type: 2}
   key4MachineItem: {fileID: 11400000, guid: 8bf4a98e5a84c4045ac3e2facadeb3e6, type: 2}
+  key5MachineItem: {fileID: 11400000, guid: 98c39e9ea2fc1c44b957b0bb148d568a, type: 2}
   pixelsPerSecond: 64
   pixelsPerUnit: 32
 --- !u!212 &821514144

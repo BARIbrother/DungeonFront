@@ -15,7 +15,13 @@ public class AssemblerMachine : Machine, IFactoryProduction
 
     public void TickCompleteProduction()
     {
-        CompleteProductionTick();
+        if (!CompleteProductionTick())
+        {
+            return;
+        }
+
+        string recipeId = currentRecipe != null ? currentRecipe.id : "(없음)";
+        Debug.Log($"[AssemblerMachine] 생산 성공 @ {GridAnchor} : {recipeId} → {DescribePortEntries(currentRecipe?.outputEntryList)} / 출력 {DescribePortEntries(outputPort)}");
     }
 
     public void TickStartProduction()

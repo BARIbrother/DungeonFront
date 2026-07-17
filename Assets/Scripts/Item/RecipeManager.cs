@@ -8,7 +8,7 @@ using UnityEngine;
 //   "recipes": [
 //     {
 //       "id": "iron_plate_smelt",
-//       "durationByTick": 10,
+//       "recipeTime": 10,
 //       "inputs": [
 //         { "itemId": "iron_ore", "count": 2 }
 //       ],
@@ -19,7 +19,7 @@ using UnityEngine;
 //   ]
 // }
 // - id: 필수. 조회 키
-// - durationByTick: 필수. 제작 소요 틱
+// - recipeTime: 필수. 완성 진행도 목표 (기계 workSpeed 누적)
 // - inputs / outputs: 필수. itemId는 ItemManager에 등록된 id
 public class RecipeManager : MonoBehaviour
 {
@@ -122,7 +122,7 @@ public class RecipeManager : MonoBehaviour
 
             Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
             recipe.id = record.id;
-            recipe.durationByTick = record.durationByTick;
+            recipe.recipeTime = record.recipeTime > 0 ? record.recipeTime : record.durationByTick;
             recipe.inputEntryList = BuildItemEntryList(items, record.inputs);
             recipe.outputEntryList = BuildItemEntryList(items, record.outputs);
             Register(recipe);
@@ -176,6 +176,8 @@ public class RecipeManager : MonoBehaviour
 public class RecipeJsonRecord
 {
     public string id;
+    public int recipeTime;
+    // 구 JSON 호환. recipeTime이 비어 있을 때만 사용한다.
     public int durationByTick;
     public RecipeItemJsonRecord[] inputs;
     public RecipeItemJsonRecord[] outputs;

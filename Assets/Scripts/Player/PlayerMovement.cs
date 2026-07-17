@@ -7,16 +7,19 @@ public class PlayerMovement : MonoBehaviour
     private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
     private static readonly int MoveXHash = Animator.StringToHash("MoveX");
     private static readonly int MoveYHash = Animator.StringToHash("MoveY");
+    private static readonly int WorkHash = Animator.StringToHash("Work");
+    private static readonly int RepairHash = Animator.StringToHash("Repair");
 
     [SerializeField] private GridManager gridManager;
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private Animator animator;
 
-    // 디버그용 기계 정의 SO. 1·2·3·4키로 인벤에 1개씩 추가한다.
+    // 디버그용 기계 정의 SO. 1·2·3·4·5키로 인벤에 1개씩 추가한다.
     [SerializeField] private ItemDef_Machine key1MachineItem;
     [SerializeField] private ItemDef_Machine key2MachineItem;
     [SerializeField] private ItemDef_Machine key3MachineItem;
     [SerializeField] private ItemDef_Machine key4MachineItem;
+    [SerializeField] private ItemDef_Machine key5MachineItem;
     // 0키로 철광석 노드 배치 모드를 토글한다.
     private bool isResourceNodePlacementMode;
     // 초당 이동 픽셀 수
@@ -38,6 +41,13 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        // 생산 종료 요약 모달이 열려 있으면 이동·상호작용을 잠근다.
+        if (ProductionSummaryUI.IsOpen)
+        {
+            UpdateAnimator(Vector2.zero);
+            return;
+        }
+
         Vector2 input = Vector2.zero;
         Keyboard keyboard = Keyboard.current;
         if (keyboard != null)
@@ -75,12 +85,25 @@ public class PlayerMovement : MonoBehaviour
             {
                 TryAddMachineItem(key4MachineItem);
             }
+
+            if (keyboard.digit5Key.wasPressedThisFrame)
+            {
+                TryAddMachineItem(key5MachineItem);
+            }
+
+            // F: 생산 즉시 종료 (E는 수리·수작업)
+            if (keyboard.fKey.wasPressedThisFrame)
+            {
+                TryForceEndProduction();
+            }
         }
 
         if (isResourceNodePlacementMode)
         {
             TryPlaceResourceNodeAtMouse();
         }
+
+        TryInteractNearbyMachine(keyboard);
 
         if (input.sqrMagnitude > 1f)
         {
@@ -99,6 +122,169 @@ public class PlayerMovement : MonoBehaviour
         }
 
         transform.position = next;
+    }
+
+    // E키: 근접 1칸 내 고장 기계 수리 우선, 없으면 수작업 기계 진도.
+    private void TryInteractNearbyMachine(Keyboard keyboard)
+    {
+        if (keyboard == null || !keyboard.eKey.wasPressedThisFrame)
+        {
+            return;
+        }
+
+        if (IsPlacementInteractionBlocking())
+        {
+            return;
+        }
+
+        if (gridManager == null)
+        {
+            return;
+        }
+
+        Machine brokenTarget = FindNearestMachineWithinOneCell(machine => machine.IsBroken);
+        if (brokenTarget != null)
+        {
+            if (TryRepairNearbyMachine(brokenTarget))
+            {
+                TrySetAnimatorTrigger(RepairHash);
+            }
+
+            return;
+        }
+
+        Machine manualTarget = FindNearestMachineWithinOneCell(machine => machine.SupportsManualWorkClick());
+        if (manualTarget == null)
+        {
+            return;
+        }
+
+        if (!manualTarget.TryAdvanceManualClick())
+        {
+            return;
+        }
+
+        TrySetAnimatorTrigger(WorkHash);
+    }
+
+    private static bool TryRepairNearbyMachine(Machine machine)
+    {
+        if (ProductionEventManager.Instance != null)
+        {
+            return ProductionEventManager.Instance.TryRepairMachine(machine);
+        }
+
+        if (machine == null || !machine.IsBroken)
+        {
+            return false;
+        }
+
+        machine.SetBroken(false);
+        return true;
+    }
+
+    // Animator에 해당 Trigger 파라미터가 있을 때만 설정한다.
+    private void TrySetAnimatorTrigger(int triggerHash)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        foreach (AnimatorControllerParameter parameter in animator.parameters)
+        {
+            if (parameter.type == AnimatorControllerParameterType.Trigger
+                && parameter.nameHash == triggerHash)
+            {
+                animator.SetTrigger(triggerHash);
+                return;
+            }
+        }
+    }
+
+    // 플레이어 셀 기준 Chebyshev 거리 1 이내이며 predicate를 만족하는 가장 가까운 기계.
+    private Machine FindNearestMachineWithinOneCell(System.Func<Machine, bool> predicate)
+    {
+        Vector2Int playerCell = gridManager.WorldToGrid(transform.position);
+        Machine nearest = null;
+        int bestDistanceSq = int.MaxValue;
+
+        System.Collections.Generic.IReadOnlyList<Machine> machines =
+            TickManager.Instance != null
+                ? TickManager.Instance.MachinesOnGrid
+                : FindObjectsByType<Machine>(FindObjectsInactive.Exclude);
+
+        for (int i = 0; i < machines.Count; i++)
+        {
+            Machine machine = machines[i];
+            if (machine == null || predicate == null || !predicate(machine))
+            {
+                continue;
+            }
+
+            if (!TryGetChebyshevDistanceToFootprint(playerCell, machine, out int distance))
+            {
+                continue;
+            }
+
+            if (distance > 1)
+            {
+                continue;
+            }
+
+            Vector2Int footprintCenter = machine.GridAnchor
+                + new Vector2Int(
+                    (machine.GetFootprintSize().x - 1) / 2,
+                    (machine.GetFootprintSize().y - 1) / 2);
+            int dx = playerCell.x - footprintCenter.x;
+            int dy = playerCell.y - footprintCenter.y;
+            int distanceSq = dx * dx + dy * dy;
+
+            if (nearest == null || distanceSq < bestDistanceSq)
+            {
+                nearest = machine;
+                bestDistanceSq = distanceSq;
+            }
+        }
+
+        return nearest;
+    }
+
+    // 플레이어 셀과 기계 footprint 임의 셀 사이의 최소 Chebyshev 거리를 구한다.
+    private static bool TryGetChebyshevDistanceToFootprint(
+        Vector2Int playerCell,
+        Machine machine,
+        out int distance)
+    {
+        distance = int.MaxValue;
+        if (machine == null)
+        {
+            return false;
+        }
+
+        Vector2Int anchor = machine.GridAnchor;
+        Vector2Int footprint = machine.GetFootprintSize();
+        for (int x = 0; x < footprint.x; x++)
+        {
+            for (int y = 0; y < footprint.y; y++)
+            {
+                int chebyshev = Mathf.Max(
+                    Mathf.Abs(playerCell.x - (anchor.x + x)),
+                    Mathf.Abs(playerCell.y - (anchor.y + y)));
+                if (chebyshev < distance)
+                {
+                    distance = chebyshev;
+                }
+            }
+        }
+
+        return distance != int.MaxValue;
+    }
+
+    private static bool IsPlacementInteractionBlocking()
+    {
+        PlacementController placementController = FindAnyObjectByType<PlacementController>();
+        return placementController != null && placementController.IsPlacementMode;
     }
 
     // MoveX/MoveY로 4방향 idle·walk를 Animator에 전달한다. 대각선은 지배 축 하나만 사용한다.
@@ -166,6 +352,33 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.Log($"[PlayerMovement] 철광석 노드 배치 성공: ({gridCoord.x}, {gridCoord.y})");
         }
+    }
+
+    // F키로 생산을 즉시 종료한다. GameSessionState가 없어도 요약 UI는 띄운다.
+    private void TryForceEndProduction()
+    {
+        if (ProductionSummaryUI.IsOpen)
+        {
+            return;
+        }
+
+        if (GameSessionState.Instance != null)
+        {
+            if (GameSessionState.Instance.Phase != GamePhase.Production)
+            {
+                Debug.LogWarning(
+                    $"[PlayerMovement] F키 무시: 현재 페이즈={GameSessionState.Instance.Phase}. " +
+                    "Production일 때만 즉시 종료됩니다. (시작 버튼 또는 T키)");
+                return;
+            }
+
+            GameSessionState.Instance.ForceEndProduction();
+            return;
+        }
+
+        // ProductionScene만 단독 플레이할 때: 세션 없이 요약 모달만 연다.
+        Debug.Log("[PlayerMovement] GameSessionState 없음 — 요약 UI만 표시합니다.");
+        ProductionEndHandler.EndProduction();
     }
 
     // ItemDef_Machine 정의로 인벤토리에 기계 인스턴스 1개 추가한다.

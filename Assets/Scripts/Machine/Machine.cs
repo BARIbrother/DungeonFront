@@ -36,6 +36,13 @@ public abstract class Machine : MonoBehaviour
     protected bool hasActiveWip;
     private bool isBroken;
 
+    // SetBroken 틴트 전 원래 SpriteRenderer 색.
+    private Color? defaultSpriteColor;
+    private static readonly Color BrokenTintColor = new Color(1f, 0.35f, 0.35f, 1f);
+
+    // 1틱(또는 수작업 1클릭)마다 더해지는 진행도.
+    public int workSpeed = 1;
+
     public bool IsBroken => isBroken;
 
     public abstract void InitializeMachine();
@@ -62,10 +69,45 @@ public abstract class Machine : MonoBehaviour
     public void SetBroken(bool broken)
     {
         isBroken = broken;
+        ApplyBrokenVisual();
+    }
+
+    // 고장 시 붉은 틴트, 수리 시 원래 색으로 되돌린다.
+    private void ApplyBrokenVisual()
+    {
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        if (!defaultSpriteColor.HasValue)
+        {
+            defaultSpriteColor = spriteRenderer.color;
+        }
+
+        if (isBroken)
+        {
+            Color baseColor = defaultSpriteColor.Value;
+            spriteRenderer.color = new Color(
+                BrokenTintColor.r,
+                BrokenTintColor.g,
+                BrokenTintColor.b,
+                baseColor.a);
+            return;
+        }
+
+        spriteRenderer.color = defaultSpriteColor.Value;
     }
 
     // 생산 완료 페이즈 공통 로직. 이번 틱에 출력이 산출되면 true를 반환한다.
     protected bool CompleteProductionTick()
+    {
+        return AdvanceProductionWork(workSpeed);
+    }
+
+    // workAmount만큼 진행도를 올리고, recipeTime 이상이면 출력을 산출한다.
+    protected bool AdvanceProductionWork(int workAmount)
     {
         if (isBroken)
         {
@@ -77,11 +119,17 @@ public abstract class Machine : MonoBehaviour
             return false;
         }
 
-        int duration = currentRecipe.durationByTick;
-        if (progressTicks < duration)
+        if (progressTicks < currentRecipe.recipeTime)
         {
-            progressTicks++;
-            return false;
+            if (workAmount > 0)
+            {
+                progressTicks += workAmount;
+            }
+
+            if (progressTicks < currentRecipe.recipeTime)
+            {
+                return false;
+            }
         }
 
         if (outputPort == null || !outputPort.CanFit(currentRecipe.outputEntryList))
@@ -98,6 +146,15 @@ public abstract class Machine : MonoBehaviour
         hasActiveWip = false;
         return true;
     }
+
+    // 수작업 기계가 클릭을 레시피 UI 대신 가로채는지 여부. 기본은 레시피 UI 허용.
+    public virtual bool HandlesClickAsManualWork() => false;
+
+    // 플레이어 키 입력으로 진행도를 올리는 수작업 기계인지 여부.
+    public virtual bool SupportsManualWorkClick() => false;
+
+    // 수작업 1회분 진행. 수작업 기계만 override한다. 기본은 무시.
+    public virtual bool TryAdvanceManualClick() => false;
 
     // 생산 시작 페이즈 공통 로직.
     protected void StartProductionTick()
@@ -146,7 +203,28 @@ public abstract class Machine : MonoBehaviour
         ResetProductionWip();
     }
 
-    // WIP 진행 중 소비됐던 레시피 입력을 환원한다. 채굴기 등은 override로 비운다.
+    // 생산 종료 요약용: outputPort에 있는 완성품을 복사해 반환한다. 포트는 비우지 않는다.
+    public virtual System.Collections.Generic.List<ItemEntry> CollectFinishedGoodsSnapshot()
+    {
+        return outputPort != null ? outputPort.CopyAllEntries() : new System.Collections.Generic.List<ItemEntry>();
+    }
+
+    // 생산 종료: 완성품(outputPort)을 인벤으로 옮기고 포트를 비운다.
+    public virtual void TransferFinishedGoodsToPlayerInventory()
+    {
+        ReturnPortContentsToPlayerInventory(outputPort);
+    }
+
+    // 생산 종료: WIP 재료 환원·입력 포트 잔여 반환·WIP 초기화. 완성품은 별도 처리.
+    public virtual void RefundNonFinishedContentsToPlayerInventory()
+    {
+        RefundActiveWipToPlayerInventory();
+        ReturnPortContentsToPlayerInventory(inputPort);
+        ResetProductionWip();
+    }
+
+    // WIP 시작 시 inputPort에서 소비된 레시피 입력을 환원한다.
+    // 생산 중 재료는 포트에 남지 않고 hasActiveWip + currentRecipe로만 존재한다.
     protected virtual void RefundActiveWipToPlayerInventory()
     {
         if (!hasActiveWip || currentRecipe?.inputEntryList?.entries == null)
@@ -216,7 +294,13 @@ public abstract class Machine : MonoBehaviour
     // 클릭 시 레시피 선택 UI를 띄우거나(지원 기계) 포트 내용을 로그한다.
     private void OnMouseDown()
     {
-        if (IsPointerOverUi() || IsPlacementInteractionBlockingClick())
+        if (ProductionSummaryUI.IsOpen || IsPointerOverUi() || IsPlacementInteractionBlockingClick())
+        {
+            return;
+        }
+
+        // Production 중 수작업 기계는 PlayerMovement 좌클릭 진도에 맡긴다.
+        if (HandlesClickAsManualWork())
         {
             return;
         }
@@ -271,6 +355,36 @@ public abstract class Machine : MonoBehaviour
                 : entry.item.displayName;
             log.AppendLine($"{itemName} : {entry.count}개");
         }
+    }
+
+    // 로그용으로 포트·레시피 출력 슬롯을 한 줄 문자열로 만든다.
+    protected static string DescribePortEntries(ItemEntryList list)
+    {
+        if (list?.entries == null)
+        {
+            return "(없음)";
+        }
+
+        var builder = new StringBuilder();
+        foreach (ItemEntry entry in list.entries)
+        {
+            if (entry == null || entry.item == null || entry.count <= 0)
+            {
+                continue;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append(", ");
+            }
+
+            string itemName = string.IsNullOrEmpty(entry.item.displayName)
+                ? entry.item.id
+                : entry.item.displayName;
+            builder.Append($"{itemName} x{entry.count}");
+        }
+
+        return builder.Length > 0 ? builder.ToString() : "(없음)";
     }
 
     // OnMouseDown용 BoxCollider2D가 없으면 footprint 크기에 맞춰 추가한다.
@@ -447,7 +561,9 @@ public abstract class Machine : MonoBehaviour
                 continue;
             }
 
-            AddToPlayerInventory(entry);
+            AddToPlayerInventory(new ItemEntry { item = entry.item, count = entry.count });
+            entry.item = null;
+            entry.count = 0;
         }
     }
 

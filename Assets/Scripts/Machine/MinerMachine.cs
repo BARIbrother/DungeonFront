@@ -147,10 +147,13 @@ public class MinerMachine : Machine, IFactoryProduction
             return;
         }
 
-        if (progressTicks < currentRecipe.durationByTick)
+        if (progressTicks < currentRecipe.recipeTime)
         {
-            progressTicks++;
-            return;
+            progressTicks += workSpeed;
+            if (progressTicks < currentRecipe.recipeTime)
+            {
+                return;
+            }
         }
 
         // 버퍼가 가득 차 있으면 산출을 보류하고 대기한다.
@@ -162,7 +165,7 @@ public class MinerMachine : Machine, IFactoryProduction
         progressTicks = 0;
         hasActiveWip = false;
 
-        Debug.Log($"[MinerMachine] 채굴 생산 성공 @ {GridAnchor} : +{DescribeEntries(currentRecipe.outputEntryList)} / 버퍼 {DescribeEntries(outputPort)}");
+        // Debug.Log($"[MinerMachine] 채굴 생산 성공 @ {GridAnchor} : +{DescribeEntries(currentRecipe.outputEntryList)} / 버퍼 {DescribeEntries(outputPort)}");
     }
 
     // 레시피 출력을 버퍼(outputPort)에 누적한다. 여유가 없으면 false.

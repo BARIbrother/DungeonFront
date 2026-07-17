@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: iron_plate
   displayName: Iron plate
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b7c8d9e0f1a2435566778899aabbcc01, type: 3}
   category: 0

@@ -140,6 +140,37 @@ public class ConveyerBelt : Machine
         }
     }
 
+    // 생산 종료 요약용: heldItem을 복사해 반환한다. 벨트는 비우지 않는다.
+    public override System.Collections.Generic.List<ItemEntry> CollectFinishedGoodsSnapshot()
+    {
+        var result = new System.Collections.Generic.List<ItemEntry>();
+        if (!HasHeldItem)
+        {
+            return result;
+        }
+
+        result.Add(new ItemEntry { item = heldItem.item, count = heldItem.count });
+        return result;
+    }
+
+    // 생산 종료: heldItem을 인벤으로 옮기고 벨트를 비운다.
+    public override void TransferFinishedGoodsToPlayerInventory()
+    {
+        if (!HasHeldItem)
+        {
+            return;
+        }
+
+        AddToPlayerInventory(heldItem);
+        heldItem = null;
+        cellProgressTicks = 0;
+    }
+
+    // 벨트는 WIP·입력 포트가 없으므로 생산 종료 시 추가 환원할 내용이 없다.
+    public override void RefundNonFinishedContentsToPlayerInventory()
+    {
+    }
+
     // GridManager가 배치·제거 시 호출해 upstream/downstream을 캐시한다.
     public void RefreshNeighbors(GridManager gridManager)
     {

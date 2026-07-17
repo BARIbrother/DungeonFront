@@ -54,7 +54,9 @@ public class GameSessionState : MonoBehaviour
     public FactoryState factory { get; private set; }       
     public List<AcceptedQuestState> quests { get; set; } = new List<AcceptedQuestState>(); 
 
-    private float productionEndTime = 0f;                   
+    private float productionEndTime = 0f;
+    // 생산 종료 요약 모달이 열린 동안 중복 EndProduction 호출을 막는다.
+    private bool isEndingProduction;
     private float TargetProductionTime => isTestMode ? 10f : 300f;
 
     public GamePhase Phase => phase;
@@ -95,15 +97,15 @@ public class GameSessionState : MonoBehaviour
     {
         if (phase == GamePhase.Production)
         {
-            UpdateTimerUI(); 
+            UpdateTimerUI();
 
-            if (Time.time >= productionEndTime)
+            if (!isEndingProduction && Time.time >= productionEndTime)
             {
-                SetPhase(GamePhase.Settlement); 
+                EndProduction();
             }
         }
 
-        if (phase == GamePhase.Prepare || phase == GamePhase.Production)
+        if (!isEndingProduction && (phase == GamePhase.Prepare || phase == GamePhase.Production))
         {
             HandleGlobalInput();
         }
@@ -118,7 +120,8 @@ public class GameSessionState : MonoBehaviour
         inventory = new InventoryState(); 
         factory = new FactoryState();     
         quests.Clear();                   
-        productionEndTime = 0f; 
+        productionEndTime = 0f;
+        isEndingProduction = false;
 
         Debug.Log($"[NewGame] 데이터 리셋 완료");
         UpdateDayText();
@@ -250,6 +253,13 @@ public class GameSessionState : MonoBehaviour
             orderWindow.SetActive(!orderWindow.activeSelf);
         }
 
+        // F: 생산 즉시 종료 (요약 모달 → Settlement). E는 수리·수작업용.
+        if (phase == GamePhase.Production && Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            ForceEndProduction();
+            return;
+        }
+
         if (phase == GamePhase.Prepare)
         {
             if (Keyboard.current.pKey.wasPressedThisFrame && shopWindow != null)
@@ -290,7 +300,8 @@ public class GameSessionState : MonoBehaviour
     public void StartProduction()
     {
         if (phase != GamePhase.Prepare) return;
-        productionEndTime = Time.time + TargetProductionTime; 
+        isEndingProduction = false;
+        productionEndTime = Time.time + TargetProductionTime;
         SetPhase(GamePhase.Production);
     }
 
@@ -335,8 +346,32 @@ public class GameSessionState : MonoBehaviour
     public void AddGold(int amount) { gold += amount; UpdateGoodsUI(); }
     public void AddReputation(int amount) { reputation += amount; UpdateGoodsUI(); }
 
+    // 타이머 만료·조기 종료 공통 진입점. 요약 확인 전까지 Settlement로 가지 않는다.
+    public void EndProduction()
+    {
+        if (phase != GamePhase.Production || isEndingProduction)
+        {
+            return;
+        }
+
+        isEndingProduction = true;
+        productionEndTime = 0f;
+        ProductionEndHandler.EndProduction();
+    }
+
+    // 요약 모달 확인 후 Settlement 전환이 끝났을 때 종료 가드를 해제한다.
+    public void ClearEndingProduction()
+    {
+        isEndingProduction = false;
+    }
+
     public void ForceEndProduction()
     {
-        if (phase == GamePhase.Production) productionEndTime = Time.time;
+        if (phase != GamePhase.Production)
+        {
+            return;
+        }
+
+        EndProduction();
     }
 }

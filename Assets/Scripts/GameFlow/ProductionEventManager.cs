@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 // 생산 단계에서 발생하는 이벤트를 수집·발행한다. 관련 매니저 참조를 보유한다.
 public class ProductionEventManager : MonoBehaviour
@@ -24,9 +23,6 @@ public class ProductionEventManager : MonoBehaviour
 
     public bool IsProductionActive =>
         Session != null && Session.Phase == GamePhase.Production;
-
-    private bool CanInteractWithBreakdown =>
-        (Tick != null && Tick.IsRunning) || IsProductionActive;
 
     public event Action OnProductionStarted;
     public event Action OnProductionEnded;
@@ -85,23 +81,6 @@ public class ProductionEventManager : MonoBehaviour
     private void Update()
     {
         TrySubscribeSessionEvents();
-        HandleRepairInput();
-    }
-
-    private void HandleRepairInput()
-    {
-        if (brokenMachine == null || !CanInteractWithBreakdown)
-        {
-            return;
-        }
-
-        Keyboard keyboard = Keyboard.current;
-        if (keyboard == null || !keyboard.pKey.wasPressedThisFrame)
-        {
-            return;
-        }
-
-        RepairBrokenMachine();
     }
 
     private void OnDestroy()
@@ -113,6 +92,25 @@ public class ProductionEventManager : MonoBehaviour
 
         ClearBreakdownState();
         UnsubscribeSessionEvents();
+    }
+
+    // 플레이어가 근접 상호작용으로 고장난 기계를 수리한다. 성공 시 true.
+    public bool TryRepairMachine(Machine machine)
+    {
+        if (machine == null || !machine.IsBroken)
+        {
+            return false;
+        }
+
+        machine.SetBroken(false);
+        if (brokenMachine == machine)
+        {
+            brokenMachine = null;
+        }
+
+        OnMachineRepaired?.Invoke(machine);
+        Debug.Log($"[ProductionEventManager] 기계 수리 완료: {machine.name}");
+        return true;
     }
 
     // 인스펙터 미할당 시 씬에서 매니저를 찾아 연결한다.
@@ -226,20 +224,6 @@ public class ProductionEventManager : MonoBehaviour
         OnMachineBroken?.Invoke(brokenMachine);
         Debug.Log($"[ProductionEventManager] 기계 고장: {brokenMachine.name} (틱 {Tick.ProductionTick})");
         return true;
-    }
-
-    private void RepairBrokenMachine()
-    {
-        if (brokenMachine == null)
-        {
-            return;
-        }
-
-        Machine repaired = brokenMachine;
-        repaired.SetBroken(false);
-        brokenMachine = null;
-        OnMachineRepaired?.Invoke(repaired);
-        Debug.Log($"[ProductionEventManager] 기계 수리 완료: {repaired.name}");
     }
 
     private void ClearBreakdownState(bool keepBrokenMachine = false)
