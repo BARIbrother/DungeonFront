@@ -42,6 +42,7 @@ public class QuestPool : MonoBehaviour
     //대충 json으로 만들어주기
     private void Awake()
     {
+        
         BuildItemDictionary();
         LoadQuestJson();
     }
@@ -138,17 +139,34 @@ public class QuestPool : MonoBehaviour
 
     public void MakeAvailableQuestsToday(int reputation)
     {
+        questManager.availableQuestsToday.Clear();
+
+        Debug.Log("Reputation : " + reputation);
+        Debug.Log("Quest Count : " + allQuests.Count);
 
         foreach (Questplus questplus in allQuests)
         {
-            if (questplus.threshold > reputation || questManager.acceptedQuestIds.Contains(questplus.id))
+            Debug.Log("Check Quest : " + questplus.id);
+
+            if (questplus.threshold > reputation)
             {
+                Debug.Log("Skip : threshold");
                 continue;
             }
-            
-            questManager.acceptedQuestIds.Add(questplus.id);
+
+            if (questManager.acceptedQuestIds.Contains(questplus.id))
+            {
+                Debug.Log("Skip : accepted");
+                continue;
+            }
+
             Quest quest = Plus2Quest(questplus);
+
             questManager.availableQuestsToday.Add(quest);
+
+            Debug.Log("Add : " + questplus.id);
         }
+
+        Debug.Log("Available Count : " + questManager.availableQuestsToday.Count);
     }
 }
