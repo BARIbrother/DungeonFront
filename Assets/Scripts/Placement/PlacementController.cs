@@ -24,6 +24,8 @@ public class PlacementController : MonoBehaviour
 
     public event Action<bool> OnPlacementModeChanged;
     public event Action OnInventoryChanged;
+    // 배치 성공 시 machineTypeId(definition.id)와 footprint anchor 그리드 좌표.
+    public event Action<string, Vector2Int> OnMachinePlaced;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -138,6 +140,11 @@ public class PlacementController : MonoBehaviour
 
         Vector3 mouseWorld = GetMouseWorldPosition();
         Vector2Int? beltFlowDirection = IsSelectedConveyerBelt() ? pendingBeltFlowDirection : null;
+        Machine prefabMachine = selectedMachine.definition.machinePrefab.GetComponent<Machine>();
+        Vector2Int placeAnchor = prefabMachine != null
+            ? gridManager.GetAnchorForCenteredFootprint(mouseWorld, prefabMachine.GetFootprintSize())
+            : gridManager.WorldToGrid(mouseWorld);
+
         if (gridManager.TryPlaceMachine(
             selectedMachine.definition.machinePrefab,
             mouseWorld,
@@ -154,6 +161,7 @@ public class PlacementController : MonoBehaviour
             }
 
             OnInventoryChanged?.Invoke();
+            OnMachinePlaced?.Invoke(placedDefinitionId, placeAnchor);
             placementUI.Refresh();
         }
     }

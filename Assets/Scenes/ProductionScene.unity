@@ -396,11 +396,7 @@ MonoBehaviour:
   gridManager: {fileID: 2133904198}
   playerInventory: {fileID: 821514147}
   animator: {fileID: 821514146}
-  key1MachineItem: {fileID: 11400000, guid: d116ff2fbec594546bffb40878cee973, type: 2}
-  key2MachineItem: {fileID: 11400000, guid: 98a7336176fbf4a9ca69078fdfb7fe00, type: 2}
-  key3MachineItem: {fileID: 11400000, guid: 93307e8deb70f47cd84eb03865df9681, type: 2}
-  key4MachineItem: {fileID: 11400000, guid: 8bf4a98e5a84c4045ac3e2facadeb3e6, type: 2}
-  key5MachineItem: {fileID: 11400000, guid: 98c39e9ea2fc1c44b957b0bb148d568a, type: 2}
+  machineDatabase: {fileID: 11400000, guid: d1000000000000000000000000000001, type: 2}
   pixelsPerSecond: 64
   pixelsPerUnit: 32
 --- !u!212 &821514144
@@ -769,7 +765,7 @@ MonoBehaviour:
   pixelsPerUnit: 32
   tilePivot: {x: 0.5, y: 0.5}
   resourceNodePrefab: {fileID: 8012345678901234001, guid: c9d5f3a2b0145678e9f0a1b2c3d4e5f6, type: 3}
-  smelterMachinePrefab: {fileID: 9012345678901234001, guid: d4e5f6a7b80911223344556677889900, type: 3}
+  smelterMachinePrefab: {fileID: 9012345678901234001, guid: a11b22c33d44e55f6677889900aabb08, type: 3}
   assemblerMachinePrefab: {fileID: 8012345678901235001, guid: d2e3f4a5b6c748899011223344556788, type: 3}
   minerMachinePrefab: {fileID: 7012345678901234001, guid: c1d2e3f4a5b647899011223344556677, type: 3}
   resourceNodesRoot: {fileID: 3141592653589793201}

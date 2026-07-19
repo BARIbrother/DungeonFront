@@ -371,8 +371,7 @@ public class ConveyerBelt : Machine
         }
 
         var pushEntry = new ItemEntry { item = heldItem.item, count = heldItem.count };
-        return downstreamMachine.inputPort != null
-            && downstreamMachine.inputPort.TryAddToRecipeInput(pushEntry, downstreamMachine.currentRecipe);
+        return downstreamMachine.PutintoInputPort(pushEntry);
     }
 
     private GridManager GetGridManager()

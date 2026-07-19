@@ -14,12 +14,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private Animator animator;
 
-    // 디버그용 기계 정의 SO. 1·2·3·4·5키로 인벤에 1개씩 추가한다.
-    [SerializeField] private ItemDef_Machine key1MachineItem;
-    [SerializeField] private ItemDef_Machine key2MachineItem;
-    [SerializeField] private ItemDef_Machine key3MachineItem;
-    [SerializeField] private ItemDef_Machine key4MachineItem;
-    [SerializeField] private ItemDef_Machine key5MachineItem;
+    // 1키 기계 지급 UI에 쓰는 MachineDatabase.
+    [SerializeField] private MachineDatabase machineDatabase;
+
     // 0키로 철광석 노드 배치 모드를 토글한다.
     private bool isResourceNodePlacementMode;
     // 초당 이동 픽셀 수
@@ -41,8 +38,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // 생산 종료 요약 모달이 열려 있으면 이동·상호작용을 잠근다.
-        if (ProductionSummaryUI.IsOpen)
+        // 모달이 열려 있으면 이동·상호작용을 잠근다.
+        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen)
         {
             UpdateAnimator(Vector2.zero);
             return;
@@ -60,35 +57,16 @@ public class PlayerMovement : MonoBehaviour
 
         if (keyboard != null)
         {
+            // 1: MachineDatabase 기반 기계 지급 UI
             if (keyboard.digit1Key.wasPressedThisFrame)
             {
-                TryAddMachineItem(key1MachineItem);
-            }
-
-            if (keyboard.digit2Key.wasPressedThisFrame)
-            {
-                TryAddMachineItem(key2MachineItem);
-            }
-
-            if (keyboard.digit3Key.wasPressedThisFrame)
-            {
-                TryAddMachineItem(key3MachineItem);
+                TryOpenMachineGrantUi();
             }
 
             if (keyboard.digit0Key.wasPressedThisFrame)
             {
                 isResourceNodePlacementMode = !isResourceNodePlacementMode;
                 Debug.Log($"[PlayerMovement] 철광석 노드 배치 모드: {(isResourceNodePlacementMode ? "ON" : "OFF")}");
-            }
-
-            if (keyboard.digit4Key.wasPressedThisFrame)
-            {
-                TryAddMachineItem(key4MachineItem);
-            }
-
-            if (keyboard.digit5Key.wasPressedThisFrame)
-            {
-                TryAddMachineItem(key5MachineItem);
             }
 
             // F: 생산 즉시 종료 (E는 수리·수작업)
@@ -381,30 +359,23 @@ public class PlayerMovement : MonoBehaviour
         ProductionEndHandler.EndProduction();
     }
 
-    // ItemDef_Machine 정의로 인벤토리에 기계 인스턴스 1개 추가한다.
-    private void TryAddMachineItem(ItemDef_Machine definition)
+    // MachineDatabase 목록으로 기계 지급 UI를 연다.
+    private void TryOpenMachineGrantUi()
     {
-        if (definition == null || definition.machinePrefab == null)
+        if (machineDatabase == null)
         {
+            Debug.LogWarning("[PlayerMovement] MachineDatabase가 할당되지 않아 지급 UI를 열 수 없습니다.");
             return;
         }
 
         PlayerInventory inventory = GetPlayerInventory();
         if (inventory == null)
         {
+            Debug.LogWarning("[PlayerMovement] PlayerInventory가 없어 지급 UI를 열 수 없습니다.");
             return;
         }
 
-        int countBefore = inventory.Machines.Count;
-        inventory.AddMachine(definition);
-
-        if (inventory.Machines.Count <= countBefore)
-        {
-            return;
-        }
-
-        MachineInventoryEntry added = inventory.Machines[inventory.Machines.Count - 1];
-        Debug.Log($"[PlayerMovement] 기계 지급 성공: {definition.displayName} ({definition.id}), instanceId={added.instanceId}, 인벤 총 {inventory.Machines.Count}대");
+        MachineGrantUI.Show(machineDatabase, inventory);
     }
 
     private PlayerInventory GetPlayerInventory()

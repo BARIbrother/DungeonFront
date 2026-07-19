@@ -72,12 +72,12 @@ MVP **10종 이상** `machineTypeId`에 대해 **tier 1 Prefab + ItemDef_Machine
 
 ## 5. Prefab 구성 체크리스트 (기계당)
 
-- [ ] `Machine` 서브클래스 컴포넌트
-- [ ] `inputPort` / `outputPort` (또는 서브클래스에서 초기화)
+- [x] `Machine` 서브클래스 컴포넌트
+- [x] `inputPort` / `outputPort` (또는 서브클래스에서 초기화)
 - [ ] `RecipePool` — [05-recipe-data-lock](./05-recipe-data-lock.md)에서 레시피 연결
-- [ ] `size` / `GetFootprintSize()` — GridManager 배치
-- [ ] SpriteRenderer + (선택) Animator
-- [ ] `MachineRecipeUI` — 우클릭 레시피 (기존 패턴)
+- [x] `size` / `GetFootprintSize()` — GridManager 배치
+- [x] SpriteRenderer + (선택) Animator
+- [x] `MachineRecipeUI` — 우클릭 레시피 (기존 패턴)
 
 ---
 
@@ -85,19 +85,19 @@ MVP **10종 이상** `machineTypeId`에 대해 **tier 1 Prefab + ItemDef_Machine
 
 ### 6-1. 표 대조
 
-- [ ] [03-machine-plan.md](../../../03-machine-plan.md) 10행 + 벨트 포함 여부 팀 확인
-- [ ] 미구현 type 목록 작성
+- [x] [03-machine-plan.md](../../../03-machine-plan.md) 10행 + 벨트 포함 여부 팀 확인
+- [x] 미구현 type 목록 작성
 
 ### 6-2. 신규 기계
 
-- [ ] W2 `Machine_placeholder` 또는 기존 Prefab **복제** 후 이름·스크립트 교체
-- [ ] 마법 라인 4종 + 제단 + 주조소 — 최소 **틱 생산 스텁** (`IFactoryProduction`)으로 시작 가능
-- [ ] 수작업 기계: `requiresManualWork=true`, `manualClickCount`는 Recipe SO에서
+- [x] W2 `Machine_placeholder` 또는 기존 Prefab **복제** 후 이름·스크립트 교체
+- [x] 마법 라인 4종 + 제단 + 주조소 — 최소 **틱 생산 스텁** (`IFactoryProduction`)으로 시작 가능
+- [x] 수작업 기계: `requiresManualWork=true`, `manualClickCount`는 Recipe SO에서
 
 ### 6-3. Database
 
-- [ ] `machineDefId` → Prefab/SO 조회 API
-- [ ] `PlacementController` / `PlayerInventory.AddMachine`이 id로 스폰 가능
+- [x] `machineDefId` → Prefab/SO 조회 API
+- [x] `PlacementController` / `PlayerInventory.AddMachine`이 id로 스폰 가능
 
 ### 6-4. 검증
 
@@ -121,9 +121,9 @@ PlacementController → B키 배치
 
 ## 8. 완료 기준
 
-- [ ] `machineTypeId` **10종 이상** tier 1 Prefab 존재
-- [ ] `MachineDatabase`(또는 동등)에서 MVP `machineDefId` **전부 조회 가능**
-- [ ] Prepare 단계에서 각 type **1대 이상** 배치·회수 가능
+- [x] `machineTypeId` **10종 이상** tier 1 Prefab 존재
+- [x] `MachineDatabase`(또는 동등)에서 MVP `machineDefId` **전부 조회 가능**
+- [x] Prepare 단계에서 각 type **1대 이상** 배치·회수 가능
 - [ ] W2 기계(채굴·용광로·제작·벨트) 회귀 없음
 
 ---

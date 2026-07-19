@@ -10,10 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3188b21b206c4552848d56916d014e9, type: 3}
-  m_Name: ConveyerBelt
+  m_Name: ManaStorage_1
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
-  id: conveyerbelt
-  displayName: "\uCEE8\uBCA0\uC774\uC5B4 \uBCA8\uD2B8"
+  id: ManaStorage_1
+  displayName: "\uB9C8\uB098 \uC800\uC7A5\uC18C"
   icon: {fileID: 0}
   category: 0
-  machinePrefab: {fileID: 1851280929269176704, guid: 44b832d0317f7c344a0135fa25404917, type: 3}
+  machineTypeId: ManaStorage
+  requiresManualWork: 0
+  machinePrefab: {fileID: 8012345678901235001, guid: a11b22c33d44e55f6677889900aabb07, type: 3}

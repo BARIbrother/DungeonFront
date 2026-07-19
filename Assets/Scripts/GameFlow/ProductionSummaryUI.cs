@@ -102,11 +102,10 @@ public class ProductionSummaryUI : MonoBehaviour
 
         if (GameSessionState.Instance != null)
         {
+            // Settlement 전환 시 FactoryStoryHooks가 OnProductionEnded / 001E00005를 발행한다.
             GameSessionState.Instance.SetPhase(GamePhase.Settlement);
             GameSessionState.Instance.ClearEndingProduction();
         }
-
-        StoryEventBus.Raise("OnProductionEnded");
     }
 
     private void RebuildLines(List<ProductionSummaryLine> lines)

@@ -10,10 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3188b21b206c4552848d56916d014e9, type: 3}
-  m_Name: Assembler
+  m_Name: Foundry_1
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
-  id: Assembler
-  displayName: "\uC81C\uC791\uAE30"
+  id: Foundry_1
+  displayName: "\uC8FC\uC870\uC18C"
   icon: {fileID: 0}
   category: 0
-  machinePrefab: {fileID: 8012345678901235001, guid: d2e3f4a5b6c748899011223344556788, type: 3}
+  machineTypeId: Foundry
+  requiresManualWork: 0
+  machinePrefab: {fileID: 8012345678901235001, guid: a11b22c33d44e55f6677889900aabb05, type: 3}

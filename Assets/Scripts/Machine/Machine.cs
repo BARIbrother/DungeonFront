@@ -47,14 +47,24 @@ public abstract class Machine : MonoBehaviour
 
     public abstract void InitializeMachine();
 
-    public virtual void PutintoInputPort(ItemEntry IE)
+    public virtual bool PutintoInputPort(ItemEntry IE)
     {
-        inputPort?.TryAddToRecipeInput(IE, currentRecipe);
+        if (IE == null || IE.item == null || IE.count <= 0 || inputPort == null)
+        {
+            return false;
+        }
+
+        return inputPort.TryAddToRecipeInput(IE, currentRecipe);
     }
 
-    public virtual void TakeoutOutputPort(ItemEntry IE)
+    public virtual bool TakeoutOutputPort(ItemEntry IE)
     {
-        outputPort?.TryTake(IE);
+        if (IE == null || outputPort == null)
+        {
+            return false;
+        }
+
+        return outputPort.TryTake(IE);
     }
 
     // 물류 페이즈 훅. 컨베이어 등이 override한다.

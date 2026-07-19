@@ -10,10 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3188b21b206c4552848d56916d014e9, type: 3}
-  m_Name: Handmade_Assembler
+  m_Name: HandmadeAssembler_1
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
-  id: Handmade_Assembler
-  displayName: "\uC218\uC791\uC5C5 \uC81C\uC791\uAE30"
+  id: HandmadeAssembler_1
+  displayName: "\uC218\uB3D9 \uC81C\uC791\uB300"
   icon: {fileID: 0}
   category: 0
+  machineTypeId: HandmadeAssembler
+  requiresManualWork: 1
   machinePrefab: {fileID: 9012345678901236001, guid: f1a2b3c4d5e6478899aabbccddeeff01, type: 3}
