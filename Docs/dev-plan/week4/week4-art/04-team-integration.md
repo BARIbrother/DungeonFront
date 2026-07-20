@@ -1,38 +1,24 @@
-# Art — Lead·Dev 전달
+# Art — 에셋 전달
 
-> **역할**: Art · **Week**: 4 · **Issue**: 04  
-> **상위**: [week4.md](../week4.md) · **뒷산만**
-
----
+**역할**: Art · **Week**: 4 · **Issue**: 04  
+**던전**: 뒷산만
 
 ## 1. 전달 목록
 
-| 산출물 | 경로 | 수신 |
-|--------|------|------|
-| UI 프레임·버튼 | `Assets/Art/UI/Frames/` | Dev1 |
-| 뒷산 타일 | `Assets/Art/Tiles/BackCave/` | Lead |
-| 기계 스프라이트 | `Assets/Art/Machines/` | Lead |
+| 산출물 | 경로 |
+|--------|------|
+| UI 프레임·버튼 | `Assets/Art/UI/Frames/` |
+| 뒷산 타일 | `Assets/Art/Tiles/BackCave/` |
+| 기계 비주얼 러프 | (회의용 러프 · 최종 픽셀은 회의 후 AI) |
 
----
+## 2. 전달 요약
 
-## 2. 체크리스트
-
-- [ ] import 설정 style guide
-- [ ] Dev1 패널 프레임 적용 확인
-- [ ] Lead 뒷산 맵·기계 Prefab 적용 확인
-- [ ] 통합 데모 시각 QA
-
----
+import 설정은 스타일 가이드를 따르고, §1 경로에 파일을 둔 뒤 통합 데모 시각 QA를 한다.
 
 ## 3. 완료 기준
 
-- [ ] §1 파일 develop에 존재
-- [ ] [05-team-integration](../week4-dev1/05-team-integration.md) Art 항목 체크
-
----
-
-## 4. 관련 문서
-
-- [01-ui-frame-style](./01-ui-frame-style.md)
-- [02-backcave-tiles](./02-backcave-tiles.md)
-- [03-machine-visual-polish](./03-machine-visual-polish.md)
+- [ ] UI 프레임·버튼이 `Assets/Art/UI/Frames/`에 존재
+- [ ] 뒷산 타일이 `Assets/Art/Tiles/BackCave/`에 존재
+- [ ] 기계 비주얼 러프가 회의용으로 정리됨
+- [ ] import 설정이 스타일 가이드를 따름
+- [ ] 통합 데모 Art 항목 통과
