@@ -5,7 +5,6 @@ using UnityEngine.InputSystem;
 using TMPro; 
 using UnityEngine.UI; 
 
-public class InventoryState { }
 public class FactoryState { }
 
 [System.Serializable]
@@ -123,7 +122,28 @@ public class GameSessionState : MonoBehaviour
         productionEndTime = 0f;
         isEndingProduction = false;
 
-        Debug.Log($"[NewGame] 데이터 리셋 완료");
+        inventory.machines.Add(new MachineInstanceState
+        {
+            instanceId = Guid.NewGuid().ToString(),
+            machineDefId = "Miner_1",
+            placement = MachinePlacement.InInventory
+        });
+
+        inventory.machines.Add(new MachineInstanceState
+        {
+            instanceId = Guid.NewGuid().ToString(),
+            machineDefId = "Smelter_1",
+            placement = MachinePlacement.InInventory
+        });
+
+        inventory.machines.Add(new MachineInstanceState
+        {
+            instanceId = Guid.NewGuid().ToString(),
+            machineDefId = "Assembler_1",
+            placement = MachinePlacement.InInventory
+        });
+
+        Debug.Log($"[NewGame] 데이터 리셋 완료 — machines={inventory.machines.Count}");
         UpdateDayText();
         UpdateTimerUI();
         UpdateGoodsUI();

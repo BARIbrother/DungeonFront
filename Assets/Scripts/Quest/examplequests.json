@@ -1,0 +1,75 @@
+{
+  "quests": [
+    {
+      "id": 100001,
+      "threshold": 0,
+      "title": "철 주괴 생산",
+      "clientName": "이브",
+      "content": "대장간의 첫 퀘스트! 채굴기로 철광석을 채굴하자!",
+      "requiredItems": [
+        { "itemId": "iron_ore", "count": 5 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 100 }
+      ],
+      "deadlineDays": 1
+    },
+    {
+      "id": 100002,
+      "threshold": 0,
+      "title": "철판 납품",
+      "clientName": "대장장이",
+      "content": "새로운 갑옷을 제작해야 한다. 철판을 납품해 달라.",
+      "requiredItems": [
+        { "itemId": "iron_plate", "count": 5 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 150 }
+      ],
+      "deadlineDays": 1
+    },
+    {
+      "id": 100003,
+      "threshold": 0,
+      "title": "철 막대 제작",
+      "clientName": "목수",
+      "content": "건축 자재로 사용할 철 주괴가 부족하다.",
+      "requiredItems": [
+        { "itemId": "iron_plate", "count": 8 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 180 }
+      ],
+      "deadlineDays": 1
+    },
+    {
+      "id": 100004,
+      "threshold": 0,
+      "title": "기초 재료 지원",
+      "clientName": "광산 관리인",
+      "content": "광산 운영을 위해 철광석을 지원해 달라.",
+      "requiredItems": [
+        { "itemId": "iron_ore", "count": 15 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 120 }
+      ],
+      "deadlineDays": 1
+    },
+    {
+      "id": 100005,
+      "threshold": 10,
+      "title": "기사단 보급",
+      "clientName": "기사단",
+      "content": "기사단 장비 보급을 위해 철판과 철 막대를 대량으로 요청한다.",
+      "requiredItems": [
+        { "itemId": "iron_plate", "count": 20 },
+        { "itemId": "iron_rod", "count": 15 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 500 }
+      ],
+      "deadlineDays": 3
+    }
+  ]
+}

@@ -9,6 +9,9 @@ public class QuestManager : MonoBehaviour
     // 현재 수락하여 진행 중인 의뢰 목록
     public List<Quest> currentQuests = new();
 
+    // 수학했던 의뢰 (완료포함)
+    public List<int> acceptedQuestIds = new();
+
     // 오늘 받을 수 있는 의뢰 목록
     public List<Quest> availableQuestsToday = new();
 
