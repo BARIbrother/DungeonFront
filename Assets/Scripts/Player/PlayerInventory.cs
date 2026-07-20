@@ -4,11 +4,26 @@ using UnityEngine;
 
 public class PlayerInventory : MonoBehaviour
 {
+    public static PlayerInventory Instance { get; private set; }
+
     private readonly Dictionary<string, int> items = new();
     private readonly List<MachineInventoryEntry> machines = new();
 
     public IReadOnlyList<MachineInventoryEntry> Machines => machines;
+    public event Action OnItemsChanged;
     public event Action OnMachinesChanged;
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     public void Add(ItemEntry entry)
     {
@@ -24,9 +39,9 @@ public class PlayerInventory : MonoBehaviour
 
         items.TryGetValue(entry.item.id, out int existing);
         items[entry.item.id] = existing + entry.count;
+        OnItemsChanged?.Invoke();
     }
 
-    // itemId에 해당하는 보유 수량을 반환한다.
     public int GetCount(string itemId)
     {
         if (string.IsNullOrEmpty(itemId))
@@ -38,7 +53,6 @@ public class PlayerInventory : MonoBehaviour
         return count;
     }
 
-    // 보유 수량에서 amount만큼 차감하고, 실제로 제거한 수량을 반환한다.
     public int Remove(string itemId, int amount)
     {
         if (string.IsNullOrEmpty(itemId) || amount <= 0)
@@ -63,10 +77,11 @@ public class PlayerInventory : MonoBehaviour
             items[itemId] = remaining;
         }
 
+        OnItemsChanged?.Invoke();
+
         return removed;
     }
 
-    // ItemDef_Machine 정의로 인벤에 기계 인스턴스 1개를 추가한다.
     public void AddMachine(ItemDef_Machine definition)
     {
         MachineInventoryEntry entry = MachineInventoryEntry.Create(definition);
@@ -79,7 +94,6 @@ public class PlayerInventory : MonoBehaviour
         OnMachinesChanged?.Invoke();
     }
 
-    // instanceId에 해당하는 기계를 인벤에서 제거한다. 성공 시 true.
     public bool TryRemoveMachine(string instanceId, out MachineInventoryEntry removed)
     {
         removed = null;
@@ -105,7 +119,6 @@ public class PlayerInventory : MonoBehaviour
         return false;
     }
 
-    // 맵에서 회수한 기계 인스턴스를 인벤에 되돌린다.
     public void ReturnMachine(MachineInventoryEntry entry)
     {
         if (entry == null || entry.definition == null)
@@ -115,5 +128,10 @@ public class PlayerInventory : MonoBehaviour
 
         machines.Add(entry);
         OnMachinesChanged?.Invoke();
+    }
+    
+    public List<MachineInventoryEntry> GetInInventoryMachines()
+    {
+    return new List<MachineInventoryEntry>(machines);
     }
 }

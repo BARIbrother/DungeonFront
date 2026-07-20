@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem; 
 using TMPro; 
 using UnityEngine.UI; 
+using UnityEngine.SceneManagement; // [추가] 씬 전환을 위해 추가
 
 public class InventoryState { }
 public class FactoryState { }
@@ -28,8 +29,8 @@ public class GameSessionState : MonoBehaviour
     [SerializeField] private bool isTestMode = true; 
 
     [Header("[UI 오브젝트 연결]")]
-    public GameObject orderWindow;      
-    public GameObject shopWindow;       
+    // [보완] 명세서 요구사항에 따라 orderWindow, shopWindow는 Dev2가 OnPhaseChanged를 구독해 자체 제어하므로
+    // 레거시 UI 오브젝트 연결 및 제어를 제거해도 되지만, 하방 호환성을 위해 변수만 남겨두고 수동 조작 로직을 정리합니다.
     public GameObject minimapUI;        
     public GameObject inventoryUI;      
     public GameObject settlementUI;    
@@ -39,6 +40,10 @@ public class GameSessionState : MonoBehaviour
     public TextMeshProUGUI timerText;   
     public TextMeshProUGUI goldText;    
     public TextMeshProUGUI reputationText; 
+
+    [Header("[결산 화면 전용 텍스트 추가]")]
+    public TextMeshProUGUI settlementTitleText; 
+    public TextMeshProUGUI settlementDayText;   
 
     [Header("[시각화 UI 버튼 연결]")]
     public Button startProductionButton; 
@@ -102,11 +107,6 @@ public class GameSessionState : MonoBehaviour
                 SetPhase(GamePhase.Settlement); 
             }
         }
-
-        if (phase == GamePhase.Prepare || phase == GamePhase.Production)
-        {
-            HandleGlobalInput();
-        }
     }
 
     public void NewGame()
@@ -126,7 +126,6 @@ public class GameSessionState : MonoBehaviour
         UpdateGoodsUI();
         ApplyUIState(phase);
 
-        // [체크리스트] OnNewGame 이벤트 발생 -> 외부 스폰 로직 트리거용
         OnNewGame?.Invoke();
     }
 
@@ -165,13 +164,16 @@ public class GameSessionState : MonoBehaviour
         ApplyUIState(phase);
         UpdateTimerUI(); 
         
-        // [체크리스트] 페이즈 변경 이벤트 알림 -> GameFlowController가 수신
+        // [체크리스트 명세 실행] 페이즈 변경 시 이벤트를 전파하여 외부 스크립트(Lead/Dev2 UI 등)가 감지하도록 함
         OnPhaseChanged?.Invoke(phase);
-    }
 
-    [Header("[결산 화면 전용 텍스트 추가]")]
-    public TextMeshProUGUI settlementTitleText; // "결산" 또는 "X일차 결산"
-    public TextMeshProUGUI settlementDayText;   // 결산창 내부 일차 표시용 (session.day)
+        // [체크리스트 명세 실현] 페이즈에 따른 실제 씬 전환 흐름 강제 연동
+        if (phase == GamePhase.Settlement)
+        {
+            // Production 카운트다운 완료 후 자동으로 Settlement 씬으로 이동
+            SceneManager.LoadScene("SettlementScene"); 
+        }
+    }
 
     private void ApplyUIState(GamePhase currentPhase)
     {
@@ -180,19 +182,15 @@ public class GameSessionState : MonoBehaviour
         switch (currentPhase)
         {
             case GamePhase.Prepare:
-                // [기획서 요건] 정비 단계 시 Factory 요소 표시
                 if (minimapUI != null) minimapUI.SetActive(true);
                 if (inventoryUI != null) inventoryUI.SetActive(true);
-                if (shopWindow != null) shopWindow.SetActive(false);
-                if (settlementUI != null) settlementUI.SetActive(false); // 결산 가리기
-                if (orderWindow != null) orderWindow.SetActive(false); 
+                if (settlementUI != null) settlementUI.SetActive(false); 
 
                 if (startProductionButton != null) startProductionButton.gameObject.SetActive(true);
                 if (advanceDayButton != null) advanceDayButton.gameObject.SetActive(false);
                 break;
 
             case GamePhase.Production:
-                if (shopWindow != null) shopWindow.SetActive(false); 
                 if (minimapUI != null) minimapUI.SetActive(true);
                 if (inventoryUI != null) inventoryUI.SetActive(true);
                 if (settlementUI != null) settlementUI.SetActive(false);
@@ -202,29 +200,22 @@ public class GameSessionState : MonoBehaviour
                 break;
 
             case GamePhase.Settlement:
-                // [기획서 요건] Settlement가 되면 이 화면만 보임 (Factory 숨김 시뮬레이션)
-                if (orderWindow != null) orderWindow.SetActive(false);
-                if (shopWindow != null) shopWindow.SetActive(false);
-                if (minimapUI != null) minimapUI.SetActive(false);    // 맵 숨기기
-                if (inventoryUI != null) inventoryUI.SetActive(false);  // 인벤토리 숨기기
+                if (minimapUI != null) minimapUI.SetActive(false);    
+                if (inventoryUI != null) inventoryUI.SetActive(false);  
                 
-                if (settlementUI != null) settlementUI.SetActive(true); // 결산 창만 활성화
+                if (settlementUI != null) settlementUI.SetActive(true); 
 
-                // 결산 화면 내 요소 실시간 반영 (명세서 요건)
-                if (settlementTitleText != null) settlementTitleText.text = $"Day{day} Settlement"; // n일차 결산
-                if (settlementDayText != null) settlementDayText.text = $"Day Progress: {day}"; // 진행일차 : n일
+                if (settlementTitleText != null) settlementTitleText.text = $"Day{day} Settlement"; 
+                if (settlementDayText != null) settlementDayText.text = $"Day Progress: {day}"; 
 
                 if (startProductionButton != null) startProductionButton.gameObject.SetActive(false);
-                if (advanceDayButton != null) advanceDayButton.gameObject.SetActive(true); // 다음날 버튼 표시
+                if (advanceDayButton != null) advanceDayButton.gameObject.SetActive(true); 
                 break;
         }
     }
 
-    // 오브젝트 자동 찾기 기능에 결산 텍스트 2개 추가
     public void FindUIObjectsAutomatically()
     {
-        if (orderWindow == null) orderWindow = GameObject.Find("OrderWindow");
-        if (shopWindow == null) shopWindow = GameObject.Find("ShopWindow");
         if (minimapUI == null) minimapUI = GameObject.Find("MinimapUI");
         if (inventoryUI == null) inventoryUI = GameObject.Find("InventoryUI");
         if (settlementUI == null) settlementUI = GameObject.Find("SettlementUI");
@@ -241,45 +232,24 @@ public class GameSessionState : MonoBehaviour
         if (advanceDayButton == null) advanceDayButton = GameObject.Find("AdvanceDayButton")?.GetComponent<Button>();
     }
 
-    private void HandleGlobalInput()
-    {
-        if (Keyboard.current == null) return;
-
-        if (Keyboard.current.oKey.wasPressedThisFrame && orderWindow != null)
-        {
-            orderWindow.SetActive(!orderWindow.activeSelf);
-        }
-
-        if (phase == GamePhase.Prepare)
-        {
-            if (Keyboard.current.pKey.wasPressedThisFrame && shopWindow != null)
-            {
-                shopWindow.SetActive(!shopWindow.activeSelf);
-            }
-        }
-    }
-
     public bool TryAcceptQuest(int id, string name)
     {
-    // [수정] 1. 이미 수락한 의뢰인지 검사 -> 있으면 취소 처리
-    if (quests.Exists(q => q.questId == id))
-    {
-        quests.RemoveAll(q => q.questId == id);
-        Debug.Log($"<color=orange>[의뢰 취소] {name} 취소됨. (현재: {quests.Count}/3)</color>");
-        return true; // 상태 전환 성공으로 리턴
-    }
+        if (quests.Exists(q => q.questId == id))
+        {
+            quests.RemoveAll(q => q.questId == id);
+            Debug.Log($"<color=orange>[의뢰 취소] {name} 취소됨. (현재: {quests.Count}/3)</color>");
+            return true; 
+        }
 
-    // 2. 이미 3개를 수락했는지 개수 검사
-    if (quests.Count >= 3)
-    {
-        Debug.LogWarning($"[의뢰 실패] 이미 최대치(3개)의 의뢰를 수락했습니다.");
-        return false; // 자리가 없으므로 실패 리턴
-    }
+        if (quests.Count >= 3)
+        {
+            Debug.LogWarning($"[의뢰 실패] 이미 최대치(3개)의 의뢰를 수락했습니다.");
+            return false; 
+        }
 
-    // 3. 의뢰 추가
-    quests.Add(new AcceptedQuestState(id, name));
-    Debug.Log($"<color=cyan>[의뢰 수락] {name} 추가됨. (현재: {quests.Count}/3)</color>");
-    return true;
+        quests.Add(new AcceptedQuestState(id, name));
+        Debug.Log($"<color=cyan>[의뢰 수락] {name} 추가됨. (현재: {quests.Count}/3)</color>");
+        return true;
     }
 
     public void RemoveQuest(int id)
@@ -300,6 +270,9 @@ public class GameSessionState : MonoBehaviour
         day++;
         UpdateDayText(); 
         SetPhase(GamePhase.Prepare);
+
+        // [체크리스트 명세 실현] AdvancedDay() 호출 후 Factory 씬으로 안전하게 복귀
+        SceneManager.LoadScene("FactoryScene");
     }
 
     private void UpdateDayText()

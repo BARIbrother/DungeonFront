@@ -4,15 +4,18 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-    m_Scenes:
+  m_Scenes:
+  - enabled: 1
+    path: Assets/DungeonFront.unity
+    guid: ea11d0c0f4624d34a91274a47a547888
+  - enabled: 1
+    path: Assets/Scenes/Factory.unity
+    guid: 166658d77d6aed845864ce14379b1d87
   - enabled: 1
     path: Assets/Scenes/ProductionScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
     path: Assets/Scenes/Settlement.unity
     guid: d19fd83f4a4d2564badf792846ae1fec
-  - enabled: 1
-    path: Assets/Scenes/Factory.unity
-    guid: 166658d77d6aed845864ce14379b1d87
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
