@@ -365,13 +365,14 @@ public class GridManager : MonoBehaviour
 
         Vector2Int anchor = machine.GridAnchor;
         Vector2Int footprintSize = machine.GetFootprintSize();
+        OccupantKind clearedKind = machine.GetOccupantKind();
 
         if (machine is ConveyerBelt removedBelt)
         {
             removedBelt.ClearNeighbors();
         }
 
-        ClearFootprint(anchor, footprintSize);
+        ClearFootprint(anchor, footprintSize, clearedKind);
         placedMachines.Remove(machine);
         RefreshBeltNeighborsAtFootprint(anchor, footprintSize);
         TickManager.Instance?.UnregisterMachine(machine);
@@ -470,7 +471,8 @@ public class GridManager : MonoBehaviour
     }
 
     // footprint 영역의 그리드 점유를 해제한다.
-    private void ClearFootprint(Vector2Int anchor, Vector2Int footprintSize)
+    // MachineOnResourceNode 회수 시에는 덮어썼던 자원 노드 occupant·Kind를 복원한다.
+    private void ClearFootprint(Vector2Int anchor, Vector2Int footprintSize, OccupantKind clearedKind)
     {
         for (int x = 0; x < footprintSize.x; x++)
         {
@@ -478,11 +480,39 @@ public class GridManager : MonoBehaviour
             {
                 Vector2Int coord = new Vector2Int(anchor.x + x, anchor.y + y);
                 GridCell cell = GetCell(coord);
-                cell.Occupant = null;
-                cell.OccupantKind = default;
+
+                if (clearedKind == OccupantKind.MachineOnResourceNode
+                    && TryGetResourceNodeAt(coord, out ResourceNode resourceNode))
+                {
+                    cell.Occupant = resourceNode.gameObject;
+                    cell.OccupantKind = OccupantKind.ResourceNode;
+                }
+                else
+                {
+                    cell.Occupant = null;
+                    cell.OccupantKind = default;
+                }
+
                 SetCell(coord, cell);
             }
         }
+    }
+
+    // placedResourceNodes에서 coord에 놓인 자원 노드를 찾는다.
+    private bool TryGetResourceNodeAt(Vector2Int coord, out ResourceNode resourceNode)
+    {
+        for (int i = 0; i < placedResourceNodes.Count; i++)
+        {
+            ResourceNode node = placedResourceNodes[i];
+            if (node != null && node.GridAnchor == coord)
+            {
+                resourceNode = node;
+                return true;
+            }
+        }
+
+        resourceNode = null;
+        return false;
     }
 
     // footprint 영역 전체 셀이 같은 occupant GameObject를 가리키도록 기록한다.
