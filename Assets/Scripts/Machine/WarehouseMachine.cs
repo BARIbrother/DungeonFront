@@ -19,6 +19,9 @@ public class WarehouseMachine : Machine
 
     public override bool SupportsRecipeSelectionUi() => false;
 
+    // 창고는 생산 기계가 아니므로 정보 패널을 띄우지 않는다.
+    public override bool SupportsInfoPanel() => false;
+
     public override bool SupportsManualWorkClick() => false;
 
     // 들어온 아이템을 포트에 쌓지 않고 바로 공유 인벤으로 넣는다.

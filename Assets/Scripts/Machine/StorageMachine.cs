@@ -25,6 +25,9 @@ public abstract class StorageMachine : Machine
 
     public override bool SupportsRecipeSelectionUi() => false;
 
+    // 저장소는 생산 기계가 아니므로 정보 패널을 띄우지 않는다.
+    public override bool SupportsInfoPanel() => false;
+
     public override bool SupportsManualWorkClick() => AllowManualWithdraw;
 
     // 버퍼 전량을 플레이어 인벤으로 옮긴다. 하나라도 옮기면 true.

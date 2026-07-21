@@ -214,6 +214,8 @@ public class PlacementController : MonoBehaviour
 
         TransferMachineContentsToInventory(machine);
 
+        MachineInfoPanel.NotifyMachineRemoved(machine);
+
         if (!gridManager.TryRemoveMachine(machine))
         {
             return false;

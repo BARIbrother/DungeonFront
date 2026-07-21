@@ -24,6 +24,7 @@ public static class ProductionEndHandler
 
         List<ProductionSummaryLine> lines = CollectFinishedGoodsFromMap();
         TransferFinishedGoodsAndRefundNonFinished();
+        MachineInfoPanel.HideActive();
         ProductionSummaryUI.Show(lines);
     }
 

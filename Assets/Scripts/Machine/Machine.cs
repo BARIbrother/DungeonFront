@@ -45,6 +45,10 @@ public abstract class Machine : MonoBehaviour
 
     public bool IsBroken => isBroken;
 
+    // MachineInfoPanel WIP 표시용.
+    public bool HasActiveWip => hasActiveWip;
+    public int ProgressTicks => progressTicks;
+
     public abstract void InitializeMachine();
 
     public virtual bool PutintoInputPort(ItemEntry IE)
@@ -301,7 +305,7 @@ public abstract class Machine : MonoBehaviour
         EnsureClickCollider();
     }
 
-    // 클릭 시 레시피 선택 UI를 띄우거나(지원 기계) 포트 내용을 로그한다.
+    // 클릭 시 기계 정보 패널을 연다. 레시피 변경은 패널 버튼으로 연다.
     private void OnMouseDown()
     {
         if (ProductionSummaryUI.IsOpen || IsPointerOverUi() || IsPlacementInteractionBlockingClick())
@@ -315,13 +319,12 @@ public abstract class Machine : MonoBehaviour
             return;
         }
 
-        if (SupportsRecipeSelectionUi())
+        if (!SupportsInfoPanel())
         {
-            MachineRecipeUI.ShowFor(this);
             return;
         }
 
-        LogPortContents();
+        MachineInfoPanel.ShowFor(this);
     }
 
     private static bool IsPointerOverUi()
@@ -419,6 +422,9 @@ public abstract class Machine : MonoBehaviour
         RecipePool pool = GetAvailableRecipes();
         return pool != null && pool.recipes != null && pool.recipes.Length > 0;
     }
+
+    // 기계 정보 패널을 띄울 수 있는지. 벨트·창고 등 비생산 기계는 override로 막는다.
+    public virtual bool SupportsInfoPanel() => true;
 
     public string GetMachineDisplayName()
     {

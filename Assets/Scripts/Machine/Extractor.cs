@@ -17,4 +17,7 @@ public class Extractor : Machine
     public override void InitializeMachine()
     {
     }
+
+    // Extractor는 생산 기계가 아니므로 정보 패널을 띄우지 않는다.
+    public override bool SupportsInfoPanel() => false;
 }

@@ -30,15 +30,10 @@ public class MachineRecipeUI : MonoBehaviour
         systemObject.AddComponent<MachineRecipeUI>();
     }
 
+    // 레시피 전환은 MachineInfoPanel의 「레시피 변경」 목록으로 통합됐다.
     public static void ShowFor(Machine machine)
     {
-        if (machine == null || !machine.SupportsRecipeSelectionUi())
-        {
-            return;
-        }
-
-        EnsureInstance();
-        instance.Open(machine);
+        MachineInfoPanel.ShowForWithRecipeList(machine);
     }
 
     private static void EnsureInstance()

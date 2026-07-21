@@ -86,7 +86,7 @@ public class ConveyerBelt : Machine
     public ItemDefinition HeldItemDefinition => heldItem?.item;
 
     // 벨트 칸 내 진행도 (0=입구, TicksPerCell=출구). 시각화에 사용한다.
-    public int ProgressTicks => cellProgressTicks;
+    public int CellProgressTicks => cellProgressTicks;
 
     public float NormalizedProgress => HasHeldItem ? cellProgressTicks / (float)TicksPerCell : 0f;
 
@@ -128,6 +128,9 @@ public class ConveyerBelt : Machine
     public override void InitializeMachine()
     {
     }
+
+    // 벨트는 생산 기계가 아니므로 정보 패널을 띄우지 않는다.
+    public override bool SupportsInfoPanel() => false;
 
     // 벨트 위 아이템을 인벤으로 돌린 뒤 포트 처리는 생략한다.
     public override void ReturnAllContentsToPlayerInventory()
@@ -262,7 +265,7 @@ public class ConveyerBelt : Machine
     // 벨트 간 전달 시 사용할 월드 좌표. 출구에 도달했으면 논리적 출구 좌표를 쓴다.
     public Vector3 GetHandoffWorldPosition()
     {
-        if (ProgressTicks >= TicksPerCell)
+        if (cellProgressTicks >= TicksPerCell)
         {
             return GetItemWorldPosition(1f);
         }
