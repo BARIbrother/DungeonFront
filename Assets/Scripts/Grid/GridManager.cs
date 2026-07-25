@@ -5,8 +5,9 @@ using UnityEngine;
 // 그리드 데이터(지형·occupation)·좌표 변환·그리드 배치를 담당한다.
 public class GridManager : MonoBehaviour
 {
-    [SerializeField] private int width = 64;
-    [SerializeField] private int height = 64;
+    // 맵은 8×8 구역 3×3(=24×24)으로 고정한다.
+    [SerializeField] private int width = 24;
+    [SerializeField] private int height = 24;
     [SerializeField] private GridPlane plane = GridPlane.XY;
     [SerializeField] private int tilePixelSize = 32;
     [SerializeField] private float pixelsPerUnit = 32f;
@@ -69,16 +70,21 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    // width×height 크기의 셀 배열을 만들고 전부 Floor로 채운다.
+    // 24×24 셀 배열을 만들고, 중앙 8×8만 Floor·나머지는 Locked로 채운다.
     public void InitializeGrid()
     {
+        width = ZoneManager.ZonesPerAxis * ZoneManager.ZoneSize;
+        height = ZoneManager.ZonesPerAxis * ZoneManager.ZoneSize;
         cells = new GridCell[width, height];
 
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                cells[x, y] = new GridCell(GridCellType.Floor);
+                Vector2Int zone = ZoneManager.GetZoneIndex(x, y);
+                bool isCenterZone = zone.x == ZoneManager.CenterZoneX
+                    && zone.y == ZoneManager.CenterZoneY;
+                cells[x, y] = new GridCell(isCenterZone ? GridCellType.Floor : GridCellType.Locked);
             }
         }
     }
@@ -87,6 +93,36 @@ public class GridManager : MonoBehaviour
     public bool IsInBounds(int x, int y)
     {
         return x >= 0 && x < width && y >= 0 && y < height;
+    }
+
+    // (x, y) 셀이 이동 가능한지 확인한다. Floor만 통과하며, 자원 노드·채굴기 칸은 막는다.
+    public bool IsWalkable(int x, int y)
+    {
+        if (!IsInBounds(x, y))
+        {
+            return false;
+        }
+
+        GridCell cell = GetCell(x, y);
+        if (cell.Type != GridCellType.Floor)
+        {
+            return false;
+        }
+
+        // 자원 노드가 있는 그리드(및 그 위 채굴기)는 플레이어가 지나갈 수 없다.
+        if (cell.OccupantKind == OccupantKind.ResourceNode
+            || cell.OccupantKind == OccupantKind.MachineOnResourceNode)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    // coord 셀이 이동 가능한지 확인한다.
+    public bool IsWalkable(Vector2Int coord)
+    {
+        return IsWalkable(coord.x, coord.y);
     }
 
     // (x, y) 셀 데이터를 반환한다. 범위 밖이면 default를 반환한다.
@@ -233,6 +269,12 @@ public class GridManager : MonoBehaviour
     // gridCoord에 자원 노드(1칸)를 배치한다. 성공 시 true.
     public bool TryPlaceResourceNode(Vector2Int gridCoord)
     {
+        return TryPlaceResourceNode(gridCoord, null);
+    }
+
+    // gridCoord에 자원 노드(1칸)를 배치하고 itemId를 주입한다. 성공 시 true.
+    public bool TryPlaceResourceNode(Vector2Int gridCoord, string itemId)
+    {
         if (!CanPlaceResourceNodeAt(gridCoord))
         {
             return false;
@@ -256,18 +298,52 @@ public class GridManager : MonoBehaviour
             node = instance.AddComponent<ResourceNode>();
         }
 
-        node.Initialize(gridCoord);
+        node.Initialize(gridCoord, itemId);
         placedResourceNodes.Add(node);
 
         GridCell cell = GetCell(gridCoord);
         cell.Occupant = instance;
         cell.OccupantKind = OccupantKind.ResourceNode;
+        cell.Type = GridCellType.Locked;
         SetCell(gridCoord, cell);
 
         return true;
     }
 
-    // gridCoord에 자원 노드를 놓을 수 있는지 확인한다 (범위·바닥·미점유).
+    // gridCoord의 자원 노드를 제거하고 셀을 Floor로 되돌린다. 성공 시 true.
+    // 채굴기가 올려져 있으면 먼저 회수한 뒤 노드를 제거한다.
+    public bool TryRemoveResourceNode(Vector2Int gridCoord)
+    {
+        if (!TryGetResourceNodeAt(gridCoord, out ResourceNode resourceNode))
+        {
+            return false;
+        }
+
+        GridCell cell = GetCell(gridCoord);
+        if (cell.OccupantKind == OccupantKind.MachineOnResourceNode)
+        {
+            Machine machine = GetMachineAt(gridCoord);
+            if (machine != null && !TryRemoveMachine(machine))
+            {
+                return false;
+            }
+        }
+
+        placedResourceNodes.Remove(resourceNode);
+        Destroy(resourceNode.gameObject);
+
+        cell = GetCell(gridCoord);
+        cell.Occupant = null;
+        cell.OccupantKind = default;
+        // 해금된 구역은 Floor, 잠긴 구역은 Locked로 되돌린다.
+        cell.Type = IsCoordInUnlockedZone(gridCoord) ? GridCellType.Floor : GridCellType.Locked;
+        SetCell(gridCoord, cell);
+
+        return true;
+    }
+
+    // gridCoord에 자원 노드를 놓을 수 있는지 확인한다 (범위·Floor/Locked·미점유).
+    // Locked에도 허용하는 이유: 해금 전 미리 배치해 두고, 해금 후 채굴만 연다.
     public bool CanPlaceResourceNodeAt(Vector2Int gridCoord)
     {
         if (!IsInBounds(gridCoord.x, gridCoord.y))
@@ -276,7 +352,24 @@ public class GridManager : MonoBehaviour
         }
 
         GridCell cell = GetCell(gridCoord);
-        return cell.Type == GridCellType.Floor && !cell.IsOccupied;
+        if (cell.IsOccupied)
+        {
+            return false;
+        }
+
+        return cell.Type == GridCellType.Floor || cell.Type == GridCellType.Locked;
+    }
+
+    // coord가 속한 구역이 해금됐는지 확인한다. ZoneManager가 없으면 중앙만 해금으로 본다.
+    private static bool IsCoordInUnlockedZone(Vector2Int coord)
+    {
+        Vector2Int zone = ZoneManager.GetZoneIndex(coord.x, coord.y);
+        if (ZoneManager.Instance != null)
+        {
+            return ZoneManager.Instance.IsZoneUnlocked(zone.x, zone.y);
+        }
+
+        return zone.x == ZoneManager.CenterZoneX && zone.y == ZoneManager.CenterZoneY;
     }
 
     // worldPosition이 가리키는 그리드 셀을 기준으로 footprint anchor(좌하단)를 반환한다.
@@ -471,7 +564,8 @@ public class GridManager : MonoBehaviour
     }
 
     // footprint 영역의 그리드 점유를 해제한다.
-    // MachineOnResourceNode 회수 시에는 덮어썼던 자원 노드 occupant·Kind를 복원한다.
+    // MachineOnResourceNode 회수 시에는 덮어썼던 자원 노드 occupant·Kind를 복원하고 Locked를 유지한다.
+    // 그 외 기계 회수 시에는 Floor로 되돌린다.
     private void ClearFootprint(Vector2Int anchor, Vector2Int footprintSize, OccupantKind clearedKind)
     {
         for (int x = 0; x < footprintSize.x; x++)
@@ -486,11 +580,13 @@ public class GridManager : MonoBehaviour
                 {
                     cell.Occupant = resourceNode.gameObject;
                     cell.OccupantKind = OccupantKind.ResourceNode;
+                    cell.Type = GridCellType.Locked;
                 }
                 else
                 {
                     cell.Occupant = null;
                     cell.OccupantKind = default;
+                    cell.Type = GridCellType.Floor;
                 }
 
                 SetCell(coord, cell);
@@ -515,7 +611,7 @@ public class GridManager : MonoBehaviour
         return false;
     }
 
-    // footprint 영역 전체 셀이 같은 occupant GameObject를 가리키도록 기록한다.
+    // footprint 영역 전체 셀이 같은 occupant GameObject를 가리키도록 기록하고 Locked로 바꾼다.
     private void OccupyFootprint(Vector2Int anchor, Vector2Int footprintSize, GameObject occupant, OccupantKind occupantKind)
     {
         for (int x = 0; x < footprintSize.x; x++)
@@ -526,6 +622,7 @@ public class GridManager : MonoBehaviour
                 GridCell cell = GetCell(coord);
                 cell.Occupant = occupant;
                 cell.OccupantKind = occupantKind;
+                cell.Type = GridCellType.Locked;
                 SetCell(coord, cell);
             }
         }

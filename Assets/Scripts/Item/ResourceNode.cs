@@ -18,9 +18,13 @@ public class ResourceNode : MonoBehaviour
     public string DisplayName => displayName;
     public Vector2Int GridAnchor => gridAnchor;
 
-    // GridManager가 배치 직후 그리드 좌표를 주입한다.
-    public void Initialize(Vector2Int anchor)
+    // GridManager가 배치 직후 그리드 좌표·(선택) itemId를 주입한다.
+    public void Initialize(Vector2Int anchor, string resourceItemId = null)
     {
         gridAnchor = anchor;
+        if (!string.IsNullOrEmpty(resourceItemId))
+        {
+            itemId = resourceItemId;
+        }
     }
 }

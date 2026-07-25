@@ -20,9 +20,11 @@ public class PlayerMovement : MonoBehaviour
     // 0키로 철광석 노드 배치 모드를 토글한다.
     private bool isResourceNodePlacementMode;
     // 초당 이동 픽셀 수
-    [SerializeField] private float pixelsPerSecond = 96f;
+    [SerializeField] private float pixelsPerSecond = 128f;
     // 픽셀당 월드 유닛 (GridManager PixelsPerUnit 기본값)
     [SerializeField] private float pixelsPerUnit = 32f;
+    // 이동 판정 반경(셀 단위). 중심만 보면 몸 절반이 막힌 칸에 겹치므로 모서리까지 검사한다.
+    [SerializeField] [Range(0.1f, 0.49f)] private float walkCollisionHalfExtentCells = 0.4f;
 
     private Vector2 lastFacing = Vector2.down;
 
@@ -38,15 +40,22 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        Keyboard keyboard = Keyboard.current;
+
+        // 2: 구역 확장 UI — 열려 있을 때도 토글 가능해야 하므로 모달 잠금보다 먼저 처리한다.
+        if (keyboard != null && keyboard.digit2Key.wasPressedThisFrame)
+        {
+            ZoneExpansionUI.Toggle();
+        }
+
         // 모달이 열려 있으면 이동·상호작용을 잠근다.
-        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen)
+        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen || ZoneExpansionUI.IsOpen)
         {
             UpdateAnimator(Vector2.zero);
             return;
         }
 
         Vector2 input = Vector2.zero;
-        Keyboard keyboard = Keyboard.current;
         if (keyboard != null)
         {
             if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) input.x -= 1f;
@@ -96,10 +105,78 @@ public class PlayerMovement : MonoBehaviour
 
         if (gridManager != null)
         {
-            next = gridManager.ClampWorldPosition(next);
+            next = ResolveWalkablePosition(next);
         }
 
         transform.position = next;
+    }
+
+    // 맵 경계·Locked 셀을 반영해 이동 가능한 월드 좌표를 구한다. 막히면 축별 미끄러짐을 시도한다.
+    private Vector3 ResolveWalkablePosition(Vector3 next)
+    {
+        next = ClampWorldPositionWithCollision(next);
+
+        if (IsWalkableWorld(next))
+        {
+            return next;
+        }
+
+        Vector3 current = transform.position;
+        Vector3 nextX = ClampWorldPositionWithCollision(new Vector3(next.x, current.y, current.z));
+        Vector3 nextY = ClampWorldPositionWithCollision(new Vector3(current.x, next.y, current.z));
+
+        if (IsWalkableWorld(nextX))
+        {
+            return nextX;
+        }
+
+        if (IsWalkableWorld(nextY))
+        {
+            return nextY;
+        }
+
+        return current;
+    }
+
+    // 충돌 박스 모서리가 맵 밖으로 나가지 않도록 중심을 안쪽으로 클램프한다.
+    private Vector3 ClampWorldPositionWithCollision(Vector3 worldPosition)
+    {
+        float half = GetWalkCollisionHalfExtent();
+        Vector3 min = gridManager.GridToWorld(0, 0);
+        Vector3 max = gridManager.GridToWorld(gridManager.Width - 1, gridManager.Height - 1);
+
+        // GridToWorld는 셀 중심이므로, 셀 가장자리까지 쓰려면 half cell을 더한다.
+        float cellHalf = gridManager.CellSize * 0.5f;
+        float minX = min.x - cellHalf + half;
+        float maxX = max.x + cellHalf - half;
+        float minY = min.y - cellHalf + half;
+        float maxY = max.y + cellHalf - half;
+
+        worldPosition.x = Mathf.Clamp(worldPosition.x, minX, maxX);
+        worldPosition.y = Mathf.Clamp(worldPosition.y, minY, maxY);
+        return worldPosition;
+    }
+
+    // 중심 + 충돌 박스 네 모서리가 모두 Floor인지 확인한다.
+    private bool IsWalkableWorld(Vector3 worldPosition)
+    {
+        float half = GetWalkCollisionHalfExtent();
+
+        return IsWalkablePoint(worldPosition)
+            && IsWalkablePoint(worldPosition + new Vector3(-half, -half, 0f))
+            && IsWalkablePoint(worldPosition + new Vector3(half, -half, 0f))
+            && IsWalkablePoint(worldPosition + new Vector3(-half, half, 0f))
+            && IsWalkablePoint(worldPosition + new Vector3(half, half, 0f));
+    }
+
+    private bool IsWalkablePoint(Vector3 worldPosition)
+    {
+        return gridManager.IsWalkable(gridManager.WorldToGrid(worldPosition));
+    }
+
+    private float GetWalkCollisionHalfExtent()
+    {
+        return gridManager.CellSize * walkCollisionHalfExtentCells;
     }
 
     // E키: 근접 1칸 내 고장 기계 수리 우선, 없으면 수작업 기계 진도.

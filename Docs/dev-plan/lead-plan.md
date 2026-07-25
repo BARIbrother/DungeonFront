@@ -1,7 +1,7 @@
-# Lead 개발 계획 (3주 MVP + Week 4)
+# Lead 개발 계획 (MVP + Week 4~5)
 
-> **기간**: Week 1~3 MVP · Week 4 뒷산 완성  
-> **범위**: Factory 씬 — 맵·배치·생산·물류·기계 SO·공장 UI · (W4) 구역·노드·피드백  
+> **기간**: Week 1~3 MVP · Week 4 뒷산 완성 · Week 5 시스템 완성  
+> **범위**: Factory 씬 — 맵·배치·생산·물류·기계 SO·공장 UI · (W4) 구역·노드·피드백 · (W5) 스토리 기획·운반/회수·명성 해금·맵  
 > **상위**: [dev-plan.md](./dev-plan.md) · **던전**: 뒷산 동굴만
 
 ---
@@ -14,6 +14,7 @@
 | **2** | 진행 | **6종+·고장·출력기** |
 | **3** | 예정 | **10종+·수작업·생산 요약·lock·스토리·MVP** |
 | **4** | 예정 | **공장 폴리시·구역·맵/노드·기계 피드백** |
+| **5** | 예정 | **스토리 시점·대사 · 운반/회수 · 명성 해금 기획 · 맵 설계** |
 
 ---
 
@@ -65,6 +66,21 @@
 
 ---
 
+## Week 5
+
+**목표**: 시스템 완성 — 스토리 기획·운반/회수·명성 해금·맵 (씬 연결은 W6)
+
+| # | 작업 | Issue |
+|---|------|-------|
+| 1 | 스토리 이벤트 시점 | [01-story-event-timing](./week5/week5-lead/01-story-event-timing.md) |
+| 2 | 전체 대사 | [02-story-dialogue](./week5/week5-lead/02-story-dialogue.md) |
+| 3 | 수동 운반·출력 회수 | [03-manual-carry-recover](./week5/week5-lead/03-manual-carry-recover.md) |
+| 4 | 명성 해금 기획 | [04-reputation-unlock-plan](./week5/week5-lead/04-reputation-unlock-plan.md) |
+| 5 | 맵 설계 | [05-map-design](./week5/week5-lead/05-map-design.md) |
+
+---
+
 ## 관련 문서
 
-- [week2/week2-lead/](./week2/week2-lead/) · [week3/week3-lead/](./week3/week3-lead/) · [week4/week4-lead/](./week4/week4-lead/)
+- [week2/week2-lead/](./week2/week2-lead/) · [week3/week3-lead/](./week3/week3-lead/) · [week4/week4-lead/](./week4/week4-lead/) · [week5/week5-lead/](./week5/week5-lead/)
+- [week5-overview](./week5/week5-overview.md)

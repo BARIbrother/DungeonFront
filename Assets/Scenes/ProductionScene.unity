@@ -397,7 +397,7 @@ MonoBehaviour:
   playerInventory: {fileID: 821514147}
   animator: {fileID: 821514146}
   machineDatabase: {fileID: 11400000, guid: d1000000000000000000000000000001, type: 2}
-  pixelsPerSecond: 64
+  pixelsPerSecond: 128
   pixelsPerUnit: 32
 --- !u!212 &821514144
 SpriteRenderer:
@@ -802,6 +802,8 @@ MonoBehaviour:
   tiles:
   - Type: 1
     Tile: {fileID: 11400000, guid: 483ba1f57123cd6419e19edfa83bfdb9, type: 2}
+  - Type: 2
+    Tile: {fileID: 11400000, guid: 5b35029068c14838b926ddd3c57c23b9, type: 2}
 --- !u!1 &3141592653589793200
 GameObject:
   m_ObjectHideFlags: 0

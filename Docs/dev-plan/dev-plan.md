@@ -1,6 +1,6 @@
-# 개발 계획 (3주)
+# 개발 계획 (8주)
 
-> **기간**: 3주 (Week 1 **완료** · Week 2~3 잔여)  
+> **기간**: Week 1~4 MVP·뒷산 · Week 5 시스템 완성 · Week 6 씬 연결·리소스 · Week 7 피드백 · Week 8 마무리  
 > **팀**: **팀장(Lead)** · **개발1(Dev1)** · **개발2(Dev2)** · **아트(Art)** — 4명  
 > **MVP 범위**: `../00-vision.md` · `../01-core-loop.md` · `../02-data-structure.md`  
 > **병렬 원칙**: [parallel-roadmap.md](./parallel-roadmap.md) · [dev-contract.md](./dev-contract.md)
@@ -34,17 +34,22 @@
 
 ---
 
-## 3주 일정 (잔여만)
+## 일정
 
 | 주차 | Lead | Dev1 | Dev2 | Art |
 |------|------|------|------|-----|
 | **1** ✅ | *(그리드·배치·틱·벨트·WIP·SO 등 구현 완료)* | *(세션·페이즈·Quest 골격)* | | *(모션 placeholder)* |
 | **2** | **6종+·고장·출력기** | 인벤 UI·HUD·세션 통합·SaveDTO·타이틀 | 의뢰 UI·**납품·보상** | 수리 모션·**이브** 초상 |
 | **3** | **10종+·수작업·요약·lock·스토리·MVP** | 튜토·세이브·대화·스토리 | 멀티데이·경제·게임오버·lock | 이브·레이 초상·표정·모션 보완 |
-| **4** | 공장 폴리시·구역·맵/노드·기계 피드백 | UI·튜토 완성·세이브·엔딩 | 경제 lock·뒷산 의뢰·클리어 라인 | UI 프레임·뒷산 타일·기계 폴리시 |
+| **4** | 공장 폴리시·구역·맵/노드·기계 피드백 | UI·튜토 완성·세이브·엔딩 | 경제 lock·뒷산 의뢰·클리어 라인 | UI 프레임·뒷산 타일·기계 러프 |
+| **5** | 스토리 시점·대사 · 운반/회수 · 명성 해금 기획 · 맵 설계 | 해금 UI·구매 · 아이템 AI 아이콘 보조 | 납품 통합 · 설정/일시정지 · 아이콘 보조 | 기계/아이콘 (AI) |
+| **6** | *(씬 연결·리소스 — 별도 계획)* | | | |
+| **7** | *(피드백 수정 — 별도 계획)* | | | |
+| **8** | *(마무리 — 별도 계획)* | | | |
 
-상세: [week1](./week1/week1.md) · [week2](./week2/week2.md) · [week3](./week3/week3.md) · [week4](./week4/week4.md)  
-W4 범위: **뒷산 동굴만** (복수 던전은 [99-further_implementation.md](../99-further_implementation.md))
+상세: [week1](./week1/week1.md) · [week2](./week2/week2.md) · [week3](./week3/week3.md) · [week4](./week4/week4.md) · [week5](./week5/week5.md) · [week5-overview](./week5/week5-overview.md)  
+W4~W5 범위: **뒷산 동굴만** (복수 던전은 [99-further_implementation.md](../99-further_implementation.md))  
+W5: **시스템 완성(기획·본구현·AI 리소스)** · 씬 연결은 W6 · 구멍 막기는 서브
 
 ---
 
@@ -76,7 +81,14 @@ W4 범위: **뒷산 동굴만** (복수 던전은 [99-further_implementation.md]
 - [ ] Lead — 공장 폴리시·구역 확장·맵/노드·기계 정보 패널
 - [ ] Dev1 — UI 폴리시·튜토 완성·세이브 안정화·엔딩
 - [ ] Dev2 — 경제 수치 lock·뒷산 의뢰·클리어 라인·결산 폴리시
-- [ ] Art — UI 프레임·뒷산 타일·기계 비주얼 폴리시
+- [ ] Art — UI 프레임·뒷산 타일·기계 비주얼 러프
+
+### Week 5 (시스템 완성)
+
+- [ ] Lead — 스토리 시점·대사 · 수동 운반/회수 · 명성 해금 기획 · 맵 설계
+- [ ] Dev1 — 명성 해금 UI·구매 연동 · 아이템 AI 아이콘 보조
+- [ ] Dev2 — 납품 시스템 통합 · 설정/일시정지 · 아이템 AI 아이콘 보조
+- [ ] Art — 기계 비주얼(AI) · 아이템·노드 아이콘(AI, Dev1·Dev2 보조)
 
 ---
 
@@ -87,3 +99,5 @@ W4 범위: **뒷산 동굴만** (복수 던전은 [99-further_implementation.md]
 - [lead-plan.md](./lead-plan.md)
 - [dev-gaps.md](./dev-gaps.md)
 - [week4/week4.md](./week4/week4.md)
+- [week5/week5.md](./week5/week5.md)
+- [week5/week5-overview.md](./week5/week5-overview.md)
