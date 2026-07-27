@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2644a110727e87b4ab8b2b7ebcb6bc24, type: 3}
+  m_Name: Week3ShopCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::ShopCatalog
+  entries:
+  - entryId: iron_ore_single
+    displayName: "\uCCA0\uAD11\uC11D x1"
+    price: 10
+    count: 1
+    item: {fileID: 11400000, guid: c84e6b264b30d41438d7374cf1e1444e, type: 2}
+    machineDefId: 
+    machineDefinition: {fileID: 0}
+  - entryId: altar_1
+    displayName: "\uC81C\uB2E8"
+    price: 400
+    count: 1
+    item: {fileID: 0}
+    machineDefId: Altar_1
+    machineDefinition: {fileID: 11400000, guid: b1000000000000000000000000000007, type: 2}
+  - entryId: foundry_1
+    displayName: "\uC8FC\uC870\uC18C"
+    price: 600
+    count: 1
+    item: {fileID: 0}
+    machineDefId: Foundry_1
+    machineDefinition: {fileID: 11400000, guid: b1000000000000000000000000000008, type: 2}

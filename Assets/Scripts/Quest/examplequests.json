@@ -12,7 +12,10 @@
       "rewards": [
         { "itemId": "gold", "count": 100 }
       ],
-      "deadlineDays": 1
+      "deadlineDays": 0,
+      "isMandatory": true,
+      "rewardReputation": 20,
+      "isMainStoryQuest": true
     },
     {
       "id": 100002,
@@ -26,7 +29,9 @@
       "rewards": [
         { "itemId": "gold", "count": 150 }
       ],
-      "deadlineDays": 1
+      "deadlineDays": 1,
+      "isMandatory": false,
+      "rewardReputation": 15
     },
     {
       "id": 100003,
@@ -40,7 +45,9 @@
       "rewards": [
         { "itemId": "gold", "count": 180 }
       ],
-      "deadlineDays": 1
+      "deadlineDays": 1,
+      "isMandatory": false,
+      "rewardReputation": 20
     },
     {
       "id": 100004,
@@ -54,11 +61,13 @@
       "rewards": [
         { "itemId": "gold", "count": 120 }
       ],
-      "deadlineDays": 1
+      "deadlineDays": 1,
+      "isMandatory": false,
+      "rewardReputation": 15
     },
     {
       "id": 100005,
-      "threshold": 10,
+      "threshold": 50,
       "title": "기사단 보급",
       "clientName": "기사단",
       "content": "기사단 장비 보급을 위해 철판과 철 막대를 대량으로 요청한다.",
@@ -69,7 +78,111 @@
       "rewards": [
         { "itemId": "gold", "count": 500 }
       ],
-      "deadlineDays": 3
+      "deadlineDays": 3,
+      "isMandatory": false,
+      "rewardReputation": 50
+    },
+    {
+      "id": 100999,
+      "threshold": 0,
+      "title": "멀티데이 납기 테스트",
+      "clientName": "길드 접수원",
+      "content": "3일 안에 철광석 하나를 납품해 주세요.",
+      "requiredItems": [
+        { "itemId": "iron_ore", "count": 1 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 30 }
+      ],
+      "deadlineDays": 3,
+      "isMandatory": false,
+      "rewardReputation": 10
+    },
+    {
+      "id": 100888,
+      "threshold": 0,
+      "title": "필수 의뢰 실패 테스트",
+      "clientName": "이브",
+      "content": "QA용 필수 당일 의뢰입니다.",
+      "requiredItems": [
+        { "itemId": "iron_ore", "count": 999999 }
+      ],
+      "rewards": [],
+      "deadlineDays": 0,
+      "isMandatory": true,
+      "rewardReputation": 0
+    },
+    {
+      "id": 100101,
+      "threshold": 0,
+      "title": "[Week4 QA] 두 번째 메인 의뢰",
+      "clientName": "이브",
+      "content": "00100001 완료 후 열리는 메인 라인 테스트입니다.",
+      "requiredItems": [
+        { "itemId": "iron_plate", "count": 2 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 100 }
+      ],
+      "deadlineDays": 1,
+      "isMandatory": true,
+      "rewardReputation": 30,
+      "unlockAfterQuestId": "00100001",
+      "isMainStoryQuest": true
+    },
+    {
+      "id": 100102,
+      "threshold": 0,
+      "title": "[Week4 QA] 같은 행 일반 의뢰",
+      "clientName": "광산 관리인",
+      "content": "두 번째 메인 의뢰와 동시에 열리는지 확인합니다.",
+      "requiredItems": [
+        { "itemId": "iron_ore", "count": 2 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 40 }
+      ],
+      "deadlineDays": 2,
+      "isMandatory": false,
+      "rewardReputation": 5,
+      "unlockAfterQuestId": "00100001"
+    },
+    {
+      "id": 100103,
+      "threshold": 0,
+      "title": "[Week4 QA] 뒷산 마지막 메인 의뢰",
+      "clientName": "이브",
+      "content": "완료 시 OnBackCaveCleared와 엔딩 이벤트가 한 번만 발생합니다.",
+      "requiredItems": [
+        { "itemId": "iron_plate", "count": 3 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 200 }
+      ],
+      "deadlineDays": 1,
+      "isMandatory": true,
+      "rewardReputation": 50,
+      "unlockAfterQuestId": "00100101",
+      "isMainStoryQuest": true,
+      "triggersBackCaveEnding": true
+    },
+    {
+      "id": 109900,
+      "threshold": 0,
+      "title": "[Week4 QA] 상시 철 재료 납품",
+      "clientName": "길드 접수원",
+      "content": "철광석 2개와 철판 1개를 한 단위로 반복 납품합니다.",
+      "requiredItems": [
+        { "itemId": "iron_ore", "count": 2 },
+        { "itemId": "iron_plate", "count": 1 }
+      ],
+      "rewards": [
+        { "itemId": "gold", "count": 25 }
+      ],
+      "deadlineDays": 0,
+      "isMandatory": false,
+      "rewardReputation": 1,
+      "isPerpetual": true
     }
   ]
 }

@@ -1,0 +1,1093 @@
+{
+  "format": "questline-editor",
+  "version": 1,
+  "exportedAt": "2026-07-19T14:16:34.487Z",
+  "quests": [
+    {
+      "id": "Q001",
+      "title": "첫 번째 시험",
+      "clientName": "감사관 이브",
+      "content": "첫 번째 과제는 대장장이의 기본 중의 기본, 철을 다루는 것입니다. 당신이 이 정도 과제도 수행하지 못 한다면 합격은 물 건너간 일이라 봐야겠죠. 기본 3종을 10개씩 납품해 보시죠.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "iron_ore",
+          "number": 10
+        },
+        {
+          "itemcode": "iron_ingot",
+          "number": 10
+        },
+        {
+          "itemcode": "iron_plate",
+          "number": 10
+        }
+      ],
+      "reward": [
+        {
+          "itemcode": "gold",
+          "number": 50
+        },
+        {
+          "itemcode": "fame",
+          "number": 50
+        }
+      ],
+      "x": 281.2109375,
+      "y": 232.4375
+    },
+    {
+      "id": "Q002",
+      "title": "의문의 베일?",
+      "clientName": "???",
+      "content": "배고파.. 밥.. 아니면 돈이라도 한 푼만..",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "gold",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 528.0625,
+      "y": 234.48828125
+    },
+    {
+      "id": "Q003",
+      "title": "두 번째 시험",
+      "clientName": "감사관 이브",
+      "content": "마법을 쓸 줄 아는 부랑자라니, 흥미롭군요. 마침 이번 의뢰에 필요한 물품도 마법에 관련되어 있습니다. 그녀가 대장간 일에 도움을 줄 수 있다는 것이 증명된다면 조수로서 인정해 드리겠습니다.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "manasteel_bar",
+          "number": 20
+        },
+        {
+          "itemcode": "mana_wand",
+          "number": 5
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_boots",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 774.953125,
+      "y": 237.1953125
+    },
+    {
+      "id": "Q005",
+      "title": "세 번째 시험",
+      "clientName": "감사관 이브",
+      "content": "특례를 적용한 것이 헛되지 않은 것 같아 다행입니다. 지금부터는 본격적으로 합금을 만들어야 할 시기입니다. 당신이라도 쉽지는 않을 겁니다.",
+      "deadlineDays": 3,
+      "requiredItems": [
+        {
+          "itemcode": "brightsteel_chestplate",
+          "number": 10
+        },
+        {
+          "itemcode": "manasteel_helmet",
+          "number": 10
+        },
+        {
+          "itemcode": "darksteel_sword",
+          "number": 10
+        }
+      ],
+      "reward": [],
+      "x": 1030.1640625,
+      "y": 238.65625
+    },
+    {
+      "id": "Q006",
+      "title": "네 번째 시험",
+      "clientName": "감사관 이브",
+      "content": "높은 레벨의 광물을 다룰 수 있게 된다는 건 그만큼 정밀하고 섬세한 실력을 갖춰야 한다는 뜻입니다. 마하르 님의 격언, '큰 망치에는 큰 책임이 따른다'처럼요.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "iron_sword",
+          "number": 10
+        },
+        {
+          "itemcode": "darksteel_sword",
+          "number": 10
+        },
+        {
+          "itemcode": "brightsteel_sword",
+          "number": 10
+        }
+      ],
+      "reward": [],
+      "x": 1777.22265625,
+      "y": 243.203125
+    },
+    {
+      "id": "Q007",
+      "title": "다섯 번째 시험",
+      "clientName": "감사관 이브",
+      "content": "돈으로 살 수 없는 기계도 존재합니다. 특히나 이런 거대한 기계는 현장에서 만들어 쓰는 수밖에 없죠. 직접 주조소로 구조물을 만들 수 있다면 어엿한 대장장이로서 1인분을 할 준비를 마친 거네요.",
+      "deadlineDays": 3,
+      "requiredItems": [
+        {
+          "itemcode": "steel_column_framwork",
+          "number": 5
+        }
+      ],
+      "reward": [],
+      "x": 2014.625,
+      "y": 244.80859375
+    },
+    {
+      "id": "Q008",
+      "title": "여섯 번째 시험",
+      "clientName": "감사관 이브",
+      "content": "어느새 대장장이 면허 시험도 거의 끝나가는군요. 솔직히 모루에 누워 자는 당신을 처음 봤을 때는 이렇게나 좋은 성과를 낼 거라고는 생각지도 않았습니다.",
+      "deadlineDays": 3,
+      "requiredItems": [],
+      "reward": [],
+      "x": 2501.75,
+      "y": 250.78125
+    },
+    {
+      "id": "Q009",
+      "title": "일곱 번째 시험",
+      "clientName": "감사관 이브",
+      "content": "드디어 마지막입니다. 이 과제만 통과하면 당신도 한 명의 대장장이로서 첫 걸음을 내딛는 것이니 부디, 성공하시길 바랍니다.",
+      "deadlineDays": 5,
+      "requiredItems": [
+        {
+          "itemcode": "warstained_executional_greatsword",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 2742.34375,
+      "y": 252.69921875
+    },
+    {
+      "id": "Q010",
+      "title": "새로운 지평선",
+      "clientName": "모험가 알렉",
+      "content": "지금껏 레벨 1 광물만 쓰고 있었던 거야?! 네 실력에 그건 너무 아까운데, 이참에 한 번 도전해 봐! 제작 속도 따위, 느려도 괜찮아. 딱 하나만 만들어 주면 충분해!",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "iron_ingot_lv2",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1537.71484375,
+      "y": 239.21875
+    },
+    {
+      "id": "Q011",
+      "title": "의식",
+      "clientName": "레이",
+      "content": "이만한 크기면, 제단도 만들 수 있겠다! 만드는 법? 설계도 배송? 귀찮게 뭘 신경 써?! 내 기억대로 만들면 충분하니까, 걱정 말고 따라 해 보라고!",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "structural_column",
+          "number": 8
+        },
+        {
+          "itemcode": "structural_girder",
+          "number": 2
+        },
+        {
+          "itemcode": "structural_roof",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 2256.69921875,
+      "y": 246.9609375
+    },
+    {
+      "id": "Q012",
+      "title": "튼튼한 갑옷",
+      "clientName": "모험가 플린트",
+      "content": "저번 탐사에서 아끼는 투구가 상해 버렸어. 이참에 갑옷을 전부 새로 맞출까 해. 반짝반짝한 철 갑옷 세트로 줘!",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "iron_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_boots",
+          "number": 1
+        }
+      ],
+      "reward": [
+        {
+          "itemcode": "gold",
+          "number": 150
+        }
+      ],
+      "x": 526.80859375,
+      "y": 593.890625
+    },
+    {
+      "id": "Q013",
+      "title": "쌍날검?",
+      "clientName": "모험가 마울",
+      "content": "검 두 개.\n쌍검이 아니야. 앞뒤로 붙여 쓸 거야.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "iron_blade",
+          "number": 2
+        }
+      ],
+      "reward": [],
+      "x": 527.40625,
+      "y": 943.640625
+    },
+    {
+      "id": "Q014",
+      "title": "자격 미달",
+      "clientName": "어둠의 모험가 제네시스",
+      "content": "네게 나에게 걸맞는 갑옷을 바칠 권리를 하사하마. 요동치는 얼음의 흑강 갑옷을 주문하지.\n..뭐? F급 모험자는 C급 이상의 장비를 못 산다고?\n누가 그렇게 정했는데? 협회?\n....\n철 갑옷 하나.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "iron_chestplate",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 526.5078125,
+      "y": 761.60546875
+    },
+    {
+      "id": "Q015",
+      "title": "기초적인 마나 장비",
+      "clientName": "모험가 로페",
+      "content": "마나 완드가 필요해요. \n저희 자매들이 쓸 거라, 1명당 2개씩 8개면 될 것 같아요. 아, 이름도 써 주세요.\n로페, 로베, 포레, 베로예요.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "mana_wand",
+          "number": 8
+        }
+      ],
+      "reward": [],
+      "x": 772.29296875,
+      "y": 765.95703125
+    },
+    {
+      "id": "Q016",
+      "title": "돌도 씹어 먹을 나이",
+      "clientName": "오우거 A-B-게일",
+      "content": "마나강 30개가 먹고 싶,아니, 필요하다. ",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "Manasteel_ingot",
+          "number": 30
+        }
+      ],
+      "reward": [],
+      "x": 773.0625,
+      "y": 1290.91796875
+    },
+    {
+      "id": "Q017",
+      "title": "보강된 갑옷",
+      "clientName": "모험가 플린트",
+      "content": "저번 탐사에서 아끼는 흉갑이 상해 버렸지 뭐야, 이참에 마법 공격에 대비한 갑옷도 구비해 둬야겠어. 마나강 강화 흉갑을 만들어 줄 수 있을까? 방어 마법도 인챈트해서 부탁해.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "manasteel_chestplate_fire_proof",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 771.515625,
+      "y": 591.5625
+    },
+    {
+      "id": "Q018",
+      "title": "용도 외 사용",
+      "clientName": "사냥꾼 아나스타샤",
+      "content": "복장이 더워 보인다고? 그야 난 페레즈 출신이니까.\n화염 스크롤 부탁하지. 되도록 많이. 이게 난방에 아주 좋거든.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "element_scroll",
+          "number": 30
+        }
+      ],
+      "reward": [],
+      "x": 772.12890625,
+      "y": 940.91796875
+    },
+    {
+      "id": "Q019",
+      "title": "용도 외 사용 2",
+      "clientName": "아이기스 켈",
+      "content": "휴.. 여긴 아르-도라하랑 비교하면 엄청 서늘하네요. 여기 계속 살고 싶다.\n아, 주문해야지. 물 스크롤이 많이 필요합니다.\n네? 샤워할 때 쓸 거냐고요? 무슨 농담인가요, 그건? 하하하.\n음료수 만들어 먹을 거예요.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "element_scroll",
+          "number": 30
+        }
+      ],
+      "reward": [],
+      "x": 772.18359375,
+      "y": 1121.66796875
+    },
+    {
+      "id": "Q020",
+      "title": "검은 몸으로 되어 있다",
+      "clientName": "어둠의 모험가 제네시스",
+      "content": "역사에 길이 남을 서사시를 경험했네. 여정에서 많은 것을 얻기도, 그에 버금가는 것을 잃기도 했지..\n무엇보다 내 아름다운 밤의 눈동자 같은 코트가 타 버린 게 너무 상심이 크다네.\n그에 미치진 못하겠지만, 적어도 그것을 기억할 만한 갑옷을 만들어 주게.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "darksteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "darksteel_chestplate",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1030.72265625,
+      "y": 1291.296875
+    },
+    {
+      "id": "Q021",
+      "title": "흑과 백",
+      "clientName": "모험가 잭",
+      "content": "흑강 헬멧, 백강 흉갑, 흑강 각반, 백강 부츠요.\n균형을 중시해, 누가 누구에게 집어삼켜지지 않도록..",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "darksteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "brightsteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "darksteel_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "brightsteel_boots",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1279.06640625,
+      "y": 947.3203125
+    },
+    {
+      "id": "Q022",
+      "title": "모두 고려하기",
+      "clientName": "모험가 Ko.Y",
+      "content": "아, 안녕하세요. 여기를 지난 며칠 간 지켜봤는데 다행히 바가지 씌우거나 그런 데는 아닌 것 같아서.. 주문할게요. 말로 하면 잘 못 알아들을 수도 있으니까 써 온 걸 드릴게요. 이대로 주시면 돼요.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "manasteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_leggings",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1281.25,
+      "y": 1127.15625
+    },
+    {
+      "id": "Q023",
+      "title": "네 개의 무기",
+      "clientName": "모험가 카이",
+      "content": "속성별 검 하나씩, 아니, 두 개씩 부탁드립니다.\n제 친한 친구랑 그 아버지가 쓸 거예요.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "manasteel_sword_fire",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_sword_wind",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_sword_earth",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_sword_water",
+          "number": 2
+        }
+      ],
+      "reward": [],
+      "x": 1282.16015625,
+      "y": 1298.45703125
+    },
+    {
+      "id": "Q024",
+      "title": "최선의 방어를 위한 갑옷?",
+      "clientName": "모험가 플린트",
+      "content": "저번 탐사에서 무기가 부러졌을 때, 아무 것도 못 하고 맞으면서 도망쳐야 했었어. 갑옷으로도 싸울 수있도록 흑강 흉갑을 부탁할게!",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "darksteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "darksteel_leggings",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1025.42578125,
+      "y": 946.37890625
+    },
+    {
+      "id": "Q025",
+      "title": "물과 불",
+      "clientName": "모험가 파티 포레스트",
+      "content": "마나강 갑옷 부탁합니다. 저는 화염 방어 인챈트,\n저는 물 방어 인챈트를 해 주세요. ",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "manasteel_helmet",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_leggings",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_boots",
+          "number": 2
+        }
+      ],
+      "reward": [],
+      "x": 1278.91796875,
+      "y": 414.14453125
+    },
+    {
+      "id": "Q026",
+      "title": "발음에 주의",
+      "clientName": "모험가 린글피",
+      "content": "후우, 후.. 마나강 갑옷.. 후욱, 두 세트요.. 전부 대지 방어 인챈트, 훅.. 부탁합니다..",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "manasteel_helmet",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_leggings",
+          "number": 2
+        },
+        {
+          "itemcode": "manasteel_boots",
+          "number": 2
+        }
+      ],
+      "reward": [],
+      "x": 1279.046875,
+      "y": 598.53125
+    },
+    {
+      "id": "Q027",
+      "title": "롤링 페이퍼",
+      "clientName": "모험가 로페",
+      "content": "오랜만이에요. 언니들은 다 며칠 전 남편들이랑 단체 여행 갔어요.\n미혼만 남아서 귀찮은 조카들이나 돌보고 있죠.. 에휴.\n스크롤만 좀 주세요. 기본 속성별로 10장씩.\n아, 스크롤에 조카들 이름 좀 적어 주시겠어요? 샤티, 세티, 샤테, 세토, 토슈, 슈텐, 샤시, 테스예요.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "element_scroll",
+          "number": 10
+        },
+        {
+          "itemcode": "element_scroll",
+          "number": 10
+        },
+        {
+          "itemcode": "element_scroll",
+          "number": 10
+        },
+        {
+          "itemcode": "element_scroll",
+          "number": 10
+        }
+      ],
+      "reward": [],
+      "x": 1279.19921875,
+      "y": 771.8828125
+    },
+    {
+      "id": "Q028",
+      "title": "더 좋은 갑옷",
+      "clientName": "모험가 플린트",
+      "content": "저번 탐사에서 아끼는 갑옷이 깨져 버렸어. 역시 레벨 1 갑옷으로는 던전 깊은 곳까지 가기엔 무리가 있나 봐..\n레벨 2 투구랑 갑옷 줄 수 있을까?",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "iron_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_chestplate",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1535.94140625,
+      "y": 413.3203125
+    },
+    {
+      "id": "Q029",
+      "title": "철은 어떻게 천이 되는가",
+      "clientName": "마법사 헌츠",
+      "content": "마술사의 로브 조합법은 알아 봤나? 그걸 보면 한 가지 의문이 들 게야. 어째서 철 합금이 들어간 갑옷이 마나 좀 부어 넣는다고 갑자기 너풀거리는 천 옷이 되는지 말일세. 제작자가 천 쪼가리 레시피 하나 만들기 귀찮았나 생각도 들 테고.\n그게 맞아.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "magicrobe",
+          "number": 2
+        }
+      ],
+      "reward": [],
+      "x": 1775.0234375,
+      "y": 767.2578125
+    },
+    {
+      "id": "Q030",
+      "title": "흑과 백은 어떻게 합쳐지는가",
+      "clientName": "마법사 헌츠",
+      "content": "흑마법, 백마법 코어도 똑같네. 왜 철 주괴에 마력석 결정, 칠흑석 주괴를 합금해야만 만들 수 있는 거지? 마력 코어에 칠흑석 주괴를 조합하면 안 되는 건가? 제작자가 레시피 두 개를 만들기 귀찮았다고 생각할 수도 있지.\n그것도 맞네.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "dark_mana_wand",
+          "number": 1
+        },
+        {
+          "itemcode": "bright_mana_wand",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1775.16796875,
+      "y": 944.4375
+    },
+    {
+      "id": "Q031",
+      "title": "겉모습",
+      "clientName": "대장장이 클로",
+      "content": "어이, 신참. 혹시나 노파심에 말하는 건데, 흑마법석으로 '흑마법석 검'같은 걸 만들 생각은 추호도 하지 마. 그런 건 그저 장식용일 뿐이야. 흑마법석은 자체 내구도가 너무 약해 단일 재료로 검을 만들면 쉽게 부러져 버린다네. \n장점이라곤 칠흑같은 빛, 마법석 검과는 결이 다른 메탈릭한 금속음, 검날의 중간 중간 보이는 새빨간 마력선밖에 없다네.\n...말하니까 하나 갖고 싶어졌네. 재료만 만들어 줘.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "darkmana_core",
+          "number": 4
+        },
+        {
+          "itemcode": "iron_sword",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1773.5390625,
+      "y": 1120.7890625
+    },
+    {
+      "id": "Q033",
+      "title": "그녀의 10가지 이름",
+      "clientName": "모험가 로페",
+      "content": "네. 또 저예요. 걱정 마세요. 이번에는 언니들도, 조카들도 다같이 고향으로 돌아가서 며칠 쉬고 오거든요. 집에 사람은 저밖에 없어요.\n\n대신 고양이들이 있죠. 걔네들한테 마법을 가르치려는데 스크롤마다  이름을 적어 주시겠어요?\n네로, 냐리, 코네, 레나, 노키, 캬우, 섀카, 타냐, 리타, 슈노, 유니, 마요, 미키예요.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "scroll_explosion",
+          "number": 10
+        },
+        {
+          "itemcode": "scroll_lava",
+          "number": 10
+        },
+        {
+          "itemcode": "scroll_poison",
+          "number": 10
+        },
+        {
+          "itemcode": "scroll_lightning",
+          "number": 10
+        },
+        {
+          "itemcode": "scroll_nature",
+          "number": 10
+        },
+        {
+          "itemcode": "scroll_ice",
+          "number": 10
+        }
+      ],
+      "reward": [],
+      "x": 1775,
+      "y": 591
+    },
+    {
+      "id": "Q034",
+      "title": "상시 - 철 갑옷 세트 납품",
+      "clientName": "대장장이 협회",
+      "content": "협회에서는 전 세계 모험가들에게 장비를 안정적으로 공급하기 위해, 각 대장간으로부터 개수 제한 없는 자유 납품을 받고 있습니다. 협회원 및 시험을 치르는 예비 협회원들의 많은 참여를 독려합니다.",
+      "deadlineDays": 0,
+      "requiredItems": [
+        {
+          "itemcode": "iron_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_boots",
+          "number": 1
+        }
+      ],
+      "reward": [
+        {
+          "itemcode": "gold",
+          "number": 10
+        },
+        {
+          "itemcode": "fame",
+          "number": 10
+        }
+      ],
+      "x": 530,
+      "y": 411
+    },
+    {
+      "id": "Q035",
+      "title": "연구 재료",
+      "clientName": "발명가 스라키",
+      "content": "새로운 발명 아이디어가 떠올랐어요. 거기 들어가는 재료가 좀 많긴 한데... 대장간이니까 가능하겠죠? 종류별로 철 가공물들을 많이 부탁해요.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "iron_ingot",
+          "number": 30
+        },
+        {
+          "itemcode": "iron_plate",
+          "number": 30
+        },
+        {
+          "itemcode": "iron_bar",
+          "number": 40
+        }
+      ],
+      "reward": [],
+      "x": 528,
+      "y": 1125
+    },
+    {
+      "id": "Q036",
+      "title": "상시 - 기본 스크롤 납품",
+      "clientName": "마법학회",
+      "content": "학생들은 다양한 목적으로 스크롤을 사용합니다. 마법 연구, 실전 연습, 실생활 응용, 가끔은 자기들끼리 싸울 때도요. \n어찌됐건, 스크롤은 많으면 많을수록 좋습니다.",
+      "deadlineDays": 0,
+      "requiredItems": [
+        {
+          "itemcode": "element_scroll",
+          "number": 1
+        },
+        {
+          "itemcode": "element_scroll",
+          "number": 1
+        },
+        {
+          "itemcode": "element_scroll",
+          "number": 1
+        },
+        {
+          "itemcode": "element_scroll",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 776,
+      "y": 414
+    },
+    {
+      "id": "Q037",
+      "title": "상시 - 흑강 세트 납품",
+      "clientName": "대장장이 협회",
+      "content": "칠흑석은 극단적으로 날카로운 대신 내구도가 약한 광물입니다. 칠흑석 하나만으로 만든 장비는 제 기능을 하지 못 할 정도로 빠르게 망가집니다. 따라서 여러분은 칠흑석과 철의 합금, 흑강을 사용해야 합니다. ",
+      "deadlineDays": 0,
+      "requiredItems": [
+        {
+          "itemcode": "darksteel_sword",
+          "number": 1
+        },
+        {
+          "itemcode": "darksteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "darksteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "darksteel_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "darksteel_boots",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1027,
+      "y": 416
+    },
+    {
+      "id": "Q038",
+      "title": "상시 - 마나강 세트 납품",
+      "clientName": "마법학회",
+      "content": "방어 마법을 100번 사용하는 것보다도, 좋은 마법 방어 갑옷1벌을 입는 것이 낫죠.",
+      "deadlineDays": 0,
+      "requiredItems": [
+        {
+          "itemcode": "manasteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_boots",
+          "number": 1
+        },
+        {
+          "itemcode": "manasteel_sword",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1023,
+      "y": 592
+    },
+    {
+      "id": "Q039",
+      "title": "상시 - 백강 세트 납품",
+      "clientName": "모험가 협회",
+      "content": "순백석은 유연하고, 충격에 잘 견디지만 다른 것에 타격을 주는 능력은 거의 전무합니다. 이 역시 철과 녹여 백강을 만들어 사용합니다. 백강으로 만든 방어구는 초보자가 입을 수 있는 방어구 중 가장 단단합니다.",
+      "deadlineDays": 0,
+      "requiredItems": [
+        {
+          "itemcode": "brightsteel_sword",
+          "number": 1
+        },
+        {
+          "itemcode": "brightsteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "brightsteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "brightsteel_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "brightsteel_boots",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1023,
+      "y": 770
+    },
+    {
+      "id": "Q040",
+      "title": "'진짜' 최선의 방어를 위한 갑옷",
+      "clientName": "성기사 이나리",
+      "content": "내가 자주 들르는 신사에 몬스터가 출몰하지만.. 차마 신사에서 살생을 할 수는 없습니다. 기도하고 돌아오는 동안 몬스터의 공격을 버틸 수단이 필요합니다.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "brightsteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "brightsteel_leggings",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1027,
+      "y": 1121
+    },
+    {
+      "id": "Q041",
+      "title": "상시 - 2레벨 철 갑옷 세트 납품",
+      "clientName": "대장장이 협회",
+      "content": "갑옷의 레벨은 들어간 재료 중 가장 낮은 레벨의 재료를 따라갑니다. 실수로 레벨 1 재료가 섞여 들어가지 않게 조심하면서 생산 라인을 구축하십시오.",
+      "deadlineDays": 0,
+      "requiredItems": [
+        {
+          "itemcode": "iron_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "iron_boots",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 1777,
+      "y": 417
+    },
+    {
+      "id": "Q042",
+      "title": "광물 수집",
+      "clientName": "발명가 스라키",
+      "content": "제 발명품 표면에 덮을 강한 보호재가 필요해요.  레벨1 수준으로는 강풍에 깎여 나가서 못 써 먹겠더라고요. 더 높은 레벨이 필요해요.",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "darksteel_ingot",
+          "number": 10
+        },
+        {
+          "itemcode": "brightsteel_ingot",
+          "number": 10
+        }
+      ],
+      "reward": [],
+      "x": 1777,
+      "y": 1293
+    },
+    {
+      "id": "Q043",
+      "title": "공구리",
+      "clientName": "건축가 토토",
+      "content": "사실, 진짜 필요한 건 시멘트야. 그래도 콘크리트는 그 재료니까 별 상관 없겠지.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "concrete",
+          "number": 100
+        }
+      ],
+      "reward": [],
+      "x": 2015,
+      "y": 593
+    },
+    {
+      "id": "Q044",
+      "title": "상시 - 진강 세트 납품",
+      "clientName": "대장장이 협회",
+      "content": "진강은 칠흑석과 순백석을 합금해서 둘의 장점만을 가져온, 이 던전에서 구할 수 있는 최강의 재료입니다. 보통 용광로로는 못 다루는 재료이니, 이걸 다룰 수 있다는 것은 곧 대장장이의 능력을 보증하는 것이기도 합니다.",
+      "deadlineDays": 0,
+      "requiredItems": [
+        {
+          "itemcode": "greysteel_sword",
+          "number": 1
+        },
+        {
+          "itemcode": "greysteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "greysteel_chestplate",
+          "number": 1
+        },
+        {
+          "itemcode": "greysteel_leggings",
+          "number": 1
+        },
+        {
+          "itemcode": "greysteel_boots",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 2014,
+      "y": 422
+    },
+    {
+      "id": "Q045",
+      "title": "혼합",
+      "clientName": "발명가 스라키",
+      "content": "원인을 찾았어요. 흑강과 백강이 아무리 좋아도 둘이 조밀하게 결합되지 않는다면 바람을 못 버틸 거예요. 둘을 합친 광물, 진강이 필요해요.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "greysteel_ingot",
+          "number": 30
+        }
+      ],
+      "reward": [],
+      "x": 2014,
+      "y": 768
+    },
+    {
+      "id": "Q046",
+      "title": "매우매우 좋은 갑옷",
+      "clientName": "모험가 플린트",
+      "content": "저번 탐사는 최악이었어.. 백강 갑옷은 너무 굼뜨고, 흑강 갑옷은 너무 약해. 두 갑옷을 합친 게 있으면 좋을 텐데...",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "greysteel_helmet",
+          "number": 1
+        },
+        {
+          "itemcode": "greysteel_chestplate",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 2016,
+      "y": 945
+    },
+    {
+      "id": "Q047",
+      "title": "대가족",
+      "clientName": "모험가 로페",
+      "content": "또 저예요. 걱정 마세요, 이번에는 새로운 이름 안 보실 거예요. 2단계 마법을 인챈트한 마나강 갑옷이 필요해요. \n누구한테 줄 거냐고요? 전부 다요. \n로페, 로베, 포레, 베로, 샤티, 세티, 샤테, 세토, 토슈, 슈텐, 샤시, 테스, 네로, 냐리, 코네, 레나, 노키, 캬우, 섀카, 타냐, 리타, 슈노, 유니, 마요, 미키예요. 다 기억나시죠?",
+      "deadlineDays": 3,
+      "requiredItems": [
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 3
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 3
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 3
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 3
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 3
+        },
+        {
+          "itemcode": "manasteel_chestplate",
+          "number": 3
+        }
+      ],
+      "reward": [],
+      "x": 2020,
+      "y": 1122
+    },
+    {
+      "id": "Q048",
+      "title": "두 번 다시 쓰지 않을",
+      "clientName": "어둠의 모험가 제네시스",
+      "content": "지난번 던전을 탐사하던 도중, 실로 강직하고도 장대한 방해물을 만났네. 그것은 나의 날카로운 검으로도 뚫을 수 없었지. 구조물을 부수기 위한 특제 망치가 필요할 것 같더군.\n..의뢰가 너무 정상적이라고?! 자네 이미지에 난 대체 어떻게 되어 있는 건가!!",
+      "deadlineDays": 1,
+      "requiredItems": [
+        {
+          "itemcode": "greysteel_battlehammer",
+          "number": 1
+        }
+      ],
+      "reward": [],
+      "x": 2019,
+      "y": 1296
+    },
+    {
+      "id": "Q049",
+      "title": "한계까지 벼린 검",
+      "clientName": "사냥꾼 아나스타샤",
+      "content": "페레즈는 최근 한파 폭풍이 불어닥쳐 평소 볼 수 없었던 강력한 몬스터들이 날뛰고 있다. 고향의 가족들에게 조금이라도 도움이 되는 무기를 보내 주고 싶어.",
+      "deadlineDays": 2,
+      "requiredItems": [
+        {
+          "itemcode": "greysteel_sword",
+          "number": 3
+        }
+      ],
+      "reward": [],
+      "x": 2257,
+      "y": 422
+    }
+  ]
+}

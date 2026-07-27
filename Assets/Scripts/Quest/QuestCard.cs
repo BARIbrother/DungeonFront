@@ -16,11 +16,29 @@ public class QuestCard : MonoBehaviour
     public void SetQuest(Quest new_quest)
     {
         quest = new_quest;
-        titleText.text = quest.title;
-        clientNameText.text = quest.clientName;
-        deadlineText.text = "D-" + quest.deadlineDays;
-        requireText.text = MakeItemString(quest.requiredItems);
-        rewardsText.text = MakeItemString(quest.rewards);
+        if (quest == null)
+        {
+            return;
+        }
+
+        if (titleText != null) titleText.text = quest.title;
+        if (clientNameText != null) clientNameText.text = quest.clientName;
+        if (deadlineText != null) deadlineText.text = FormatDeadline(quest);
+        if (requireText != null) requireText.text = MakeItemString(quest.requiredItems);
+        if (rewardsText != null && rewardsText != requireText)
+        {
+            rewardsText.text = MakeItemString(quest.rewards);
+        }
+    }
+
+    public static string FormatDeadline(Quest target)
+    {
+        if (target == null || target.currentleftDeadlineDays <= 0)
+        {
+            return "오늘 마감";
+        }
+
+        return $"납기 D-{target.currentleftDeadlineDays}";
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -31,13 +49,32 @@ public class QuestCard : MonoBehaviour
 
     public void SetAcceptButtonInteractable(bool interactable)
     {
-        acceptButton.interactable = interactable;
+        if (acceptButton != null)
+        {
+            acceptButton.interactable = interactable;
+        }
     }
 
     public void SetAcceptAction(UnityEngine.Events.UnityAction action)
     {
+        if (acceptButton == null)
+        {
+            return;
+        }
+
         acceptButton.onClick.RemoveAllListeners();
         acceptButton.onClick.AddListener(action);
+    }
+
+    public void SetButtonLabel(string label)
+    {
+        TMP_Text text = acceptButton != null
+            ? acceptButton.GetComponentInChildren<TMP_Text>()
+            : null;
+        if (text != null)
+        {
+            text.text = label;
+        }
     }
 
     private string MakeItemString(ItemEntryList list)
@@ -56,7 +93,9 @@ public class QuestCard : MonoBehaviour
                 continue;
             }
 
-            builder.Append(entry.item.name);
+            builder.Append(string.IsNullOrWhiteSpace(entry.item.displayName)
+                ? entry.item.id
+                : entry.item.displayName);
             builder.Append(" x");
             builder.Append(entry.count);
             builder.Append('\n');
@@ -65,4 +104,9 @@ public class QuestCard : MonoBehaviour
         return builder.ToString().TrimEnd();
     }
 
+}
+
+// 동적 목록을 갱신할 때 Dev2가 생성한 카드만 골라 지우기 위한 표식.
+public sealed class GeneratedQuestCard : MonoBehaviour
+{
 }

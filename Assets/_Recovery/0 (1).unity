@@ -191,10 +191,10 @@ MonoBehaviour:
   m_Spacing: 0
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
   m_ReverseArrangement: 0
 --- !u!1 &106214379
 GameObject:
@@ -829,7 +829,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::questcardui
   questManager: {fileID: 1511768436}
   questPool: {fileID: 1511768435}
-  questCardPrefab: {fileID: 5065242408082080025, guid: 0d56eed802c56c54ab4fc99be97ebfaf, type: 3}
+  questCardPrefab: {fileID: 2148060428728376098, guid: 0d56eed802c56c54ab4fc99be97ebfaf, type: 3}
   content: {fileID: 16393007}
   panel: {fileID: 693272091}
 --- !u!1 &1079133980
@@ -1072,7 +1072,6 @@ GameObject:
   - component: {fileID: 1511768431}
   - component: {fileID: 1511768436}
   - component: {fileID: 1511768435}
-  - component: {fileID: 1511768437}
   m_Layer: 5
   m_Name: QUEST
   m_TagString: Untagged
@@ -1176,7 +1175,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuestPool
   questJson: {fileID: 4900000, guid: f837adae99edd3340b5377653caa4e27, type: 3}
-  questLineJson: {fileID: 4900000, guid: b049485855ab4274af24a31e6972a46a, type: 3}
   dict:
   - itemId: iron_ore
     item: {fileID: 11400000, guid: c84e6b264b30d41438d7374cf1e1444e, type: 2}
@@ -1185,7 +1183,6 @@ MonoBehaviour:
   - itemId: gold
     item: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
   questManager: {fileID: 1511768436}
-  progression: {fileID: 0}
   allQuests: []
 --- !u!114 &1511768436
 MonoBehaviour:
@@ -1200,25 +1197,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuestManager
   playerInventory: {fileID: 0}
-  persistBetweenScenes: 1
   currentQuests: []
   acceptedQuestIds: 
   availableQuestsToday: []
---- !u!114 &1511768437
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1511768430}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4fbf3fcf9094942a1a4ffc3c03936a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::QuestProgressionService
-  questManager: {fileID: 1511768436}
-  endingStoryEventId: 001E99999
-  completedQuestIds: []
 --- !u!1 &1590355810
 GameObject:
   m_ObjectHideFlags: 0
@@ -1605,11 +1586,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 140827172061106549, guid: 0d56eed802c56c54ab4fc99be97ebfaf, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 123.66626
+      value: 263
       objectReference: {fileID: 0}
     - target: {fileID: 140827172061106549, guid: 0d56eed802c56c54ab4fc99be97ebfaf, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -81.75311
+      value: 156
       objectReference: {fileID: 0}
     - target: {fileID: 140827172061106549, guid: 0d56eed802c56c54ab4fc99be97ebfaf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
