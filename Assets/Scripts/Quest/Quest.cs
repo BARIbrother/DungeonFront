@@ -25,4 +25,23 @@ public class Quest : ScriptableObject
 
     // 수락 후 남은 기한(일). acceptQuest 시 deadlineDays로 초기화된다
     public int currentleftDeadlineDays;
+
+    /// <summary>
+    /// [체크리스트 3번] Prepare/결산 UI 표시용 D-Day 텍스트 반환
+    /// </summary>
+    public string GetDeadlineDisplayText()
+    {
+        if (currentleftDeadlineDays > 0)
+        {
+            return $"납기 D-{currentleftDeadlineDays}";
+        }
+        else if (currentleftDeadlineDays == 0)
+        {
+            return "<color=red>오늘 마감</color>";
+        }
+        else
+        {
+            return "<color=red>기한 초과</color>";
+        }
+    }
 }

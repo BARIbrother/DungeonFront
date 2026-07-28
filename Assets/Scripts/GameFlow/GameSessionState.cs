@@ -12,7 +12,19 @@ public class AcceptedQuestState
 {
     public int questId;
     public string questName;
-    public AcceptedQuestState(int id, string name) { this.questId = id; this.questName = name; }
+    public bool isMandatory;       // 필수(스토리) 의뢰 여부
+    public int rewardReputation;   // 보상 명성 수치
+    public int deadlineDay;        // 만료 날짜 (ex: 3일차 Prepare 시점 만료)
+
+    // 매개변수가 2개만 들어와도 기본값이 적용되도록 설정 (하방 호환성 유지)
+    public AcceptedQuestState(int id, string name, bool isMandatory = false, int rewardReputation = 0, int deadlineDay = 999) 
+    { 
+        this.questId = id; 
+        this.questName = name; 
+        this.isMandatory = isMandatory;
+        this.rewardReputation = rewardReputation;
+        this.deadlineDay = deadlineDay;
+    }
 }
 
 public class GameSessionState : MonoBehaviour
@@ -50,8 +62,8 @@ public class GameSessionState : MonoBehaviour
     [Header("[기획서 명세 데이터 필드]")]
     public int day { get; private set; } = 1;               
     public GamePhase phase { get; private set; } = GamePhase.Prepare; 
-    public int gold { get; private set; } = 0;               
-    public int reputation { get; private set; } = 0;         
+    public int gold { get; set; } = 0;               
+    public int reputation { get; set; } = 0;         
     
     public InventoryState inventory { get; private set; }   
     public FactoryState factory { get; private set; }       
@@ -90,10 +102,7 @@ public class GameSessionState : MonoBehaviour
     private void Start()
     {
         FindUIObjectsAutomatically();
-        UpdateDayText(); 
-        UpdateTimerUI(); 
-        UpdateGoodsUI(); 
-        ApplyUIState(phase);
+        NewGame(); // ⭐ 실행 시 골드 100, 명성 10 설정 및 OnNewGame 이벤트로 해금 리셋!
     }
 
     private void Update()
@@ -261,7 +270,7 @@ public class GameSessionState : MonoBehaviour
         }
     }
 
-    public bool TryAcceptQuest(int id, string name)
+    public bool TryAcceptQuest(int id, string name, bool isMandatory = false, int rewardReputation = 0, int durationDays = 1)
     {
         if (quests.Exists(q => q.questId == id))
         {
@@ -276,8 +285,12 @@ public class GameSessionState : MonoBehaviour
             return false; 
         }
 
-        quests.Add(new AcceptedQuestState(id, name));
-        Debug.Log($"<color=cyan>[의뢰 수락] {name} 추가됨. (현재: {quests.Count}/3)</color>");
+        // 만료 날짜 계산: 현재 날짜(day) + 기한(durationDays)
+        // 예: 1일차 Prepare에 2일 기한 의뢰 수락 -> deadlineDay = 3 -> 3일차 Prepare 시작 시 미납 판정!
+        int calculatedDeadline = this.day + durationDays;
+
+        quests.Add(new AcceptedQuestState(id, name, isMandatory, rewardReputation, calculatedDeadline));
+        Debug.Log($"<color=cyan>[의뢰 수락] {name} (만료일: Day {calculatedDeadline}) 추가됨. (현재: {quests.Count}/3)</color>");
         return true;
     }
 

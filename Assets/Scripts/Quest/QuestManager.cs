@@ -9,11 +9,27 @@ public class QuestManager : MonoBehaviour
     // 현재 수락하여 진행 중인 의뢰 목록
     public List<Quest> currentQuests = new();
 
-    // 수학했던 의뢰 (완료포함)
+    // 수락했던 의뢰 (완료포함)
     public List<int> acceptedQuestIds = new();
 
     // 오늘 받을 수 있는 의뢰 목록
     public List<Quest> availableQuestsToday = new();
+
+    /// <summary>
+    /// [체크리스트 2번] 하루가 지날 때(Next Day / 결산) 호출되어 남은 납기 일수를 차감한다.
+    /// </summary>
+    public void AdvanceDay()
+    {
+        for (int i = currentQuests.Count - 1; i >= 0; i--)
+        {
+            Quest quest = currentQuests[i];
+            if (quest == null) continue;
+
+            // 남은 일수 차감
+            quest.currentleftDeadlineDays--;
+            Debug.Log($"[QuestManager] '{quest.title}' 남은 기한: {quest.GetDeadlineDisplayText()}");
+        }
+    }
 
     // availableQuestsToday에서 의뢰를 수락해 currentQuests로 옮긴다.
     public bool acceptQuest(Quest quest)
@@ -109,7 +125,10 @@ public class QuestManager : MonoBehaviour
         instance.clientName = source.clientName;
         instance.content = source.content;
         instance.deadlineDays = source.deadlineDays;
+        
+        // 수락 시 SO 원본의 deadlineDays로 남은 일수 초기화
         instance.currentleftDeadlineDays = source.deadlineDays;
+        
         instance.requiredItems = CloneItemEntryList(source.requiredItems);
         instance.rewards = CloneItemEntryList(source.rewards);
         return instance;
