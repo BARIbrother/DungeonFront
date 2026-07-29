@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-// 맵 기계 클릭 시 AvailableRecipes를 버튼 목록으로 보여 주고 선택한다.
+// 맵 기계 클릭 시 레시피 선택·인벤 ↔ 포트 넣고 빼기 UI.
 public class MachineRecipeUI : MonoBehaviour
 {
     private static MachineRecipeUI instance;
@@ -12,11 +12,13 @@ public class MachineRecipeUI : MonoBehaviour
     private Canvas canvas;
     private GameObject modalRoot;
     private RectTransform panelRect;
-    private RectTransform recipeListRect;
+    private RectTransform contentListRect;
     private Text titleText;
-    private readonly List<GameObject> recipeButtons = new();
+    private readonly List<GameObject> dynamicRows = new();
     private Machine targetMachine;
     private Font uiFont;
+    private ItemManager itemManager;
+    private PlayerInventory subscribedInventory;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -32,7 +34,12 @@ public class MachineRecipeUI : MonoBehaviour
 
     public static void ShowFor(Machine machine)
     {
-        if (machine == null || !machine.SupportsRecipeSelectionUi())
+        if (machine == null)
+        {
+            return;
+        }
+
+        if (!machine.SupportsRecipeSelectionUi() && !machine.SupportsInventoryTransferUi())
         {
             return;
         }
@@ -74,6 +81,7 @@ public class MachineRecipeUI : MonoBehaviour
 
     private void OnDestroy()
     {
+        UnsubscribeInventory();
         if (instance == this)
         {
             instance = null;
@@ -83,13 +91,16 @@ public class MachineRecipeUI : MonoBehaviour
     private void Open(Machine machine)
     {
         targetMachine = machine;
-        titleText.text = $"{machine.GetMachineDisplayName()} · 레시피";
-        RebuildRecipeButtons();
+        itemManager = FindAnyObjectByType<ItemManager>();
+        titleText.text = machine.GetMachineDisplayName();
+        SubscribeInventory();
+        RebuildContent();
         modalRoot.SetActive(true);
     }
 
     public void Hide()
     {
+        UnsubscribeInventory();
         targetMachine = null;
         if (modalRoot != null)
         {
@@ -97,15 +108,57 @@ public class MachineRecipeUI : MonoBehaviour
         }
     }
 
-    private void RebuildRecipeButtons()
+    private void SubscribeInventory()
     {
-        ClearRecipeButtons();
+        UnsubscribeInventory();
+        subscribedInventory = PlayerInventory.Instance != null
+            ? PlayerInventory.Instance
+            : FindAnyObjectByType<PlayerInventory>();
+        if (subscribedInventory != null)
+        {
+            subscribedInventory.OnItemsChanged += RebuildContent;
+        }
+    }
 
-        if (targetMachine == null || recipeListRect == null)
+    private void UnsubscribeInventory()
+    {
+        if (subscribedInventory != null)
+        {
+            subscribedInventory.OnItemsChanged -= RebuildContent;
+            subscribedInventory = null;
+        }
+    }
+
+    private void RebuildContent()
+    {
+        ClearDynamicRows();
+
+        if (targetMachine == null || contentListRect == null)
         {
             return;
         }
 
+        if (targetMachine.SupportsRecipeSelectionUi())
+        {
+            CreateSectionLabel("레시피");
+            RebuildRecipeButtons();
+        }
+
+        if (targetMachine.SupportsInventoryTransferUi())
+        {
+            CreateSectionLabel("입력 포트 (클릭: 인벤으로)");
+            RebuildPortButtons(targetMachine.inputPort, isInput: true);
+
+            CreateSectionLabel("출력 포트 (클릭: 인벤으로)");
+            RebuildPortButtons(targetMachine.outputPort, isInput: false);
+
+            CreateSectionLabel("인벤토리 (클릭: 입력에 넣기)");
+            RebuildInventoryButtons();
+        }
+    }
+
+    private void RebuildRecipeButtons()
+    {
         RecipePool pool = targetMachine.GetAvailableRecipes();
         Recipe[] recipes = pool != null ? pool.recipes : null;
         if (recipes == null || recipes.Length == 0)
@@ -126,39 +179,240 @@ public class MachineRecipeUI : MonoBehaviour
         }
     }
 
-    private void CreateInfoLabel(string message)
+    private void RebuildPortButtons(ItemEntryList port, bool isInput)
     {
-        var labelObject = new GameObject("InfoLabel");
-        labelObject.transform.SetParent(recipeListRect, false);
+        if (port?.entries == null)
+        {
+            CreateInfoLabel("포트 없음");
+            return;
+        }
+
+        bool any = false;
+        for (int i = 0; i < port.entries.Length; i++)
+        {
+            ItemEntry entry = port.entries[i];
+            if (entry == null || entry.item == null || entry.count <= 0)
+            {
+                continue;
+            }
+
+            any = true;
+            ItemDefinition item = entry.item;
+            int count = entry.count;
+            string label = $"{DescribeItem(item)} x{count}";
+            CreateActionButton(label, new Color(0.22f, 0.32f, 0.28f, 1f), () =>
+            {
+                if (isInput)
+                {
+                    TryWithdrawInput(item, count);
+                }
+                else
+                {
+                    TryWithdrawOutput(item, count);
+                }
+            });
+        }
+
+        if (!any)
+        {
+            CreateInfoLabel("(비어 있음)");
+        }
+    }
+
+    private void RebuildInventoryButtons()
+    {
+        PlayerInventory inventory = GetInventory();
+        if (inventory == null)
+        {
+            CreateInfoLabel("PlayerInventory 없음");
+            return;
+        }
+
+        List<KeyValuePair<string, int>> owned = inventory.GetOwnedItemCounts();
+        if (owned.Count == 0)
+        {
+            CreateInfoLabel("(인벤 비어 있음)");
+            return;
+        }
+
+        bool any = false;
+        foreach (KeyValuePair<string, int> pair in owned)
+        {
+            ItemDefinition item = ResolveItem(pair.Key);
+            if (item == null)
+            {
+                continue;
+            }
+
+            any = true;
+            int count = pair.Value;
+            string label = $"{DescribeItem(item)} x{count}";
+            CreateActionButton(label, new Color(0.28f, 0.3f, 0.4f, 1f), () => TryDepositOne(item));
+        }
+
+        if (!any)
+        {
+            CreateInfoLabel("표시할 아이템 정의 없음");
+        }
+    }
+
+    private void TryDepositOne(ItemDefinition item)
+    {
+        if (targetMachine == null || item == null || string.IsNullOrEmpty(item.id))
+        {
+            return;
+        }
+
+        PlayerInventory inventory = GetInventory();
+        if (inventory == null || inventory.GetCount(item.id) <= 0)
+        {
+            return;
+        }
+
+        var entry = new ItemEntry { item = item, count = 1 };
+        if (!targetMachine.PutintoInputPort(entry))
+        {
+            return;
+        }
+
+        inventory.Remove(item.id, 1);
+        RebuildContent();
+    }
+
+    private void TryWithdrawInput(ItemDefinition item, int count)
+    {
+        if (targetMachine == null || item == null || count <= 0)
+        {
+            return;
+        }
+
+        PlayerInventory inventory = GetInventory();
+        if (inventory == null)
+        {
+            return;
+        }
+
+        var entry = new ItemEntry { item = item, count = count };
+        if (!targetMachine.TakeoutInputPort(entry))
+        {
+            return;
+        }
+
+        inventory.Add(new ItemEntry { item = item, count = count });
+        RebuildContent();
+    }
+
+    private void TryWithdrawOutput(ItemDefinition item, int count)
+    {
+        if (targetMachine == null || item == null || count <= 0)
+        {
+            return;
+        }
+
+        PlayerInventory inventory = GetInventory();
+        if (inventory == null)
+        {
+            return;
+        }
+
+        var entry = new ItemEntry { item = item, count = count };
+        if (!targetMachine.TakeoutOutputPort(entry))
+        {
+            return;
+        }
+
+        inventory.Add(new ItemEntry { item = item, count = count });
+        RebuildContent();
+    }
+
+    private PlayerInventory GetInventory()
+    {
+        if (PlayerInventory.Instance != null)
+        {
+            return PlayerInventory.Instance;
+        }
+
+        return FindAnyObjectByType<PlayerInventory>();
+    }
+
+    private ItemDefinition ResolveItem(string itemId)
+    {
+        if (itemManager == null)
+        {
+            itemManager = FindAnyObjectByType<ItemManager>();
+        }
+
+        return itemManager != null ? itemManager.Get(itemId) : null;
+    }
+
+    private static string DescribeItem(ItemDefinition item)
+    {
+        if (item == null)
+        {
+            return "?";
+        }
+
+        return string.IsNullOrEmpty(item.displayName) ? item.id : item.displayName;
+    }
+
+    private void CreateSectionLabel(string message)
+    {
+        var labelObject = new GameObject("SectionLabel");
+        labelObject.transform.SetParent(contentListRect, false);
 
         var layoutElement = labelObject.AddComponent<LayoutElement>();
-        layoutElement.minHeight = 48f;
+        layoutElement.minHeight = 28f;
 
         var label = labelObject.AddComponent<Text>();
         label.font = uiFont;
-        label.fontSize = 16;
-        label.alignment = TextAnchor.MiddleCenter;
-        label.color = new Color(0.85f, 0.85f, 0.85f, 1f);
+        label.fontSize = 15;
+        label.fontStyle = FontStyle.Bold;
+        label.alignment = TextAnchor.MiddleLeft;
+        label.color = new Color(0.95f, 0.85f, 0.45f, 1f);
         label.text = message;
 
-        recipeButtons.Add(labelObject);
+        dynamicRows.Add(labelObject);
+    }
+
+    private void CreateInfoLabel(string message)
+    {
+        var labelObject = new GameObject("InfoLabel");
+        labelObject.transform.SetParent(contentListRect, false);
+
+        var layoutElement = labelObject.AddComponent<LayoutElement>();
+        layoutElement.minHeight = 36f;
+
+        var label = labelObject.AddComponent<Text>();
+        label.font = uiFont;
+        label.fontSize = 14;
+        label.alignment = TextAnchor.MiddleCenter;
+        label.color = new Color(0.75f, 0.75f, 0.75f, 1f);
+        label.text = message;
+
+        dynamicRows.Add(labelObject);
     }
 
     private void CreateRecipeButton(Recipe recipe, bool isSelected)
     {
-        var buttonObject = new GameObject($"Recipe_{recipe.id}");
-        buttonObject.transform.SetParent(recipeListRect, false);
+        CreateActionButton(
+            BuildRecipeLabel(recipe),
+            isSelected ? new Color(0.35f, 0.55f, 0.85f, 1f) : new Color(0.2f, 0.22f, 0.28f, 1f),
+            () => OnRecipeButtonClicked(recipe));
+    }
+
+    private void CreateActionButton(string labelText, Color color, UnityEngine.Events.UnityAction onClick)
+    {
+        var buttonObject = new GameObject("ActionButton");
+        buttonObject.transform.SetParent(contentListRect, false);
 
         var layoutElement = buttonObject.AddComponent<LayoutElement>();
-        layoutElement.minHeight = 44f;
+        layoutElement.minHeight = 40f;
 
         var buttonImage = buttonObject.AddComponent<Image>();
-        buttonImage.color = isSelected
-            ? new Color(0.35f, 0.55f, 0.85f, 1f)
-            : new Color(0.2f, 0.22f, 0.28f, 1f);
+        buttonImage.color = color;
 
         var button = buttonObject.AddComponent<Button>();
-        button.onClick.AddListener(() => OnRecipeButtonClicked(recipe));
+        button.onClick.AddListener(onClick);
 
         var labelObject = new GameObject("Label");
         labelObject.transform.SetParent(buttonObject.transform, false);
@@ -170,12 +424,12 @@ public class MachineRecipeUI : MonoBehaviour
 
         var label = labelObject.AddComponent<Text>();
         label.font = uiFont;
-        label.fontSize = 16;
+        label.fontSize = 15;
         label.alignment = TextAnchor.MiddleLeft;
         label.color = Color.white;
-        label.text = BuildRecipeLabel(recipe);
+        label.text = labelText;
 
-        recipeButtons.Add(buttonObject);
+        dynamicRows.Add(buttonObject);
     }
 
     private void OnRecipeButtonClicked(Recipe recipe)
@@ -186,7 +440,7 @@ public class MachineRecipeUI : MonoBehaviour
         }
 
         targetMachine.SelectRecipe(recipe);
-        RebuildRecipeButtons();
+        RebuildContent();
     }
 
     private static string BuildRecipeLabel(Recipe recipe)
@@ -212,26 +466,23 @@ public class MachineRecipeUI : MonoBehaviour
                 continue;
             }
 
-            string itemName = string.IsNullOrEmpty(entry.item.displayName)
-                ? entry.item.id
-                : entry.item.displayName;
-            parts.Add($"{itemName}x{entry.count}");
+            parts.Add($"{DescribeItem(entry.item)}x{entry.count}");
         }
 
         return parts.Count > 0 ? string.Join(", ", parts) : "-";
     }
 
-    private void ClearRecipeButtons()
+    private void ClearDynamicRows()
     {
-        foreach (GameObject buttonObject in recipeButtons)
+        foreach (GameObject row in dynamicRows)
         {
-            if (buttonObject != null)
+            if (row != null)
             {
-                Destroy(buttonObject);
+                Destroy(row);
             }
         }
 
-        recipeButtons.Clear();
+        dynamicRows.Clear();
     }
 
     private void EnsureUiHierarchy()
@@ -281,7 +532,7 @@ public class MachineRecipeUI : MonoBehaviour
         panelRect.anchorMax = new Vector2(0.5f, 0.5f);
         panelRect.pivot = new Vector2(0.5f, 0.5f);
         panelRect.anchoredPosition = Vector2.zero;
-        panelRect.sizeDelta = new Vector2(480f, 420f);
+        panelRect.sizeDelta = new Vector2(520f, 560f);
 
         var panelImage = panelObject.AddComponent<Image>();
         panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
@@ -300,7 +551,7 @@ public class MachineRecipeUI : MonoBehaviour
         titleText.fontSize = 18;
         titleText.alignment = TextAnchor.MiddleLeft;
         titleText.color = Color.white;
-        titleText.text = "레시피";
+        titleText.text = "기계";
 
         var titleRect = titleText.rectTransform;
         titleRect.anchorMin = Vector2.zero;
@@ -310,7 +561,7 @@ public class MachineRecipeUI : MonoBehaviour
 
         CreateCloseButton(panelObject.transform);
 
-        var scrollObject = new GameObject("RecipeScroll");
+        var scrollObject = new GameObject("ContentScroll");
         scrollObject.transform.SetParent(panelObject.transform, false);
         var scrollRectTransform = scrollObject.AddComponent<RectTransform>();
         scrollRectTransform.anchorMin = Vector2.zero;
@@ -330,15 +581,15 @@ public class MachineRecipeUI : MonoBehaviour
 
         var contentObject = new GameObject("Content");
         contentObject.transform.SetParent(viewportObject.transform, false);
-        recipeListRect = contentObject.AddComponent<RectTransform>();
-        recipeListRect.anchorMin = new Vector2(0f, 1f);
-        recipeListRect.anchorMax = new Vector2(1f, 1f);
-        recipeListRect.pivot = new Vector2(0.5f, 1f);
-        recipeListRect.anchoredPosition = Vector2.zero;
-        recipeListRect.sizeDelta = new Vector2(0f, 0f);
+        contentListRect = contentObject.AddComponent<RectTransform>();
+        contentListRect.anchorMin = new Vector2(0f, 1f);
+        contentListRect.anchorMax = new Vector2(1f, 1f);
+        contentListRect.pivot = new Vector2(0.5f, 1f);
+        contentListRect.anchoredPosition = Vector2.zero;
+        contentListRect.sizeDelta = new Vector2(0f, 0f);
 
         var layout = contentObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 8f;
+        layout.spacing = 6f;
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = true;
@@ -352,7 +603,7 @@ public class MachineRecipeUI : MonoBehaviour
 
         var scroll = scrollObject.AddComponent<ScrollRect>();
         scroll.viewport = viewportRect;
-        scroll.content = recipeListRect;
+        scroll.content = contentListRect;
         scroll.horizontal = false;
         scroll.vertical = true;
         scroll.movementType = ScrollRect.MovementType.Clamped;

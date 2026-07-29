@@ -53,6 +53,23 @@ public class PlayerInventory : MonoBehaviour
         return count;
     }
 
+    // 보유량 > 0인 아이템 id·수량을 복사해 반환한다. 기계 UI 등 표시용.
+    public List<KeyValuePair<string, int>> GetOwnedItemCounts()
+    {
+        var owned = new List<KeyValuePair<string, int>>();
+        foreach (KeyValuePair<string, int> pair in items)
+        {
+            if (pair.Value <= 0 || string.IsNullOrEmpty(pair.Key))
+            {
+                continue;
+            }
+
+            owned.Add(pair);
+        }
+
+        return owned;
+    }
+
     public int Remove(string itemId, int amount)
     {
         if (string.IsNullOrEmpty(itemId) || amount <= 0)

@@ -67,6 +67,20 @@ public abstract class Machine : MonoBehaviour
         return outputPort.TryTake(IE);
     }
 
+    // 입력 포트에서 꺼낸다. 기계 UI 인벤 회수용.
+    public virtual bool TakeoutInputPort(ItemEntry IE)
+    {
+        if (IE == null || inputPort == null)
+        {
+            return false;
+        }
+
+        return inputPort.TryTake(IE);
+    }
+
+    // 기계 UI에서 인벤 ↔ 포트 넣고 빼기를 지원하는지.
+    public virtual bool SupportsInventoryTransferUi() => true;
+
     // 물류 페이즈 훅. 컨베이어 등이 override한다.
     public virtual void TickLogistics()
     {
@@ -315,7 +329,7 @@ public abstract class Machine : MonoBehaviour
             return;
         }
 
-        if (SupportsRecipeSelectionUi())
+        if (SupportsRecipeSelectionUi() || SupportsInventoryTransferUi())
         {
             MachineRecipeUI.ShowFor(this);
             return;

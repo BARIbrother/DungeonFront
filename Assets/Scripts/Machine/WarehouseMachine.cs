@@ -19,6 +19,8 @@ public class WarehouseMachine : Machine
 
     public override bool SupportsRecipeSelectionUi() => false;
 
+    public override bool SupportsInventoryTransferUi() => false;
+
     public override bool SupportsManualWorkClick() => false;
 
     // 들어온 아이템을 포트에 쌓지 않고 바로 공유 인벤으로 넣는다.
