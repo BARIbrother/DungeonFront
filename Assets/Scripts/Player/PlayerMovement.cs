@@ -23,6 +23,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float pixelsPerSecond = 96f;
     // 픽셀당 월드 유닛 (GridManager PixelsPerUnit 기본값)
     [SerializeField] private float pixelsPerUnit = 32f;
+    // 플레이어 발자국 충돌 반경(칸). Locked·노드 칸에 끼지 않도록 셀보다 작게 잡는다.
+    [SerializeField] [Range(0.1f, 0.49f)] private float walkCollisionHalfExtentCells = 0.4f;
 
     private Vector2 lastFacing = Vector2.down;
 
@@ -30,7 +32,18 @@ public class PlayerMovement : MonoBehaviour
     {
         if (gridManager != null)
         {
-            transform.position = gridManager.GetMapCenterWorld();
+            // 시작 구역(zone_start) 중앙.
+            Vector2Int startCenter = new Vector2Int(
+                ZoneManager.CenterZoneX * ZoneManager.ZoneSize + ZoneManager.ZoneSize / 2,
+                ZoneManager.CenterZoneY * ZoneManager.ZoneSize + ZoneManager.ZoneSize / 2);
+            if (gridManager.IsInBounds(startCenter.x, startCenter.y))
+            {
+                transform.position = gridManager.GridToWorld(startCenter);
+            }
+            else
+            {
+                transform.position = gridManager.GetMapCenterWorld();
+            }
         }
 
         UpdateAnimator(Vector2.zero);
@@ -38,15 +51,23 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        Keyboard keyboard = Keyboard.current;
+
+        // 2: 구역 해금 UI (모달 중에도 토글 가능, 상단/키패드 2)
+        if (keyboard != null
+            && (keyboard.digit2Key.wasPressedThisFrame || keyboard.numpad2Key.wasPressedThisFrame))
+        {
+            ZoneExpansionUI.Toggle();
+        }
+
         // 모달이 열려 있으면 이동·상호작용을 잠근다.
-        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen)
+        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen || ZoneExpansionUI.IsOpen)
         {
             UpdateAnimator(Vector2.zero);
             return;
         }
 
         Vector2 input = Vector2.zero;
-        Keyboard keyboard = Keyboard.current;
         if (keyboard != null)
         {
             if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) input.x -= 1f;
@@ -96,10 +117,78 @@ public class PlayerMovement : MonoBehaviour
 
         if (gridManager != null)
         {
-            next = gridManager.ClampWorldPosition(next);
+            next = ResolveWalkablePosition(next);
         }
 
         transform.position = next;
+    }
+
+    // Locked·노드 칸을 뚫지 않도록 플레이어 월드 좌표를 보정한다. 막히면 축별 미끄러짐을 시도한다.
+    private Vector3 ResolveWalkablePosition(Vector3 next)
+    {
+        next = ClampWorldPositionWithCollision(next);
+
+        if (IsWalkableWorld(next))
+        {
+            return next;
+        }
+
+        Vector3 current = transform.position;
+        Vector3 nextX = ClampWorldPositionWithCollision(new Vector3(next.x, current.y, current.z));
+        Vector3 nextY = ClampWorldPositionWithCollision(new Vector3(current.x, next.y, current.z));
+
+        if (IsWalkableWorld(nextX))
+        {
+            return nextX;
+        }
+
+        if (IsWalkableWorld(nextY))
+        {
+            return nextY;
+        }
+
+        return current;
+    }
+
+    // 발자국 충돌 반경을 반영해 맵 경계 안으로 월드 좌표를 제한한다.
+    private Vector3 ClampWorldPositionWithCollision(Vector3 worldPosition)
+    {
+        float half = GetWalkCollisionHalfExtent();
+        Vector3 min = gridManager.GridToWorld(0, 0);
+        Vector3 max = gridManager.GridToWorld(gridManager.Width - 1, gridManager.Height - 1);
+
+        // GridToWorld는 셀 중심이므로, 셀 경계까지 여유를 두고 half cell을 보정한다.
+        float cellHalf = gridManager.CellSize * 0.5f;
+        float minX = min.x - cellHalf + half;
+        float maxX = max.x + cellHalf - half;
+        float minY = min.y - cellHalf + half;
+        float maxY = max.y + cellHalf - half;
+
+        worldPosition.x = Mathf.Clamp(worldPosition.x, minX, maxX);
+        worldPosition.y = Mathf.Clamp(worldPosition.y, minY, maxY);
+        return worldPosition;
+    }
+
+    // 중심 + 발자국 네 모서리가 모두 Floor인지 확인한다.
+    private bool IsWalkableWorld(Vector3 worldPosition)
+    {
+        float half = GetWalkCollisionHalfExtent();
+
+        return IsWalkablePoint(worldPosition)
+            && IsWalkablePoint(worldPosition + new Vector3(-half, -half, 0f))
+            && IsWalkablePoint(worldPosition + new Vector3(half, -half, 0f))
+            && IsWalkablePoint(worldPosition + new Vector3(-half, half, 0f))
+            && IsWalkablePoint(worldPosition + new Vector3(half, half, 0f));
+    }
+
+    private bool IsWalkablePoint(Vector3 worldPosition)
+    {
+        return gridManager.IsWalkable(gridManager.WorldToGrid(worldPosition));
+    }
+
+    private float GetWalkCollisionHalfExtent()
+    {
+        return gridManager.CellSize * walkCollisionHalfExtentCells;
     }
 
     // E키: 근접 1칸 내 고장 기계 수리 우선, 없으면 수작업 기계 진도.

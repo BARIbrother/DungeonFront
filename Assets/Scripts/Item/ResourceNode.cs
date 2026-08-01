@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 // 맵에 배치된 자원 노드(32×32px = 그리드 1칸)의 시각·메타데이터. 채굴 로직은 없다.
@@ -18,9 +16,13 @@ public class ResourceNode : MonoBehaviour
     public string DisplayName => displayName;
     public Vector2Int GridAnchor => gridAnchor;
 
-    // GridManager가 배치 직후 그리드 좌표를 주입한다.
-    public void Initialize(Vector2Int anchor)
+    // GridManager가 배치 직후 그리드 좌표·(선택) itemId를 주입한다.
+    public void Initialize(Vector2Int anchor, string resourceItemId = null)
     {
         gridAnchor = anchor;
+        if (!string.IsNullOrEmpty(resourceItemId))
+        {
+            itemId = resourceItemId;
+        }
     }
 }

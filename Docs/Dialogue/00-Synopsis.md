@@ -1,7 +1,8 @@
 # 대사·시놉시스 (Dialogue)
 
 > **세계관·인물 정본**: [../World/00-index.md](../World/00-index.md)  
-> 이 폴더의 `00-Synopsis.md`는 초기 메모. 이후 확정은 **World/** 에만 반영한다.
+> 이 폴더의 `00-Synopsis.md`는 초기 메모. 이후 확정은 **World/** 에만 반영한다.  
+> **메인 퀘스트 대사 초안**: [00-MainQuest-Outline.md](00-MainQuest-Outline.md)
 
 ---
 
