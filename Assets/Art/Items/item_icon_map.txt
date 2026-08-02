@@ -1,0 +1,55 @@
+# Item icon id ↔ filename (Week5 Art)
+# Path: Assets/Art/Items/
+# Size: 16x16 PNG, transparent background
+# Rules: Docs/art/item-icon-rules.md
+# Preview: Assets/Art/Items/_preview/
+
+# display_name	itemId	filename
+나무 원목	wood_log	wood_log_icon.png
+나무 막대기	wood_stick	wood_stick_icon.png
+종이	paper	paper_icon.png
+철광석	iron_ore	iron_ore_icon.png
+철 주괴	iron	iron_ingot_icon.png
+철 판	iron_plate	iron_plate_icon.png
+철 막대기	iron_rod	iron_rod_icon.png
+철 흉갑	iron_chestplate	iron_chestplate_icon.png
+철 투구	iron_helmet	iron_helmet_icon.png
+철 각반	iron_leggings	iron_leggings_icon.png
+철 부츠	iron_boots	iron_boots_icon.png
+철 검	iron_sword	iron_sword_icon.png
+철 전투 망치	iron_warhammer	iron_warhammer_icon.png
+칠흑석 광석	blackstone_ore	blackstone_ore_icon.png
+칠흑석 주괴	blackstone_ingot	blackstone_ingot_icon.png
+흑강 주괴	darksteel_ingot	darksteel_ingot_icon.png
+흑강 판	darksteel_plate	darksteel_plate_icon.png
+흑강 막대기	darksteel_rod	darksteel_rod_icon.png
+흑강 검	darksteel_sword	darksteel_sword_icon.png
+흑강 전투 망치	darksteel_warhammer	darksteel_warhammer_icon.png
+흑강 투구	darksteel_helmet	darksteel_helmet_icon.png
+흑강 흉갑	darksteel_chestplate	darksteel_chestplate_icon.png
+흑강 각반	darksteel_leggings	darksteel_leggings_icon.png
+흑강 부츠	darksteel_boots	darksteel_boots_icon.png
+순백석 광석	whitestone_ore	whitestone_ore_icon.png
+순백석 주괴	whitestone_ingot	whitestone_ingot_icon.png
+백강 주괴	brightsteel_ingot	brightsteel_ingot_icon.png
+백강 판	brightsteel_plate	brightsteel_plate_icon.png
+백강 막대기	brightsteel_rod	brightsteel_rod_icon.png
+백강 검	brightsteel_sword	brightsteel_sword_icon.png
+백강 전투 망치	brightsteel_warhammer	brightsteel_warhammer_icon.png
+백강 투구	brightsteel_helmet	brightsteel_helmet_icon.png
+백강 흉갑	brightsteel_chestplate	brightsteel_chestplate_icon.png
+백강 각반	brightsteel_leggings	brightsteel_leggings_icon.png
+백강 부츠	brightsteel_boots	brightsteel_boots_icon.png
+진강 주괴	greysteel_ingot	greysteel_ingot_icon.png
+진강 판	greysteel_plate	greysteel_plate_icon.png
+진강 막대기	greysteel_rod	greysteel_rod_icon.png
+진강 검	greysteel_sword	greysteel_sword_icon.png
+진강 전투 망치	greysteel_warhammer	greysteel_warhammer_icon.png
+진강 투구	greysteel_helmet	greysteel_helmet_icon.png
+진강 흉갑	greysteel_chestplate	greysteel_chestplate_icon.png
+진강 각반	greysteel_leggings	greysteel_leggings_icon.png
+진강 부츠	greysteel_boots	greysteel_boots_icon.png
+
+# note: itemId `iron` maps to filename iron_ingot_icon.png (display: 철 주괴)
+# English prefixes: 흑강=darksteel, 백강=brightsteel, 진강=greysteel
+# _sheet.png rows: wood(+stick/paper) | iron | blackstone/darksteel | whitestone/brightsteel | greysteel
