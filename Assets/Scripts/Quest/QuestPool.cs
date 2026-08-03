@@ -92,13 +92,16 @@ public class QuestPool : MonoBehaviour
         allQuests.Clear();
         bool loadedQuestLine = LoadQuestLineJson();
 
-        if (questJson != null && !string.IsNullOrWhiteSpace(questJson.text))
+        // 실제 퀘스트라인이 연결된 게임에서는 Week2 예제/QA 데이터를 섞지 않는다.
+        // questJson은 questline.json이 없는 독립 테스트의 fallback으로만 사용한다.
+        if (!loadedQuestLine
+            && questJson != null
+            && !string.IsNullOrWhiteSpace(questJson.text))
         {
             QuestplusList wrapper = JsonUtility.FromJson<QuestplusList>(questJson.text);
             foreach (Questplus quest in wrapper?.quests ?? Array.Empty<Questplus>())
             {
                 if (quest == null
-                    || (loadedQuestLine && quest.title.StartsWith("[Week4 QA]"))
                     || allQuests.Exists(existing => existing.id == quest.id))
                 {
                     continue;
