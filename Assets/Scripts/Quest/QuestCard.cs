@@ -18,7 +18,7 @@ public class QuestCard : MonoBehaviour
         quest = new_quest;
         titleText.text = quest.title;
         clientNameText.text = quest.clientName;
-        deadlineText.text = "D-" + quest.deadlineDays;
+        deadlineText.text = quest.GetDeadlineDisplayText();
         requireText.text = MakeItemString(quest.requiredItems);
         rewardsText.text = MakeItemString(quest.rewards);
     }
