@@ -1,0 +1,234 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7253165135078428927
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4504454110701703995}
+  - component: {fileID: 4663977622768855279}
+  - component: {fileID: 4895095430265612694}
+  - component: {fileID: 5196732943941176744}
+  - component: {fileID: 652486970126095327}
+  - component: {fileID: 488046510878223498}
+  - component: {fileID: 4287339101210471849}
+  - component: {fileID: 6249696299457802317}
+  - component: {fileID: 5582685867710231700}
+  - component: {fileID: 7515838825794259403}
+  - component: {fileID: 7534051560851511531}
+  - component: {fileID: 4088575606695354135}
+  m_Layer: 0
+  m_Name: QuestSystemRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4504454110701703995
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4663977622768855279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 378bd6d9448b2d943ae23d644b5ff40b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestManager
+  playerInventory: {fileID: 0}
+  persistBetweenScenes: 1
+  currentQuests: []
+  acceptedQuestIds: 
+  availableQuestsToday: []
+--- !u!114 &4895095430265612694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4383aaa7859fa04468ec97c9703d71c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Week3EconomyService
+  startingGold: 0
+  startingReputation: 0
+--- !u!114 &5196732943941176744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f05747892a94f6e4c8d060651d943769, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UnlockManager
+  economy: {fileID: 4895095430265612694}
+  rules:
+  - machineDefId: Altar_1
+    requiredReputation: 350
+  - machineDefId: Foundry_1
+    requiredReputation: 500
+  persistWithPlayerPrefs: 1
+--- !u!114 &652486970126095327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72d85077de540e044aa2ebb5f439e731, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShopUI
+  catalog: {fileID: 11400000, guid: 115a1a6271df2834e99a97d41f7dbe32, type: 2}
+  economy: {fileID: 4895095430265612694}
+  unlockManager: {fileID: 5196732943941176744}
+  playerInventory: {fileID: 0}
+  listRoot: {fileID: 0}
+  rowPrefab: {fileID: 0}
+  goldText: {fileID: 0}
+  feedbackText: {fileID: 0}
+--- !u!114 &488046510878223498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a1f1c96e7184554b8b6c89029a44398, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameOverController
+  gameOverPanel: {fileID: 0}
+  titleSceneName: Title
+--- !u!114 &4287339101210471849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4fbf3fcf9094942a1a4ffc3c03936a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestProgressionService
+  questManager: {fileID: 4663977622768855279}
+  endingStoryEventId: 001E99999
+  completedQuestIds: []
+--- !u!114 &6249696299457802317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 911f0cccc8a77e14c9d281e16f9db8d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestPool
+  questJson: {fileID: 4900000, guid: f837adae99edd3340b5377653caa4e27, type: 3}
+  questLineJson: {fileID: 4900000, guid: b049485855ab4274af24a31e6972a46a, type: 3}
+  dict:
+  - itemId: iron_ore
+    item: {fileID: 11400000, guid: c84e6b264b30d41438d7374cf1e1444e, type: 2}
+  - itemId: iron_plate
+    item: {fileID: 11400000, guid: c8d22b486e74ef44aa4dbf35ace038a1, type: 2}
+  - itemId: gold
+    item: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+  - itemId: fame
+    item: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+  questManager: {fileID: 4663977622768855279}
+  progression: {fileID: 4287339101210471849}
+  allQuests: []
+--- !u!114 &5582685867710231700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0270b3e19a9add84ba357eaaf4f67a49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestDeadlineController
+  questManager: {fileID: 4663977622768855279}
+  economy: {fileID: 4895095430265612694}
+  gameOverController: {fileID: 488046510878223498}
+--- !u!114 &7515838825794259403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42067365f5218014aa81b4f2a6ff2357, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestSaveProvider
+  questManager: {fileID: 4663977622768855279}
+  questDatabase: {fileID: 0}
+  questPool: {fileID: 6249696299457802317}
+--- !u!114 &7534051560851511531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 804e603787d24653a06def28f19232ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PerpetualQuestService
+  playerInventory: {fileID: 0}
+  economy: {fileID: 4895095430265612694}
+--- !u!114 &4088575606695354135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7253165135078428927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fa1d5eba44041059a880425a5e9da31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::QuestSystemDebugPanel
+  enableDebugPanel: 1
+  questManager: {fileID: 4663977622768855279}
+  questPool: {fileID: 6249696299457802317}
+  economy: {fileID: 4895095430265612694}
+  deadlineController: {fileID: 5582685867710231700}
+  saveProvider: {fileID: 7515838825794259403}
+  perpetualService: {fileID: 7534051560851511531}
+  unlockManager: {fileID: 5196732943941176744}
+  shopUI: {fileID: 652486970126095327}

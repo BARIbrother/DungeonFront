@@ -1,5 +1,7 @@
+using System.Collections;
 using UnityEngine;
 
+// Prepare 단계의 "받을 수 있는 의뢰" 목록과 수락 버튼을 담당한다.
 public class QuestAcceptUI : MonoBehaviour
 {
     [SerializeField] private QuestManager questManager;
@@ -8,17 +10,91 @@ public class QuestAcceptUI : MonoBehaviour
     [SerializeField] private Transform content;
     [SerializeField] private GameObject panel;
 
-    private void Start()
+    private GameSessionState session;
+
+    private int CurrentReputation
     {
-        if (questPool != null)
+        get
         {
-            questPool.MakeAvailableQuestsToday(4);   // 테스트용
-            Refresh();
+            Week3EconomyService economy = FindAnyObjectByType<Week3EconomyService>();
+            return economy != null
+                ? economy.Reputation
+                : GameSessionState.Instance != null
+                    ? GameSessionState.Instance.reputation
+                    : 0;
         }
     }
 
     private void OnEnable()
     {
+        ResolveReferences();
+        if (questManager != null)
+        {
+            questManager.OnQuestsChanged += Refresh;
+        }
+
+        session = GameSessionState.Instance;
+        if (session != null)
+        {
+            session.OnPhaseChanged += HandlePhaseChanged;
+            session.OnNewGame += HandleNewGame;
+        }
+
+        RefreshAvailableAndCards();
+    }
+
+    private void OnDisable()
+    {
+        if (questManager != null)
+        {
+            questManager.OnQuestsChanged -= Refresh;
+        }
+
+        if (session != null)
+        {
+            session.OnPhaseChanged -= HandlePhaseChanged;
+            session.OnNewGame -= HandleNewGame;
+        }
+    }
+
+    private void HandleNewGame()
+    {
+        StartCoroutine(RefreshAfterNewGame());
+    }
+
+    private IEnumerator RefreshAfterNewGame()
+    {
+        // QuestManager도 같은 NewGame 이벤트에서 이전 목록을 비운다.
+        // 한 프레임 뒤에 후보를 다시 만들면 구독 순서와 관계없이 최종 목록이 남는다.
+        yield return null;
+        RefreshAvailableAndCards();
+    }
+
+    private void ResolveReferences()
+    {
+        questManager ??= QuestManager.Instance;
+        questManager ??= FindAnyObjectByType<QuestManager>();
+        questPool ??= FindAnyObjectByType<QuestPool>();
+    }
+
+    private void HandlePhaseChanged(GamePhase phase)
+    {
+        bool isPrepare = phase == GamePhase.Prepare;
+        if (panel != null)
+        {
+            panel.SetActive(isPrepare);
+        }
+
+        if (isPrepare)
+        {
+            RefreshAvailableAndCards();
+        }
+    }
+
+    public void RefreshAvailableAndCards()
+    {
+        ResolveReferences();
+        questPool?.MakeAvailableQuestsToday(CurrentReputation);
         Refresh();
     }
 
@@ -26,52 +102,35 @@ public class QuestAcceptUI : MonoBehaviour
     {
         if (questManager == null || questCardPrefab == null || content == null)
         {
-            Debug.LogWarning("QuestAcceptUI reference is missing.");
             return;
         }
 
-        ClearCards();
-
-
-        Debug.Log("Refresh");
-
-        Debug.Log(questManager.availableQuestsToday.Count);
-
+        ClearGeneratedCards();
         foreach (Quest quest in questManager.availableQuestsToday)
         {
-            Debug.Log("Create Card : " + quest.title);
-
             QuestCard card = Instantiate(questCardPrefab, content);
-
-            Debug.Log(card.name);
-
+            card.gameObject.AddComponent<GeneratedQuestCard>();
             card.SetQuest(quest);
-
-            card.SetAcceptAction(() =>
-            {
-                bool accepted = questManager.acceptQuest(quest);
-
-                if (accepted)
-                {
-                    questPool.MakeAvailableQuestsToday(4);    // 테스트용
-                    Refresh();
-                }
-            });
-
-            card.SetAcceptButtonInteractable(questManager.currentQuests.Count < 3);
+            card.SetButtonLabel("수락");
+            card.SetAcceptAction(() => TryAccept(quest));
+            card.SetAcceptButtonInteractable(questManager.CanAcceptQuest(quest));
         }
     }
 
-    private void ClearCards()
+    private void TryAccept(Quest quest)
     {
-        if (content == null)
+        if (questManager.acceptQuest(quest))
         {
-            return;
+            RefreshAvailableAndCards();
         }
+    }
 
-        for (int i = content.childCount - 1; i >= 0; i--)
+    private void ClearGeneratedCards()
+    {
+        foreach (GeneratedQuestCard card
+            in content.GetComponentsInChildren<GeneratedQuestCard>(true))
         {
-            Destroy(content.GetChild(i).gameObject);
+            Destroy(card.gameObject);
         }
     }
 
@@ -82,7 +141,7 @@ public class QuestAcceptUI : MonoBehaviour
             panel.SetActive(true);
         }
 
-        Refresh();
+        RefreshAvailableAndCards();
     }
 
     public void Hide()

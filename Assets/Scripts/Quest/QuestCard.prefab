@@ -510,7 +510,7 @@ MonoBehaviour:
   clientNameText: {fileID: 3915894169896973119}
   deadlineText: {fileID: 5392615128229231413}
   requireText: {fileID: 6269511644941060010}
-  rewardsText: {fileID: 6269511644941060010}
+  rewardsText: {fileID: 6816775723153359335}
   acceptButton: {fileID: 7726408546922055380}
 --- !u!1 &6287928479204347207
 GameObject:
