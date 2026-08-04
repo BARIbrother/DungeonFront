@@ -63,6 +63,17 @@ public class GridTilemapRenderer : MonoBehaviour
         SyncAllTiles();
     }
 
+    // 구역 해금·맵 부트스트랩 직후 전체 타일을 다시 맞춘다.
+    public void RefreshAllTiles()
+    {
+        if (!ValidateSetup())
+        {
+            return;
+        }
+
+        SyncAllTiles();
+    }
+
     // GridManager.CellChanged 이벤트 구독을 해제한다.
     private void OnDisable()
     {

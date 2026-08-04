@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: BackgroundTile_Empty
   m_EditorClassIdentifier: Unity.2D.Tilemap.Extras::UnityEngine.RuleTile
   m_DefaultSprite: {fileID: 0}
-  m_DefaultGameObject: {fileID: 0}
+  m_DefaultGameObject: {fileID: 4585496825989117098, guid: 66e79f658cd6d0e4ebd57082c755842f, type: 3}
   m_DefaultColliderType: 1
   m_TilingRules: []

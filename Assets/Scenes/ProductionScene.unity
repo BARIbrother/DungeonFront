@@ -758,8 +758,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93fcd6a2fc5f1b042bdd3cec8014a38f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridManager
-  width: 10
-  height: 10
+  width: 48
+  height: 64
   plane: 0
   tilePixelSize: 32
   pixelsPerUnit: 32
@@ -800,8 +800,12 @@ MonoBehaviour:
   gridManager: {fileID: 2133904198}
   tilemap: {fileID: 1130709040}
   tiles:
+  - Type: 0
+    Tile: {fileID: 11400000, guid: 7886104d731a72445838828d2059257a, type: 2}
   - Type: 1
     Tile: {fileID: 11400000, guid: 483ba1f57123cd6419e19edfa83bfdb9, type: 2}
+  - Type: 2
+    Tile: {fileID: 11400000, guid: 5b35029068c14838b926ddd3c57c23b9, type: 2}
 --- !u!1 &3141592653589793200
 GameObject:
   m_ObjectHideFlags: 0

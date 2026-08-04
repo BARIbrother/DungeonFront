@@ -10,7 +10,20 @@ public class MinerMachine : Machine, IFactoryProduction
     public override bool IsAvailableCellForMachine(GridManager gridManager, Vector2Int coord)
     {
         GridCell cell = gridManager.GetCell(coord);
-        return cell.OccupantKind == OccupantKind.ResourceNode;
+        if (cell.OccupantKind != OccupantKind.ResourceNode)
+        {
+            return false;
+        }
+
+        // 노드는 처음부터 보이지만, 구역이 해금된 뒤에만 채굴기를 올릴 수 있다.
+        if (ZoneManager.Instance == null)
+        {
+            Vector2Int zone = ZoneManager.GetZoneIndex(coord.x, coord.y);
+            return zone.x == ZoneManager.CenterZoneX && zone.y == ZoneManager.CenterZoneY;
+        }
+
+        Vector2Int zoneIndex = ZoneManager.GetZoneIndex(coord.x, coord.y);
+        return ZoneManager.Instance.IsZoneUnlocked(zoneIndex.x, zoneIndex.y);
     }
 
     public override OccupantKind GetOccupantKind() => OccupantKind.MachineOnResourceNode;

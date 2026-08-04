@@ -17,6 +17,8 @@ public class ConveyerBelt : Machine
 
     public Vector2Int FlowDirection => flowDirection;
 
+    public override bool SupportsInventoryTransferUi() => false;
+
     // 배치 시 R키 회전 등으로 flowDirection을 설정한다. 스프라이트도 같은 각도로 돌린다.
     public void SetFlowDirection(Vector2Int direction)
     {

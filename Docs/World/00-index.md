@@ -13,6 +13,7 @@
 | [01-world.md](01-world.md) | 세계 개요·톤·던전·마법 | 주요 항목 채움 |
 | [02-organizations.md](02-organizations.md) | 협회·면허·제도 | 초안 (명칭 **협회** 확정) |
 | [03-places.md](03-places.md) | 대장간·던전·지명 | 초안 |
+| [lore.md](lore.md) | 넓이·깊이용 배경 (전설·사회·문화) | 초안 (사자파) |
 | [Characters/](Characters/00-index.md) | 인물별 정본 | 초안 |
 
 ## 규칙
