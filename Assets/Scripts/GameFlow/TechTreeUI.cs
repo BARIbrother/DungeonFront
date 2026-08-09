@@ -24,6 +24,25 @@ public class TechTreeUI : MonoBehaviour
         if (techTreePanel != null) techTreePanel.SetActive(false);
     }
 
+    // 런타임/에디터 복사 후 참조를 연결할 때 사용한다.
+    public void Bind(
+        GameObject treePanel,
+        GameObject confirmPopup,
+        TMP_Text title,
+        TMP_Text desc,
+        TMP_Text cost,
+        Button confirm,
+        Button cancel)
+    {
+        techTreePanel = treePanel;
+        confirmPopupPanel = confirmPopup;
+        popupTitleText = title;
+        popupDescText = desc;
+        popupCostText = cost;
+        confirmButton = confirm;
+        cancelButton = cancel;
+    }
+
     // 테크 트리 전체 패널 열기/닫기 토글
     public void ToggleTechTreePanel()
     {

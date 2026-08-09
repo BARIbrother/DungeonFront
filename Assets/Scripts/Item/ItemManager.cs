@@ -1,38 +1,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// id로 ItemDefinition을 조회하는 중앙 레지스트리. 씬의 매니저 오브젝트에 붙인다.
-//
-// itemJsonFiles JSON 양식:
-// {
-//   "items": [
-//     {
-//       "id": "iron_ore",
-//       "displayName": "철광석",
-//       "iconPath": "Icons/iron_ore",
-//       "category": 0
-//     }
-//   ]
-// }
-// - id: 필수. 인벤토리·조회 키
-// - displayName: 필수
-// - iconPath: 선택. Resources 폴더 기준 경로
-// - category: 선택. 0=Material, 1=Currency (생략 시 0)
-public class ItemManager : MonoBehaviour
-{
-    // 에디터에서 미리 만든 아이템 SO 목록
-    [SerializeField] private ItemDefinition[] editorItems;
-
-    // 런타임에 등록할 JSON 아이템 정의 파일
-    [SerializeField] private TextAsset[] itemJsonFiles;
-
-    private readonly Dictionary<string, ItemDefinition> lookup = new();
-
-    private void Awake()
+    // id로 ItemDefinition을 조회하는 중앙 레지스트리. 씬의 매니저 오브젝트에 붙인다.
+    //
+    // itemJsonFiles JSON 양식:
+    // {
+    //   "items": [
+    //     {
+    //       "id": "iron_ore",
+    //       "displayName": "철광석",
+    //       "iconPath": "Icons/iron_ore",
+    //       "category": 0
+    //     }
+    //   ]
+    // }
+    // - id: 필수. 인벤토리·조회 키
+    // - displayName: 필수
+    // - iconPath: 선택. Resources 폴더 기준 경로
+    // - category: 선택. 0=Material, 1=Currency (생략 시 0)
+    public class ItemManager : MonoBehaviour
     {
-        Initialize();
-        LoadJsonItems();
-    }
+        // 에디터에서 미리 만든 아이템 SO 목록
+        [SerializeField] private ItemDefinition[] editorItems;
+
+        // 런타임에 등록할 JSON 아이템 정의 파일
+        [SerializeField] private TextAsset[] itemJsonFiles;
+
+        private readonly Dictionary<string, ItemDefinition> lookup = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap()
+        {
+            if (FindAnyObjectByType<ItemManager>() != null)
+            {
+                return;
+            }
+
+            var managerObject = new GameObject("ItemManager");
+            managerObject.AddComponent<ItemManager>();
+        }
+
+        private void Awake()
+        {
+            Initialize();
+            LoadJsonItems();
+        }
 
     // 에디터 등록 아이템으로 lookup을 초기화한 뒤 JSON 아이템을 덮어쓴다.
     private void Initialize()
@@ -70,6 +82,12 @@ public class ItemManager : MonoBehaviour
 
         lookup.TryGetValue(id, out ItemDefinition item);
         return item;
+    }
+
+    // 등록된 Definition으로 런타임 Item 개체를 만든다.
+    public Item CreateItem(string id)
+    {
+        return Item.FromDefinition(Get(id));
     }
 
     private void LoadJsonItems()

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class UnlockUI : MonoBehaviour
 {
-    [SerializeField] private UnlockManager unlockManager;
+    [SerializeField] private QuestUnlockManager unlockManager;
     [SerializeField] private Week3EconomyService economy;
     [SerializeField] private string machineDefId;
     [SerializeField] private TMP_Text conditionText;
@@ -12,7 +12,7 @@ public class UnlockUI : MonoBehaviour
 
     private void OnEnable()
     {
-        unlockManager ??= FindAnyObjectByType<UnlockManager>();
+        unlockManager ??= FindAnyObjectByType<QuestUnlockManager>();
         economy ??= FindAnyObjectByType<Week3EconomyService>();
         if (economy != null)
         {

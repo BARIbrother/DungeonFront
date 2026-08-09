@@ -12,6 +12,7 @@ public class QuestCard : MonoBehaviour
     [SerializeField] private TMP_Text requireText;
     [SerializeField] private TMP_Text rewardsText;
     [SerializeField] private Button acceptButton;
+    [SerializeField] private TMP_Text contentText;
 
     public void SetQuest(Quest new_quest)
     {
@@ -29,6 +30,8 @@ public class QuestCard : MonoBehaviour
         {
             rewardsText.text = MakeItemString(quest.rewards);
         }
+
+        if (contentText != null) contentText.text = quest.content;
     }
 
     // GUILayout 등 TMP color 태그가 불필요한 표시용.
@@ -94,9 +97,9 @@ public class QuestCard : MonoBehaviour
                 continue;
             }
 
-            builder.Append(string.IsNullOrWhiteSpace(entry.item.displayName)
-                ? entry.item.id
-                : entry.item.displayName);
+            builder.Append(string.IsNullOrWhiteSpace(entry.item.DisplayName)
+                ? entry.item.Id
+                : entry.item.DisplayName);
             builder.Append(" x");
             builder.Append(entry.count);
             builder.Append('\n');

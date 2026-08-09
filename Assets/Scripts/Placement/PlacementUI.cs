@@ -26,10 +26,18 @@ public class PlacementUI : MonoBehaviour
 
     public void Initialize(PlacementController controller, PlayerInventory inventory)
     {
+        if (placementController != null)
+        {
+            placementController.OnInventoryChanged -= Refresh;
+        }
+
         placementController = controller;
         playerInventory = inventory;
         EnsureUiHierarchy();
-        placementController.OnInventoryChanged += Refresh;
+        if (placementController != null)
+        {
+            placementController.OnInventoryChanged += Refresh;
+        }
     }
 
     private void OnDestroy()

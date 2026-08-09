@@ -3,7 +3,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.InputSystem; 
 using TMPro; 
-using UnityEngine.UI; 
+using UnityEngine.UI;
+using UnityEngine.SceneManagement; 
 
 public class FactoryState { }
 
@@ -99,10 +100,64 @@ public class GameSessionState : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     private void Start()
     {
         FindUIObjectsAutomatically();
+        RefreshHudTexts();
         NewGame(); // ⭐ 실행 시 골드 100, 명성 10 설정 및 OnNewGame 이벤트로 해금 리셋!
+    }
+
+    // Production 등 다른 씬으로 옮겨도 DayText/TimerText를 다시 붙인다.
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        FindUIObjectsAutomatically();
+        RefreshHudTexts();
+    }
+
+    private void RefreshHudTexts()
+    {
+        UpdateDayText();
+        UpdateTimerUI();
+    }
+
+    // UIManager가 Production Canvas의 Day/Time TMP를 연결할 때 사용한다.
+    public void BindPrimaryHud(TextMeshProUGUI day, TextMeshProUGUI timer)
+    {
+        if (day != null)
+        {
+            dayText = day;
+        }
+
+        if (timer != null)
+        {
+            timerText = timer;
+        }
+
+        RefreshHudTexts();
+    }
+
+    // Day/Time 아래의 "다음 일차 시작" 버튼을 연결한다.
+    public void BindAdvanceDayButton(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        advanceDayButton = button;
+        advanceDayButton.onClick.RemoveAllListeners();
+        advanceDayButton.onClick.AddListener(AdvanceDay);
+        ApplyUIState(phase);
     }
 
     private void Update()
@@ -258,6 +313,18 @@ public class GameSessionState : MonoBehaviour
 
         if (startProductionButton == null) startProductionButton = GameObject.Find("StartProductionButton")?.GetComponent<Button>();
         if (advanceDayButton == null) advanceDayButton = GameObject.Find("AdvanceDayButton")?.GetComponent<Button>();
+
+        if (startProductionButton != null)
+        {
+            startProductionButton.onClick.RemoveAllListeners();
+            startProductionButton.onClick.AddListener(StartProduction);
+        }
+
+        if (advanceDayButton != null)
+        {
+            advanceDayButton.onClick.RemoveAllListeners();
+            advanceDayButton.onClick.AddListener(AdvanceDay);
+        }
     }
 
     private void HandleGlobalInput()
@@ -311,7 +378,11 @@ public class GameSessionState : MonoBehaviour
     {
         if (phase != GamePhase.Settlement) return;
         day++;
-        UpdateDayText(); 
+        UpdateDayText();
+
+        QuestDataStore questData = FindAnyObjectByType<QuestDataStore>();
+        questData?.AdvanceDay();
+
         SetPhase(GamePhase.Prepare);
     }
 

@@ -15,7 +15,7 @@ public class QuestSystemDebugPanel : MonoBehaviour
     [SerializeField] private QuestDeadlineController deadlineController;
     [SerializeField] private QuestSaveProvider saveProvider;
     [SerializeField] private PerpetualQuestService perpetualService;
-    [SerializeField] private UnlockManager unlockManager;
+    [SerializeField] private QuestUnlockManager unlockManager;
     [SerializeField] private ShopUI shopUI;
 
     private readonly List<Quest> perpetualQuests = new();
@@ -266,7 +266,7 @@ public class QuestSystemDebugPanel : MonoBehaviour
             {
                 inventory.Add(new ItemEntry
                 {
-                    item = entry.item,
+                    item = entry.item.Clone(),
                     count = entry.count * multiplier
                 });
             }
@@ -282,7 +282,7 @@ public class QuestSystemDebugPanel : MonoBehaviour
         deadlineController ??= FindAnyObjectByType<QuestDeadlineController>();
         saveProvider ??= FindAnyObjectByType<QuestSaveProvider>();
         perpetualService ??= FindAnyObjectByType<PerpetualQuestService>();
-        unlockManager ??= FindAnyObjectByType<UnlockManager>();
+        unlockManager ??= FindAnyObjectByType<QuestUnlockManager>();
         shopUI ??= FindAnyObjectByType<ShopUI>();
     }
 

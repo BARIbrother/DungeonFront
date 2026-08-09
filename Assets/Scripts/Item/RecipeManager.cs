@@ -156,7 +156,7 @@ public class RecipeManager : MonoBehaviour
 
             list.entries[i] = new ItemEntry
             {
-                item = itemManager.Get(record.itemId),
+                item = Item.FromDefinition(itemManager.Get(record.itemId)),
                 count = record.count
             };
         }

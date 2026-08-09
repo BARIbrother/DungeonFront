@@ -193,6 +193,7 @@ public class MapNodeLayoutApplier : MonoBehaviour
         }
 
         cell.Occupant.SetActive(visible);
+        gridManager.SetResourceNodeVisible(coord, visible);
     }
 
     private static bool IsZoneUnlocked(string zoneId)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -15,6 +16,20 @@ public abstract class Machine : MonoBehaviour
     // 배치 시 인벤 MachineInventoryEntry와 연결해 회수 시 동일 instanceId를 복원한다.
     private string inventoryInstanceId;
     private ItemDef_Machine machineDefinition;
+
+    // 출력 컨베이어 순차 배분 커서. CollectOutboundBelts 정렬 기준의 다음 벨트 인덱스.
+    private int outputDistributionCursor;
+
+    // 이 기계를 upstream으로 당겨 가는 벨트 캐시. 배치·회수 시 RefreshOutboundBelts로 갱신한다.
+    private readonly List<ConveyerBelt> outboundBeltsCache = new();
+
+    private static readonly Vector2Int[] CardinalDirections =
+    {
+        Vector2Int.up,
+        Vector2Int.down,
+        Vector2Int.left,
+        Vector2Int.right
+    };
 
     public Vector2Int GridAnchor => gridAnchor;
     public bool HasInventoryBinding =>
@@ -76,6 +91,122 @@ public abstract class Machine : MonoBehaviour
         }
 
         return inputPort.TryTake(IE);
+    }
+
+    // 이 기계를 upstream으로 두는 출력 컨베이어들에 아이템을 순차(라운드로빈) 배분한다.
+    // 요청 벨트가 이번 차례(막힌 벨트는 건너뜀)일 때만 성공한다.
+    public bool TryProvideOutputToBelt(ConveyerBelt requester, out ItemEntry taken)
+    {
+        taken = null;
+        if (requester == null || outputPort == null || isBroken)
+        {
+            return false;
+        }
+
+        if (outboundBeltsCache.Count == 0)
+        {
+            return false;
+        }
+
+        if (outputDistributionCursor < 0 || outputDistributionCursor >= outboundBeltsCache.Count)
+        {
+            outputDistributionCursor = 0;
+        }
+
+        for (int offset = 0; offset < outboundBeltsCache.Count; offset++)
+        {
+            int index = (outputDistributionCursor + offset) % outboundBeltsCache.Count;
+            ConveyerBelt candidate = outboundBeltsCache[index];
+            if (candidate == null || candidate.HasHeldItem)
+            {
+                continue;
+            }
+
+            // 빈 벨트 중 이번 차례가 아니면 양보한다. (틱 순서로 가로채지 않게)
+            if (candidate != requester)
+            {
+                return false;
+            }
+
+            if (!outputPort.TryTakeFirst(out taken))
+            {
+                return false;
+            }
+
+            outputDistributionCursor = (index + 1) % outboundBeltsCache.Count;
+            return true;
+        }
+
+        return false;
+    }
+
+    // 배치·회수·인접 벨트 변경 시 GridManager가 호출해 출력 벨트 목록을 다시 만든다.
+    public void RefreshOutboundBelts(GridManager gridManager)
+    {
+        outboundBeltsCache.Clear();
+        if (gridManager == null || this is ConveyerBelt)
+        {
+            outputDistributionCursor = 0;
+            return;
+        }
+
+        Vector2Int footprint = GetFootprintSize();
+        for (int x = 0; x < footprint.x; x++)
+        {
+            for (int y = 0; y < footprint.y; y++)
+            {
+                Vector2Int cell = gridAnchor + new Vector2Int(x, y);
+                for (int d = 0; d < CardinalDirections.Length; d++)
+                {
+                    Vector2Int neighbor = cell + CardinalDirections[d];
+                    if (FootprintContains(neighbor, footprint))
+                    {
+                        continue;
+                    }
+
+                    if (gridManager.GetMachineAt(neighbor) is not ConveyerBelt belt)
+                    {
+                        continue;
+                    }
+
+                    Vector2Int upstreamCoord = belt.GridAnchor - belt.FlowDirection;
+                    if (gridManager.GetMachineAt(upstreamCoord) != this)
+                    {
+                        continue;
+                    }
+
+                    if (!outboundBeltsCache.Contains(belt))
+                    {
+                        outboundBeltsCache.Add(belt);
+                    }
+                }
+            }
+        }
+
+        outboundBeltsCache.Sort(CompareBeltsForOutputDistribution);
+        if (outputDistributionCursor < 0 || outputDistributionCursor >= outboundBeltsCache.Count)
+        {
+            outputDistributionCursor = 0;
+        }
+    }
+
+    private static int CompareBeltsForOutputDistribution(ConveyerBelt a, ConveyerBelt b)
+    {
+        int compareX = a.GridAnchor.x.CompareTo(b.GridAnchor.x);
+        if (compareX != 0)
+        {
+            return compareX;
+        }
+
+        return a.GridAnchor.y.CompareTo(b.GridAnchor.y);
+    }
+
+    private bool FootprintContains(Vector2Int coord, Vector2Int footprint)
+    {
+        return coord.x >= gridAnchor.x
+            && coord.y >= gridAnchor.y
+            && coord.x < gridAnchor.x + footprint.x
+            && coord.y < gridAnchor.y + footprint.y;
     }
 
     // 기계 UI에서 인벤 ↔ 포트 넣고 빼기를 지원하는지.
@@ -263,7 +394,7 @@ public abstract class Machine : MonoBehaviour
                 continue;
             }
 
-            AddToPlayerInventory(new ItemEntry { item = input.item, count = input.count });
+            AddToPlayerInventory(new ItemEntry { item = input.item.Clone(), count = input.count });
         }
     }
 
@@ -374,9 +505,9 @@ public abstract class Machine : MonoBehaviour
                 continue;
             }
 
-            string itemName = string.IsNullOrEmpty(entry.item.displayName)
-                ? entry.item.id
-                : entry.item.displayName;
+            string itemName = string.IsNullOrEmpty(entry.item.DisplayName)
+                ? entry.item.Id
+                : entry.item.DisplayName;
             log.AppendLine($"{itemName} : {entry.count}개");
         }
     }
@@ -402,9 +533,9 @@ public abstract class Machine : MonoBehaviour
                 builder.Append(", ");
             }
 
-            string itemName = string.IsNullOrEmpty(entry.item.displayName)
-                ? entry.item.id
-                : entry.item.displayName;
+            string itemName = string.IsNullOrEmpty(entry.item.DisplayName)
+                ? entry.item.Id
+                : entry.item.DisplayName;
             builder.Append($"{itemName} x{entry.count}");
         }
 
@@ -426,6 +557,28 @@ public abstract class Machine : MonoBehaviour
     public RecipePool GetAvailableRecipes() => AvailableRecipes;
 
     public Recipe GetSelectedRecipe() => selectedRecipe;
+
+    // UI용 생산 진행도.
+    public bool HasActiveWip => hasActiveWip;
+
+    public int ProgressTicks => progressTicks;
+
+    public int GetRecipeTime()
+    {
+        Recipe recipe = currentRecipe != null ? currentRecipe : selectedRecipe;
+        return recipe != null ? recipe.recipeTime : 0;
+    }
+
+    public float GetProductionProgressNormalized()
+    {
+        int recipeTime = GetRecipeTime();
+        if (!hasActiveWip || recipeTime <= 0)
+        {
+            return 0f;
+        }
+
+        return Mathf.Clamp01(progressTicks / (float)recipeTime);
+    }
 
     // 레시피 선택 UI를 띄울 수 있는지 여부. 채굴기 등은 override로 막는다.
     public virtual bool SupportsRecipeSelectionUi()
@@ -564,7 +717,7 @@ public abstract class Machine : MonoBehaviour
 
         if (inventory == null)
         {
-            Debug.LogWarning($"[Machine] 포트 아이템을 플레이어 인벤으로 돌릴 수 없어 손실됨: {entry.item.id} x{entry.count}");
+            Debug.LogWarning($"[Machine] 포트 아이템을 플레이어 인벤으로 돌릴 수 없어 손실됨: {entry.item.Id} x{entry.count}");
             return;
         }
 
@@ -585,7 +738,7 @@ public abstract class Machine : MonoBehaviour
                 continue;
             }
 
-            AddToPlayerInventory(new ItemEntry { item = entry.item, count = entry.count });
+            AddToPlayerInventory(new ItemEntry { item = entry.item.Clone(), count = entry.count });
             entry.item = null;
             entry.count = 0;
         }
@@ -599,7 +752,7 @@ public abstract class Machine : MonoBehaviour
 
         if (inventory == null)
         {
-            Debug.LogWarning($"[Machine] PlayerInventory가 없어 아이템을 돌릴 수 없음: {entry.item.id} x{entry.count}");
+            Debug.LogWarning($"[Machine] PlayerInventory가 없어 아이템을 돌릴 수 없음: {entry.item.Id} x{entry.count}");
             return;
         }
 

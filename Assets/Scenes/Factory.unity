@@ -5859,7 +5859,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::QuestWindowController
   questOpenButton: {fileID: 272054351}
   orderWindowPanel: {fileID: 1680865543}
-  currentSelectedQuests: []
+  questManager: {fileID: 0}
+  questPool: {fileID: 0}
+  questCardPrefab: {fileID: 2148060428728376098, guid: 0d56eed802c56c54ab4fc99be97ebfaf, type: 3}
+  questSystemRootPrefab: {fileID: 7253165135078428927, guid: 37eae998c0df6d843af6781686955fbf, type: 3}
+  listContent: {fileID: 0}
+  detailRoot: {fileID: 0}
+  detailCard: {fileID: 0}
+  detailContentText: {fileID: 0}
+  acceptButton: {fileID: 0}
 --- !u!114 &1570868825
 MonoBehaviour:
   m_ObjectHideFlags: 0

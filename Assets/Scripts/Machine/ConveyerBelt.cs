@@ -85,10 +85,12 @@ public class ConveyerBelt : Machine
 
     public bool HasHeldItem => heldItem != null && heldItem.item != null && heldItem.count > 0;
 
-    public ItemDefinition HeldItemDefinition => heldItem?.item;
+    public Item HeldItem => heldItem?.item;
+
+    public ItemDefinition HeldItemDefinition => heldItem?.item?.definition;
 
     // 벨트 칸 내 진행도 (0=입구, TicksPerCell=출구). 시각화에 사용한다.
-    public int ProgressTicks => cellProgressTicks;
+    public new int ProgressTicks => cellProgressTicks;
 
     public float NormalizedProgress => HasHeldItem ? cellProgressTicks / (float)TicksPerCell : 0f;
 
@@ -151,7 +153,7 @@ public class ConveyerBelt : Machine
             return result;
         }
 
-        result.Add(new ItemEntry { item = heldItem.item, count = heldItem.count });
+        result.Add(new ItemEntry { item = heldItem.item.Clone(), count = heldItem.count });
         return result;
     }
 
@@ -308,7 +310,7 @@ public class ConveyerBelt : Machine
             return false;
         }
 
-        heldItem = new ItemEntry { item = item.item, count = item.count };
+        heldItem = new ItemEntry { item = item.item.Clone(), count = item.count };
         cellProgressTicks = 0;
 
         if (sourceBelt != null)
@@ -345,7 +347,7 @@ public class ConveyerBelt : Machine
             return;
         }
 
-        if (upstreamMachine.outputPort.TryTakeFirst(out ItemEntry taken))
+        if (upstreamMachine.TryProvideOutputToBelt(this, out ItemEntry taken))
         {
             heldItem = taken;
             cellProgressTicks = 0;
@@ -372,7 +374,7 @@ public class ConveyerBelt : Machine
             return frontBelt.ReceiveItem(heldItem, this);
         }
 
-        var pushEntry = new ItemEntry { item = heldItem.item, count = heldItem.count };
+        var pushEntry = new ItemEntry { item = heldItem.item.Clone(), count = heldItem.count };
         return downstreamMachine.PutintoInputPort(pushEntry);
     }
 
@@ -408,9 +410,9 @@ public class ConveyerBelt : Machine
             return "(없음)";
         }
 
-        string itemName = string.IsNullOrEmpty(entry.item.displayName)
-            ? entry.item.id
-            : entry.item.displayName;
+        string itemName = string.IsNullOrEmpty(entry.item.DisplayName)
+            ? entry.item.Id
+            : entry.item.DisplayName;
         return $"{itemName} x{entry.count}";
     }
 

@@ -16,8 +16,13 @@ public class GridTilemapRenderer : MonoBehaviour
     }
 
     [SerializeField] private TileEntry[] tiles;
+    [SerializeField] private TreeBorderTileSet treeBorderTileSet;
+    [SerializeField] private Sprite floorSprite;
+    [SerializeField] private Sprite[] floorDecorationSprites;
 
     private Dictionary<GridCellType, TileBase> tileLookup;
+    private TileBase floorTile;
+    private TileBase[] floorDecorationTiles;
 
     // 타일 lookup을 구성하고 gridManager·tilemap 참조를 찾는다.
     private void Awake()
@@ -41,6 +46,112 @@ public class GridTilemapRenderer : MonoBehaviour
         {
             tilemap = FindAnyObjectByType<Tilemap>();
         }
+
+        EnsureTreeBorderTileSet();
+        EnsureFloorTile();
+        EnsureFloorDecorationTiles();
+    }
+
+    private void EnsureFloorTile()
+    {
+        if (floorTile != null)
+        {
+            return;
+        }
+
+        if (floorSprite == null)
+        {
+#if UNITY_EDITOR
+            floorSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+                "Assets/Art/Background/floor_grass_32.png");
+#endif
+        }
+
+        if (floorSprite == null)
+        {
+            return;
+        }
+
+        var tile = ScriptableObject.CreateInstance<Tile>();
+        tile.sprite = floorSprite;
+        tile.color = Color.white;
+        floorTile = tile;
+        tileLookup[GridCellType.Floor] = floorTile;
+    }
+
+    private void EnsureFloorDecorationTiles()
+    {
+        if (floorDecorationTiles != null)
+        {
+            return;
+        }
+
+        if (floorDecorationSprites == null || floorDecorationSprites.Length == 0)
+        {
+#if UNITY_EDITOR
+            LoadFloorDecorationSpritesFromFolder();
+#endif
+        }
+
+        if (floorDecorationSprites == null || floorDecorationSprites.Length == 0)
+        {
+            floorDecorationTiles = System.Array.Empty<TileBase>();
+            return;
+        }
+
+        floorDecorationTiles = new TileBase[floorDecorationSprites.Length];
+        for (int i = 0; i < floorDecorationSprites.Length; i++)
+        {
+            Sprite sprite = floorDecorationSprites[i];
+            if (sprite == null)
+            {
+                continue;
+            }
+
+            var tile = ScriptableObject.CreateInstance<Tile>();
+            tile.sprite = sprite;
+            tile.color = Color.white;
+            floorDecorationTiles[i] = tile;
+        }
+    }
+
+#if UNITY_EDITOR
+    private void LoadFloorDecorationSpritesFromFolder()
+    {
+        string[] guids = UnityEditor.AssetDatabase.FindAssets(
+            "floor_deco_ t:Texture2D",
+            new[] { "Assets/Art/Background/Tiles/Floor" });
+        if (guids == null || guids.Length == 0)
+        {
+            return;
+        }
+
+        var sprites = new System.Collections.Generic.List<Sprite>();
+        foreach (string guid in guids)
+        {
+            string path = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
+            Sprite sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite != null)
+            {
+                sprites.Add(sprite);
+            }
+        }
+
+        floorDecorationSprites = sprites.ToArray();
+    }
+#endif
+
+    private void EnsureTreeBorderTileSet()
+    {
+        if (treeBorderTileSet != null)
+        {
+            return;
+        }
+
+#if UNITY_EDITOR
+        treeBorderTileSet = UnityEditor.AssetDatabase.LoadAssetAtPath<TreeBorderTileSet>(
+            "Assets/Data/TreeBorderTileSet.asset");
+#endif
     }
 
     // GridManager.CellChanged 이벤트를 구독한다.
@@ -104,10 +215,13 @@ public class GridTilemapRenderer : MonoBehaviour
             return false;
         }
 
-        if (!tileLookup.TryGetValue(GridCellType.Floor, out TileBase floorTile) || floorTile == null)
+        if (!tileLookup.TryGetValue(GridCellType.Floor, out TileBase mappedFloor) || mappedFloor == null)
         {
-            Debug.LogWarning("[GridTilemapRenderer] GridCellType.Floor에 Tile Asset이 연결되지 않았습니다.", this);
-            return false;
+            if (floorTile == null)
+            {
+                Debug.LogWarning("[GridTilemapRenderer] GridCellType.Floor에 Tile Asset이 연결되지 않았습니다.", this);
+                return false;
+            }
         }
 
         Grid grid = tilemap.layoutGrid;
@@ -148,7 +262,7 @@ public class GridTilemapRenderer : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 GridCell cell = gridManager.GetCell(x, y);
-                tileLookup.TryGetValue(cell.Type, out TileBase tile);
+                TileBase tile = ResolveTile(x, y, cell);
                 block[x + y * width] = tile;
 
                 if (tile != null)
@@ -168,7 +282,7 @@ public class GridTilemapRenderer : MonoBehaviour
         }
     }
 
-    // 단일 셀 변경 시 Tilemap 타일을 갱신한다.
+    // 단일 셀 변경 시 Tilemap 타일을 갱신한다. 숲 경계는 인접 Locked 셀도 함께 갱신한다.
     private void OnCellChanged(Vector2Int coord, GridCell cell)
     {
         if (tilemap == null || tileLookup == null)
@@ -177,13 +291,88 @@ public class GridTilemapRenderer : MonoBehaviour
         }
 
         ApplyTile(coord.x, coord.y, cell);
+
+        if (treeBorderTileSet == null || gridManager == null)
+        {
+            return;
+        }
+
+        int margin = TreeBorderTilePicker.EdgeDepth + TreeBorderTilePicker.FringeDepth + 2;
+        for (int dy = -margin; dy <= margin; dy++)
+        {
+            int ny = coord.y + dy;
+            if (ny < 0 || ny >= gridManager.Height)
+            {
+                continue;
+            }
+
+            for (int dx = -margin; dx <= margin; dx++)
+            {
+                int nx = coord.x + dx;
+                if (nx < 0 || nx >= gridManager.Width)
+                {
+                    continue;
+                }
+
+                GridCell neighbor = gridManager.GetCell(nx, ny);
+                if (neighbor.Type == GridCellType.Locked)
+                {
+                    ApplyTile(nx, ny, neighbor);
+                }
+            }
+        }
     }
 
-    // (x, y) 셀의 GridCellType에 맞는 Tile Asset을 Tilemap에 설정한다.
+    // (x, y) 셀의 GridCellType·숲 경계 규칙에 맞는 Tile Asset을 Tilemap에 설정한다.
     private void ApplyTile(int x, int y, GridCell cell)
     {
         Vector3Int pos = new Vector3Int(x, y, 0);
+        tilemap.SetTile(pos, ResolveTile(x, y, cell));
+    }
+
+    private TileBase ResolveTile(int x, int y, GridCell cell)
+    {
+        if (cell.Type == GridCellType.Floor)
+        {
+            return ResolveFloorTile(x, y);
+        }
+
+        if (cell.Type == GridCellType.Locked && treeBorderTileSet != null)
+        {
+            if (TreeBorderTilePicker.TryPick(
+                    x,
+                    y,
+                    gridManager.Width,
+                    gridManager.Height,
+                    gridManager,
+                    out TreeBorderTilePicker.Selection selection))
+            {
+                TileBase treeTile = treeBorderTileSet.GetTile(
+                    selection.Kind,
+                    selection.LocalX,
+                    selection.LocalY);
+                if (treeTile != null)
+                {
+                    return treeTile;
+                }
+            }
+        }
+
         tileLookup.TryGetValue(cell.Type, out TileBase tile);
-        tilemap.SetTile(pos, tile);
+        return tile;
+    }
+
+    private TileBase ResolveFloorTile(int x, int y)
+    {
+        if (floorDecorationTiles != null && floorDecorationTiles.Length > 0)
+        {
+            int index = FloorTilePicker.PickIndex(x, y, floorDecorationTiles.Length);
+            if (index >= 0 && index < floorDecorationTiles.Length && floorDecorationTiles[index] != null)
+            {
+                return floorDecorationTiles[index];
+            }
+        }
+
+        return floorTile;
     }
 }

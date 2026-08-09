@@ -31,7 +31,7 @@ public class WarehouseMachine : Machine
             return false;
         }
 
-        AddToPlayerInventory(new ItemEntry { item = IE.item, count = IE.count });
+        AddToPlayerInventory(new ItemEntry { item = IE.item.Clone(), count = IE.count });
         return true;
     }
 

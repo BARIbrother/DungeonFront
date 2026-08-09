@@ -30,7 +30,7 @@ public class PerpetualQuestService : MonoBehaviour
                 continue;
             }
 
-            int possible = inventory.GetCount(requirement.item.id) / requirement.count;
+            int possible = inventory.GetCount(requirement.item.Id) / requirement.count;
             maximum = Mathf.Min(maximum, possible);
         }
 
@@ -54,7 +54,7 @@ public class PerpetualQuestService : MonoBehaviour
         {
             if (requirement?.item != null && requirement.count > 0)
             {
-                inventory.Remove(requirement.item.id, requirement.count * multiplier);
+                inventory.Remove(requirement.item.Id, requirement.count * multiplier);
             }
         }
 
@@ -87,7 +87,7 @@ public class PerpetualQuestService : MonoBehaviour
             }
             else
             {
-                inventory.Add(new ItemEntry { item = reward.item, count = total });
+                inventory.Add(new ItemEntry { item = reward.item.Clone(), count = total });
             }
         }
 
@@ -102,7 +102,7 @@ public class PerpetualQuestService : MonoBehaviour
     private static bool IsId(ItemEntry entry, string expected)
     {
         return string.Equals(
-            entry.item.id,
+            entry.item.Id,
             expected,
             StringComparison.OrdinalIgnoreCase);
     }

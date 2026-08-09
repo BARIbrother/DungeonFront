@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using TMPro;
 
 public class MachineCountHUD : MonoBehaviour
@@ -30,14 +31,20 @@ public class MachineCountHUD : MonoBehaviour
 
     private void Update()
     {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null)
+        {
+            return;
+        }
+
         // 디버그 키 테스트: M키 누르면 Machine 1 설치 (수량 감소)
-        if (Input.GetKeyDown(KeyCode.M))
+        if (keyboard.mKey.wasPressedThisFrame)
         {
             PlaceMachine1();
         }
 
         // 디버그 키 테스트: N키 누르면 Machine 1 회수 (수량 증가, 최대치 제한)
-        if (Input.GetKeyDown(KeyCode.N))
+        if (keyboard.nKey.wasPressedThisFrame)
         {
             RecallMachine1();
         }

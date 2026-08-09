@@ -92,7 +92,7 @@ public abstract class StorageMachine : Machine
                 continue;
             }
 
-            AddToPlayerInventory(new ItemEntry { item = entry.item, count = entry.count });
+            AddToPlayerInventory(new ItemEntry { item = entry.item.Clone(), count = entry.count });
             entry.item = null;
             entry.count = 0;
             transferred = true;

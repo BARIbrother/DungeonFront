@@ -137,9 +137,9 @@ public class PerpetualQuestPanel : MonoBehaviour
                 continue;
             }
 
-            string displayName = string.IsNullOrWhiteSpace(entry.item.displayName)
-                ? entry.item.id
-                : entry.item.displayName;
+            string displayName = string.IsNullOrWhiteSpace(entry.item.DisplayName)
+                ? entry.item.Id
+                : entry.item.DisplayName;
             builder.AppendLine($"{displayName} x{entry.count * multiplier}");
         }
 

@@ -84,7 +84,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f05747892a94f6e4c8d060651d943769, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UnlockManager
+  m_EditorClassIdentifier: Assembly-CSharp::QuestUnlockManager
   economy: {fileID: 4895095430265612694}
   rules:
   - machineDefId: Altar_1
@@ -123,7 +123,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a1f1c96e7184554b8b6c89029a44398, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameOverController
+  m_EditorClassIdentifier: Assembly-CSharp::QuestFailController
   gameOverPanel: {fileID: 0}
   titleSceneName: Title
 --- !u!114 &4287339101210471849
@@ -158,6 +158,10 @@ MonoBehaviour:
   dict:
   - itemId: iron_ore
     item: {fileID: 11400000, guid: c84e6b264b30d41438d7374cf1e1444e, type: 2}
+  - itemId: iron_ingot
+    item: {fileID: 11400000, guid: afec3cb35a1d0ee4b91f1f72f5c53ea7, type: 2}
+  - itemId: iron_bar
+    item: {fileID: 11400000, guid: afec3cb35a1d0ee4b91f1f72f5c53ea7, type: 2}
   - itemId: iron_plate
     item: {fileID: 11400000, guid: c8d22b486e74ef44aa4dbf35ace038a1, type: 2}
   - itemId: gold

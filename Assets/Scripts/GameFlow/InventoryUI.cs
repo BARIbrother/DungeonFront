@@ -1,118 +1,534 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
+// E키로 여는 플레이어 인벤토리. 아이템 그리드 + 좌하단 골드·명성.
 public class InventoryUI : MonoBehaviour
 {
-    [Header("UI Elements")]
-    [SerializeField] private GameObject inventoryPanel;
-    [SerializeField] private Transform itemContainer; 
-    [SerializeField] private Transform machineContainer; 
+    private static InventoryUI instance;
 
-    [Header("Prefabs / Templates")]
-    [SerializeField] private Button machineSlotPrefab; 
-    
-    [SerializeField] private Text itemMockText; 
+    private Canvas canvas;
+    private GameObject modalRoot;
+    private RectTransform itemGridRect;
+    private Text goldText;
+    private Text reputationText;
+    private Font uiFont;
+    private ItemManager itemManager;
+    private PlayerInventory subscribedInventory;
+    private readonly List<GameObject> itemSlots = new();
+    private bool isOpen;
 
-    private void OnEnable()
+    public static bool IsOpen => instance != null && instance.isOpen;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Bootstrap()
     {
-        if (PlayerInventory.Instance != null)
+        if (FindAnyObjectByType<InventoryUI>() != null)
         {
-            PlayerInventory.Instance.OnItemsChanged += RefreshItems;
-            PlayerInventory.Instance.OnMachinesChanged += RefreshMachines;
+            return;
         }
 
-        InitializeInventory();
+        var systemObject = new GameObject("PlayerInventoryUISystem");
+        systemObject.AddComponent<InventoryUI>();
     }
 
-    private void OnDisable()
+    public static void Toggle()
     {
-        if (PlayerInventory.Instance != null)
+        EnsureInstance();
+        if (instance.isOpen)
         {
-            PlayerInventory.Instance.OnItemsChanged -= RefreshItems;
-            PlayerInventory.Instance.OnMachinesChanged -= RefreshMachines;
-        }
-    }
-
-    private void InitializeInventory()
-    {
-        // 기본적으로 패널은 켜주되, 세부 버튼 제어는 Refresh 단계에서 진행합니다.
-        if (inventoryPanel != null) inventoryPanel.SetActive(true);
-
-        RefreshItems();
-        RefreshMachines();
-    }
-
-    private void RefreshItems()
-    {
-        if (PlayerInventory.Instance == null) return;
-
-        int itemCount = PlayerInventory.Instance.GetCount("Item01");
-
-        if (itemMockText != null)
-        {
-            itemMockText.text = $"Item01: {itemCount}개";
+            instance.Hide();
         }
         else
         {
-            Debug.Log($"[Mock Item] Item01 보유량: {itemCount}개");
+            instance.Open();
         }
     }
 
-    private void RefreshMachines()
+    public static void Show()
     {
-        if (machineContainer == null || machineSlotPrefab == null) return;
+        EnsureInstance();
+        instance.Open();
+    }
 
-        // 1. 기존에 생성된 버튼 리스트를 먼저 깨끗하게 지웁니다.
-        foreach (Transform child in machineContainer)
+    public static void Close()
+    {
+        if (instance != null)
         {
-            if (child.gameObject == machineSlotPrefab.gameObject) continue;
-            Destroy(child.gameObject);
+            instance.Hide();
+        }
+    }
+
+    private static void EnsureInstance()
+    {
+        if (instance != null)
+        {
+            return;
         }
 
-        // 원본 템플릿 버튼도 숨깁니다.
-        machineSlotPrefab.gameObject.SetActive(false);
-
-        // 2. [단계 제한 체크] 만약 현재 준비(Prepare) 단계가 아니라면, 
-        // 하단의 버튼 생성 코드를 타지 않고 여기서 함수를 종료하여 아무것도 안 보이게 만듭니다.
-        // (※ 아래 주석을 풀고 프로젝트의 실제 GameFlow 매니저와 Phase 변수명으로 매칭해 주세요!)
-        /*
-        if (GameFlowController.Instance != null && GameFlowController.Instance.CurrentPhase != Phase.Prepare)
+        instance = FindAnyObjectByType<InventoryUI>();
+        if (instance != null)
         {
-            Debug.Log("[InventoryUI] Prepare 단계가 아니므로 기계 목록을 표시하지 않습니다.");
-            return; 
+            return;
         }
-        */
 
-        // 3. 준비(Prepare) 단계일 때만 아래 가짜 버튼 4개가 정상적으로 화면에 나타납니다.
-        for (int i = 1; i <= 4; i++)
+        var systemObject = new GameObject("PlayerInventoryUISystem");
+        instance = systemObject.AddComponent<InventoryUI>();
+    }
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
         {
-            Button newSlot = Instantiate(machineSlotPrefab, machineContainer, false);
-            newSlot.gameObject.SetActive(true); 
+            Destroy(gameObject);
+            return;
+        }
 
-            RectTransform rt = newSlot.GetComponent<RectTransform>();
-            if (rt != null)
+        instance = this;
+        uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        EnsureUiHierarchy();
+        Hide();
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeInventory();
+        if (instance == this)
+        {
+            instance = null;
+        }
+    }
+
+    private void Open()
+    {
+        itemManager = FindAnyObjectByType<ItemManager>();
+        SubscribeInventory();
+        Refresh();
+        modalRoot.SetActive(true);
+        isOpen = true;
+    }
+
+    public void Hide()
+    {
+        isOpen = false;
+        UnsubscribeInventory();
+        if (modalRoot != null)
+        {
+            modalRoot.SetActive(false);
+        }
+    }
+
+    private void SubscribeInventory()
+    {
+        PlayerInventory inventory = PlayerInventory.GetOrFind();
+
+        if (subscribedInventory == inventory)
+        {
+            return;
+        }
+
+        UnsubscribeInventory();
+        subscribedInventory = inventory;
+        if (subscribedInventory != null)
+        {
+            subscribedInventory.OnItemsChanged += Refresh;
+            subscribedInventory.OnMachinesChanged += Refresh;
+        }
+    }
+
+    private void UnsubscribeInventory()
+    {
+        if (subscribedInventory != null)
+        {
+            subscribedInventory.OnItemsChanged -= Refresh;
+            subscribedInventory.OnMachinesChanged -= Refresh;
+            subscribedInventory = null;
+        }
+    }
+
+    private void Refresh()
+    {
+        RefreshCurrency();
+        RebuildItemSlots();
+    }
+
+    private void RefreshCurrency()
+    {
+        GameSessionState session = GameSessionState.Instance;
+        int gold = session != null ? session.gold : 0;
+        int reputation = session != null ? session.reputation : 0;
+
+        if (goldText != null)
+        {
+            goldText.text = $"골드 {gold}";
+        }
+
+        if (reputationText != null)
+        {
+            reputationText.text = $"명성 {reputation}";
+        }
+    }
+
+    private void RebuildItemSlots()
+    {
+        ClearItemSlots();
+
+        if (itemGridRect == null)
+        {
+            return;
+        }
+
+        PlayerInventory inventory = subscribedInventory != null
+            ? subscribedInventory
+            : PlayerInventory.GetOrFind();
+        if (inventory == null)
+        {
+            return;
+        }
+
+        if (itemManager == null)
+        {
+            itemManager = FindAnyObjectByType<ItemManager>();
+        }
+
+        List<KeyValuePair<string, int>> owned = inventory.GetOwnedItemCounts();
+        owned.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
+
+        for (int i = 0; i < owned.Count; i++)
+        {
+            string itemId = owned[i].Key;
+            int count = owned[i].Value;
+            if (IsCurrencyItem(itemId))
             {
-                rt.anchoredPosition = new Vector2(0f, -(i - 1) * 45f);
+                continue;
             }
 
-            var textComponent = newSlot.GetComponentInChildren<Text>();
-            if (textComponent == null)
+            CreateItemSlot(itemId, count);
+        }
+
+        // 기계는 종류별로 묶어 같은 그리드에 표시한다. (B키 배치 소모 대상)
+        var machineCounts = new Dictionary<string, (ItemDef_Machine definition, int count)>();
+        foreach (MachineInventoryEntry machine in inventory.Machines)
+        {
+            if (machine?.definition == null || string.IsNullOrEmpty(machine.definition.id))
             {
-                var tmpText = newSlot.GetComponentInChildren<TMPro.TMP_Text>();
-                if (tmpText != null) tmpText.text = $"Mock Machine {i}";
+                continue;
+            }
+
+            string id = machine.definition.id;
+            if (machineCounts.TryGetValue(id, out var existing))
+            {
+                machineCounts[id] = (existing.definition, existing.count + 1);
             }
             else
             {
-                textComponent.text = $"Mock Machine {i}";
+                machineCounts[id] = (machine.definition, 1);
             }
+        }
 
-            string mockInstanceId = $"mock_id_0{i}";
-            newSlot.onClick.AddListener(() => OnMachineSlotClicked(mockInstanceId));
+        var machineIds = new List<string>(machineCounts.Keys);
+        machineIds.Sort(string.CompareOrdinal);
+        for (int i = 0; i < machineIds.Count; i++)
+        {
+            (ItemDef_Machine definition, int count) group = machineCounts[machineIds[i]];
+            CreateMachineSlot(group.definition, group.count);
         }
     }
 
-    private void OnMachineSlotClicked(string instanceId)
+    private void CreateMachineSlot(ItemDef_Machine definition, int count)
     {
-        Debug.Log($"[Mock] 기계 슬롯 클릭됨 - InstanceID: {instanceId}");
+        if (definition == null)
+        {
+            return;
+        }
+
+        string label = !string.IsNullOrEmpty(definition.displayName)
+            ? definition.displayName
+            : definition.id;
+
+        var slotObject = new GameObject($"Machine_{definition.id}");
+        slotObject.transform.SetParent(itemGridRect, false);
+
+        var slotImage = slotObject.AddComponent<Image>();
+        slotImage.color = new Color(0.16f, 0.2f, 0.28f, 1f);
+
+        var iconObject = new GameObject("Icon");
+        iconObject.transform.SetParent(slotObject.transform, false);
+        var iconRect = iconObject.AddComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0.5f, 0.55f);
+        iconRect.anchorMax = new Vector2(0.5f, 0.55f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.sizeDelta = new Vector2(48f, 48f);
+
+        var iconImage = iconObject.AddComponent<Image>();
+        iconImage.preserveAspect = true;
+        iconImage.raycastTarget = false;
+        Sprite icon = ItemIconResolver.Resolve(definition);
+        if (icon != null)
+        {
+            iconImage.sprite = icon;
+            iconImage.color = Color.white;
+        }
+        else
+        {
+            iconImage.color = new Color(0.4f, 0.55f, 0.75f, 1f);
+        }
+
+        var countObject = new GameObject("Count");
+        countObject.transform.SetParent(slotObject.transform, false);
+        var countRect = countObject.AddComponent<RectTransform>();
+        countRect.anchorMin = new Vector2(0f, 0f);
+        countRect.anchorMax = new Vector2(1f, 0.35f);
+        countRect.offsetMin = new Vector2(4f, 2f);
+        countRect.offsetMax = new Vector2(-4f, -2f);
+
+        var countText = countObject.AddComponent<Text>();
+        countText.font = uiFont;
+        countText.fontSize = 14;
+        countText.alignment = TextAnchor.MiddleCenter;
+        countText.color = Color.white;
+        countText.text = $"{label}\nx{count}";
+        countText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        countText.verticalOverflow = VerticalWrapMode.Truncate;
+
+        itemSlots.Add(slotObject);
+    }
+
+    private void CreateItemSlot(string itemId, int count)
+    {
+        ItemDefinition definition = null;
+        if (itemManager != null)
+        {
+            definition = itemManager.Get(itemId);
+        }
+
+        if (definition == null)
+        {
+            PlayerInventory inventory = PlayerInventory.Instance != null
+                ? PlayerInventory.Instance
+                : FindAnyObjectByType<PlayerInventory>();
+            definition = inventory != null ? inventory.GetDefinition(itemId) : null;
+        }
+
+        if (definition != null && definition.category == ItemCategory.Currency)
+        {
+            return;
+        }
+
+        var slotObject = new GameObject($"Item_{itemId}");
+        slotObject.transform.SetParent(itemGridRect, false);
+
+        var slotImage = slotObject.AddComponent<Image>();
+        slotImage.color = new Color(0.18f, 0.18f, 0.22f, 1f);
+
+        var iconObject = new GameObject("Icon");
+        iconObject.transform.SetParent(slotObject.transform, false);
+        var iconRect = iconObject.AddComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0.5f, 0.55f);
+        iconRect.anchorMax = new Vector2(0.5f, 0.55f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.sizeDelta = new Vector2(48f, 48f);
+
+        var iconImage = iconObject.AddComponent<Image>();
+        iconImage.preserveAspect = true;
+        iconImage.raycastTarget = false;
+        Sprite icon = ItemIconResolver.Resolve(definition);
+        if (icon == null && !string.IsNullOrEmpty(itemId))
+        {
+            icon = ItemIconResolver.ResolveById(itemId);
+        }
+
+        if (icon != null)
+        {
+            iconImage.sprite = icon;
+            iconImage.color = Color.white;
+        }
+        else
+        {
+            iconImage.color = new Color(0.35f, 0.35f, 0.4f, 1f);
+        }
+
+        var countObject = new GameObject("Count");
+        countObject.transform.SetParent(slotObject.transform, false);
+        var countRect = countObject.AddComponent<RectTransform>();
+        countRect.anchorMin = new Vector2(0f, 0f);
+        countRect.anchorMax = new Vector2(1f, 0.35f);
+        countRect.offsetMin = new Vector2(4f, 2f);
+        countRect.offsetMax = new Vector2(-4f, -2f);
+
+        var countText = countObject.AddComponent<Text>();
+        countText.font = uiFont;
+        countText.fontSize = 14;
+        countText.alignment = TextAnchor.MiddleCenter;
+        countText.color = Color.white;
+        countText.text = $"x{count}";
+        countText.horizontalOverflow = HorizontalWrapMode.Overflow;
+        countText.verticalOverflow = VerticalWrapMode.Overflow;
+
+        itemSlots.Add(slotObject);
+    }
+
+    private static bool IsCurrencyItem(string itemId)
+    {
+        return string.Equals(itemId, "gold", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(itemId, "fame", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(itemId, "reputation", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void ClearItemSlots()
+    {
+        for (int i = 0; i < itemSlots.Count; i++)
+        {
+            if (itemSlots[i] != null)
+            {
+                Destroy(itemSlots[i]);
+            }
+        }
+
+        itemSlots.Clear();
+    }
+
+    private void EnsureUiHierarchy()
+    {
+        EnsureEventSystem();
+
+        if (canvas != null)
+        {
+            return;
+        }
+
+        var canvasObject = new GameObject("PlayerInventoryCanvas");
+        canvasObject.transform.SetParent(transform, false);
+        canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 65;
+        var scaler = canvasObject.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        canvasObject.AddComponent<GraphicRaycaster>();
+
+        modalRoot = new GameObject("InventoryModal");
+        modalRoot.transform.SetParent(canvasObject.transform, false);
+        var modalRect = modalRoot.AddComponent<RectTransform>();
+        modalRect.anchorMin = Vector2.zero;
+        modalRect.anchorMax = Vector2.one;
+        modalRect.offsetMin = Vector2.zero;
+        modalRect.offsetMax = Vector2.zero;
+
+        var backdropObject = new GameObject("Backdrop");
+        backdropObject.transform.SetParent(modalRoot.transform, false);
+        var backdropRect = backdropObject.AddComponent<RectTransform>();
+        backdropRect.anchorMin = Vector2.zero;
+        backdropRect.anchorMax = Vector2.one;
+        backdropRect.offsetMin = Vector2.zero;
+        backdropRect.offsetMax = Vector2.zero;
+        var backdropImage = backdropObject.AddComponent<Image>();
+        backdropImage.color = new Color(0f, 0f, 0f, 0.45f);
+        backdropImage.raycastTarget = true;
+
+        var panelObject = new GameObject("InventoryPanel");
+        panelObject.transform.SetParent(modalRoot.transform, false);
+        var panelRect = panelObject.AddComponent<RectTransform>();
+        // 화면의 약 절반 크기
+        panelRect.anchorMin = new Vector2(0.25f, 0.25f);
+        panelRect.anchorMax = new Vector2(0.75f, 0.75f);
+        panelRect.offsetMin = Vector2.zero;
+        panelRect.offsetMax = Vector2.zero;
+
+        var panelImage = panelObject.AddComponent<Image>();
+        panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
+
+        var gridScrollObject = new GameObject("ItemScroll");
+        gridScrollObject.transform.SetParent(panelObject.transform, false);
+        var scrollRectTransform = gridScrollObject.AddComponent<RectTransform>();
+        scrollRectTransform.anchorMin = Vector2.zero;
+        scrollRectTransform.anchorMax = Vector2.one;
+        scrollRectTransform.offsetMin = new Vector2(16f, 72f);
+        scrollRectTransform.offsetMax = new Vector2(-16f, -16f);
+
+        var viewportObject = new GameObject("Viewport");
+        viewportObject.transform.SetParent(gridScrollObject.transform, false);
+        var viewportRect = viewportObject.AddComponent<RectTransform>();
+        viewportRect.anchorMin = Vector2.zero;
+        viewportRect.anchorMax = Vector2.one;
+        viewportRect.offsetMin = Vector2.zero;
+        viewportRect.offsetMax = Vector2.zero;
+        viewportObject.AddComponent<Mask>().showMaskGraphic = false;
+        viewportObject.AddComponent<Image>().color = new Color(1f, 1f, 1f, 0.01f);
+
+        var contentObject = new GameObject("Content");
+        contentObject.transform.SetParent(viewportObject.transform, false);
+        itemGridRect = contentObject.AddComponent<RectTransform>();
+        itemGridRect.anchorMin = new Vector2(0f, 1f);
+        itemGridRect.anchorMax = new Vector2(1f, 1f);
+        itemGridRect.pivot = new Vector2(0.5f, 1f);
+        itemGridRect.anchoredPosition = Vector2.zero;
+        itemGridRect.sizeDelta = new Vector2(0f, 0f);
+
+        var grid = contentObject.AddComponent<GridLayoutGroup>();
+        grid.cellSize = new Vector2(96f, 112f);
+        grid.spacing = new Vector2(12f, 12f);
+        grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+        grid.childAlignment = TextAnchor.UpperLeft;
+        grid.constraint = GridLayoutGroup.Constraint.Flexible;
+
+        var fitter = contentObject.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        var scroll = gridScrollObject.AddComponent<ScrollRect>();
+        scroll.viewport = viewportRect;
+        scroll.content = itemGridRect;
+        scroll.horizontal = false;
+        scroll.vertical = true;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+
+        var currencyObject = new GameObject("Currency");
+        currencyObject.transform.SetParent(panelObject.transform, false);
+        var currencyRect = currencyObject.AddComponent<RectTransform>();
+        currencyRect.anchorMin = new Vector2(0f, 0f);
+        currencyRect.anchorMax = new Vector2(0.5f, 0f);
+        currencyRect.pivot = new Vector2(0f, 0f);
+        currencyRect.anchoredPosition = new Vector2(16f, 12f);
+        currencyRect.sizeDelta = new Vector2(360f, 48f);
+
+        goldText = CreateCurrencyLine(currencyObject.transform, "GoldText", new Vector2(0f, 0.5f), new Vector2(1f, 1f));
+        reputationText = CreateCurrencyLine(currencyObject.transform, "ReputationText", new Vector2(0f, 0f), new Vector2(1f, 0.5f));
+        goldText.text = "골드 0";
+        reputationText.text = "명성 0";
+    }
+
+    private Text CreateCurrencyLine(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax)
+    {
+        var lineObject = new GameObject(name);
+        lineObject.transform.SetParent(parent, false);
+        var lineRect = lineObject.AddComponent<RectTransform>();
+        lineRect.anchorMin = anchorMin;
+        lineRect.anchorMax = anchorMax;
+        lineRect.offsetMin = Vector2.zero;
+        lineRect.offsetMax = Vector2.zero;
+
+        var text = lineObject.AddComponent<Text>();
+        text.font = uiFont;
+        text.fontSize = 18;
+        text.alignment = TextAnchor.MiddleLeft;
+        text.color = Color.white;
+        return text;
+    }
+
+    private static void EnsureEventSystem()
+    {
+        if (FindAnyObjectByType<EventSystem>() != null)
+        {
+            return;
+        }
+
+        var eventSystemObject = new GameObject("EventSystem");
+        eventSystemObject.AddComponent<EventSystem>();
+        eventSystemObject.AddComponent<InputSystemUIInputModule>();
     }
 }

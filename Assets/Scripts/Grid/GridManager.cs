@@ -95,7 +95,8 @@ public class GridManager : MonoBehaviour
         return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    // (x, y) 셀이 이동 가능한지 확인한다. Floor만 허용하며, 자원 노드·그 위 기계는 막는다.
+    // (x, y) 셀이 이동 가능한지 확인한다. Floor만 허용하며,
+    // occupant가 있어도 컨베이어(Belt)는 지나갈 수 있다.
     public bool IsWalkable(int x, int y)
     {
         if (!IsInBounds(x, y))
@@ -109,8 +110,7 @@ public class GridManager : MonoBehaviour
             return false;
         }
 
-        if (cell.OccupantKind == OccupantKind.ResourceNode
-            || cell.OccupantKind == OccupantKind.MachineOnResourceNode)
+        if (cell.IsOccupied && cell.OccupantKind != OccupantKind.Belt)
         {
             return false;
         }
@@ -299,14 +299,34 @@ public class GridManager : MonoBehaviour
 
         node.Initialize(gridCoord, itemId);
         placedResourceNodes.Add(node);
+        SetResourceNodeSpriteVisible(instance, false);
 
         GridCell cell = GetCell(gridCoord);
         cell.Occupant = instance;
         cell.OccupantKind = OccupantKind.ResourceNode;
-        cell.Type = GridCellType.Locked;
+        cell.ResourceItemId = string.IsNullOrEmpty(itemId) ? "iron_ore" : itemId;
+        cell.ResourceNodeVisible = true;
         SetCell(gridCoord, cell);
 
         return true;
+    }
+
+    // 미해금 구역 등에서 광석 타일·노드 표시를 토글한다.
+    public void SetResourceNodeVisible(Vector2Int gridCoord, bool visible)
+    {
+        if (!IsInBounds(gridCoord.x, gridCoord.y))
+        {
+            return;
+        }
+
+        GridCell cell = GetCell(gridCoord);
+        if (!cell.HasResourceNode)
+        {
+            return;
+        }
+
+        cell.ResourceNodeVisible = visible;
+        SetCell(gridCoord, cell);
     }
 
     // gridCoord의 자원 노드를 제거하고 지형을 Floor/Locked로 되돌린다. 성공 시 true.
@@ -334,8 +354,9 @@ public class GridManager : MonoBehaviour
         cell = GetCell(gridCoord);
         cell.Occupant = null;
         cell.OccupantKind = default;
-        // 해금된 구역은 Floor, 잠긴 구역은 Locked로 되돌린다.
-        cell.Type = IsCoordInUnlockedZone(gridCoord) ? GridCellType.Floor : GridCellType.Locked;
+        cell.ResourceItemId = null;
+        cell.ResourceNodeVisible = false;
+        cell.Type = GetGroundTypeForCoord(gridCoord);
         SetCell(gridCoord, cell);
 
         return true;
@@ -356,7 +377,32 @@ public class GridManager : MonoBehaviour
             return false;
         }
 
+        if (cell.HasResourceNode)
+        {
+            return false;
+        }
+
         return cell.Type == GridCellType.Floor || cell.Type == GridCellType.Locked;
+    }
+
+    // coord의 바닥 타일 종류. 광석 노드는 별도 타일맵 레이어로 표시한다.
+    private static GridCellType GetGroundTypeForCoord(Vector2Int coord)
+    {
+        return IsCoordInUnlockedZone(coord) ? GridCellType.Floor : GridCellType.Locked;
+    }
+
+    private static void SetResourceNodeSpriteVisible(GameObject instance, bool visible)
+    {
+        if (instance == null)
+        {
+            return;
+        }
+
+        SpriteRenderer spriteRenderer = instance.GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.enabled = visible;
+        }
     }
 
     // coord가 속한 구역이 해금됐는지 확인한다. ZoneManager가 없으면 시작 구역만 해금으로 본다.
@@ -537,8 +583,13 @@ public class GridManager : MonoBehaviour
     }
 
     // anchor부터 footprintSize 영역에 placementMachine을 놓을 수 있는지 확인한다.
+    // 벨트 외 기계는 플레이어가 서 있는 칸과 겹치면 배치할 수 없다.
     public bool CanPlaceFootprintAt(Vector2Int anchor, Vector2Int footprintSize, Machine placementMachine)
     {
+        bool blocksPlayerCell = placementMachine != null
+            && placementMachine.GetOccupantKind() != OccupantKind.Belt;
+        Vector2Int? playerCell = blocksPlayerCell ? TryGetPlayerGridCell() : null;
+
         for (int x = 0; x < footprintSize.x; x++)
         {
             for (int y = 0; y < footprintSize.y; y++)
@@ -556,15 +607,30 @@ public class GridManager : MonoBehaviour
                 {
                     return false;
                 }
+
+                if (playerCell.HasValue && playerCell.Value == coord)
+                {
+                    return false;
+                }
             }
         }
 
         return true;
     }
 
-    // footprint 영역의 그리드 점유를 해제한다.
-    // MachineOnResourceNode 회수 시에는 덮어썼던 자원 노드 occupant·Kind를 복원하고 Locked를 유지한다.
-    // 그 외 기계 회수 시에는 Floor로 되돌린다.
+    // 플레이어가 있는 그리드 칸. 없으면 null.
+    private Vector2Int? TryGetPlayerGridCell()
+    {
+        PlayerMovement player = FindAnyObjectByType<PlayerMovement>();
+        if (player == null)
+        {
+            return null;
+        }
+
+        return WorldToGrid(player.transform.position);
+    }
+
+    // footprint 영역의 그리드 점유를 해제한다. 바닥 타일(Floor/Locked)은 구역 기준으로 유지한다.
     private void ClearFootprint(Vector2Int anchor, Vector2Int footprintSize, OccupantKind clearedKind)
     {
         for (int x = 0; x < footprintSize.x; x++)
@@ -579,13 +645,13 @@ public class GridManager : MonoBehaviour
                 {
                     cell.Occupant = resourceNode.gameObject;
                     cell.OccupantKind = OccupantKind.ResourceNode;
-                    cell.Type = GridCellType.Locked;
+                    cell.Type = GetGroundTypeForCoord(coord);
                 }
                 else
                 {
                     cell.Occupant = null;
                     cell.OccupantKind = default;
-                    cell.Type = GridCellType.Floor;
+                    cell.Type = GetGroundTypeForCoord(coord);
                 }
 
                 SetCell(coord, cell);
@@ -610,7 +676,7 @@ public class GridManager : MonoBehaviour
         return false;
     }
 
-    // footprint 영역 전체 셀이 같은 occupant GameObject를 가리키도록 기록하고 Locked로 바꾼다.
+    // footprint 영역 전체 셀이 같은 occupant GameObject를 가리키도록 기록한다. 바닥 타일은 바꾸지 않는다.
     private void OccupyFootprint(Vector2Int anchor, Vector2Int footprintSize, GameObject occupant, OccupantKind occupantKind)
     {
         for (int x = 0; x < footprintSize.x; x++)
@@ -621,13 +687,13 @@ public class GridManager : MonoBehaviour
                 GridCell cell = GetCell(coord);
                 cell.Occupant = occupant;
                 cell.OccupantKind = occupantKind;
-                cell.Type = GridCellType.Locked;
                 SetCell(coord, cell);
             }
         }
     }
 
-    // 기계 배치·제거 시 인접 벨트의 upstream/downstream 캐시를 갱신한다.
+    // 기계 배치·제거 시 인접 벨트의 upstream/downstream 캐시와
+    // 비벨트 기계의 출력 벨트 목록을 갱신한다.
     private void RefreshBeltNeighborsForMachine(Machine machine)
     {
         RefreshBeltNeighborsAtFootprint(machine.GridAnchor, machine.GetFootprintSize(), machine);
@@ -655,6 +721,64 @@ public class GridManager : MonoBehaviour
                 belt.RefreshNeighbors(this);
             }
         }
+
+        RefreshOutboundBeltsAtFootprint(anchor, footprintSize, changedMachine);
+    }
+
+    // 변경 footprint에 인접한 비벨트 기계의 출력 벨트 캐시를 다시 만든다.
+    private void RefreshOutboundBeltsAtFootprint(
+        Vector2Int anchor,
+        Vector2Int footprintSize,
+        Machine changedMachine)
+    {
+        if (changedMachine != null && changedMachine is not ConveyerBelt)
+        {
+            changedMachine.RefreshOutboundBelts(this);
+        }
+
+        for (int i = 0; i < placedMachines.Count; i++)
+        {
+            Machine machine = placedMachines[i];
+            if (machine == null || machine is ConveyerBelt || machine == changedMachine)
+            {
+                continue;
+            }
+
+            if (!IsFootprintAdjacentOrOverlapping(
+                    machine.GridAnchor,
+                    machine.GetFootprintSize(),
+                    anchor,
+                    footprintSize))
+            {
+                continue;
+            }
+
+            machine.RefreshOutboundBelts(this);
+        }
+    }
+
+    // 두 footprint가 겹치거나 한 칸이라도 맞닿아 있으면 true.
+    private static bool IsFootprintAdjacentOrOverlapping(
+        Vector2Int anchorA,
+        Vector2Int sizeA,
+        Vector2Int anchorB,
+        Vector2Int sizeB)
+    {
+        int aMinX = anchorA.x;
+        int aMaxX = anchorA.x + sizeA.x - 1;
+        int aMinY = anchorA.y;
+        int aMaxY = anchorA.y + sizeA.y - 1;
+        int bMinX = anchorB.x;
+        int bMaxX = anchorB.x + sizeB.x - 1;
+        int bMinY = anchorB.y;
+        int bMaxY = anchorB.y + sizeB.y - 1;
+
+        bool separated =
+            aMaxX < bMinX - 1
+            || bMaxX < aMinX - 1
+            || aMaxY < bMinY - 1
+            || bMaxY < aMinY - 1;
+        return !separated;
     }
 
     private static bool FootprintContainsCoord(Vector2Int anchor, Vector2Int footprintSize, Vector2Int coord)

@@ -24,12 +24,22 @@ public class PlayerMovement : MonoBehaviour
     // 픽셀당 월드 유닛 (GridManager PixelsPerUnit 기본값)
     [SerializeField] private float pixelsPerUnit = 32f;
     // 플레이어 발자국 충돌 반경(칸). Locked·노드 칸에 끼지 않도록 셀보다 작게 잡는다.
-    [SerializeField] [Range(0.1f, 0.49f)] private float walkCollisionHalfExtentCells = 0.4f;
+    // 이동 가능 판정은 중심 칸만 보므로, 이 값은 맵 경계 클램프에만 쓴다.
+    [SerializeField] [Range(0.05f, 0.49f)] private float walkCollisionHalfExtentCells = 0.2f;
 
     private Vector2 lastFacing = Vector2.down;
+    // 전진(P_MoveForth) 기준 스프라이트라, 오른쪽을 볼 때 flipX로 반전한다.
+    private bool flipSpriteX;
+    private SpriteRenderer spriteRenderer;
 
     void Start()
     {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+
         if (gridManager != null)
         {
             // 시작 구역(zone_start) 중앙.
@@ -60,8 +70,22 @@ public class PlayerMovement : MonoBehaviour
             ZoneExpansionUI.Toggle();
         }
 
+        // E: 인벤토리 토글 (다른 모달이 열려 있어도 가능)
+        if (keyboard != null && keyboard.eKey.wasPressedThisFrame)
+        {
+            InventoryUI.Toggle();
+        }
+
+        // 1: 기계 지급 UI 토글 (열린 상태에서도 1로 닫을 수 있다)
+        if (keyboard != null
+            && (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame))
+        {
+            TryToggleMachineGrantUi();
+        }
+
         // 모달이 열려 있으면 이동·상호작용을 잠근다.
-        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen || ZoneExpansionUI.IsOpen)
+        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen || ZoneExpansionUI.IsOpen || InventoryUI.IsOpen
+            || (QuestWindowController.Instance != null && QuestWindowController.Instance.IsOpen))
         {
             UpdateAnimator(Vector2.zero);
             return;
@@ -78,19 +102,13 @@ public class PlayerMovement : MonoBehaviour
 
         if (keyboard != null)
         {
-            // 1: MachineDatabase 기반 기계 지급 UI
-            if (keyboard.digit1Key.wasPressedThisFrame)
-            {
-                TryOpenMachineGrantUi();
-            }
-
             if (keyboard.digit0Key.wasPressedThisFrame)
             {
                 isResourceNodePlacementMode = !isResourceNodePlacementMode;
                 Debug.Log($"[PlayerMovement] 철광석 노드 배치 모드: {(isResourceNodePlacementMode ? "ON" : "OFF")}");
             }
 
-            // F: 생산 즉시 종료 (E는 수리·수작업)
+            // F: 생산 즉시 종료 (Space는 수리·수작업)
             if (keyboard.fKey.wasPressedThisFrame)
             {
                 TryForceEndProduction();
@@ -169,16 +187,11 @@ public class PlayerMovement : MonoBehaviour
         return worldPosition;
     }
 
-    // 중심 + 발자국 네 모서리가 모두 Floor인지 확인한다.
+    // 중심 칸만 Floor(또는 컨베이어)면 이동 가능하다.
+    // 모서리까지 막으면 기계 옆에 끼었을 때 빠져나오기 어렵다.
     private bool IsWalkableWorld(Vector3 worldPosition)
     {
-        float half = GetWalkCollisionHalfExtent();
-
-        return IsWalkablePoint(worldPosition)
-            && IsWalkablePoint(worldPosition + new Vector3(-half, -half, 0f))
-            && IsWalkablePoint(worldPosition + new Vector3(half, -half, 0f))
-            && IsWalkablePoint(worldPosition + new Vector3(-half, half, 0f))
-            && IsWalkablePoint(worldPosition + new Vector3(half, half, 0f));
+        return IsWalkablePoint(worldPosition);
     }
 
     private bool IsWalkablePoint(Vector3 worldPosition)
@@ -191,10 +204,10 @@ public class PlayerMovement : MonoBehaviour
         return gridManager.CellSize * walkCollisionHalfExtentCells;
     }
 
-    // E키: 근접 1칸 내 고장 기계 수리 우선, 없으면 수작업 기계 진도.
+    // Space: 근접 1칸 내 고장 기계 수리 우선, 없으면 수작업 기계 진도.
     private void TryInteractNearbyMachine(Keyboard keyboard)
     {
-        if (keyboard == null || !keyboard.eKey.wasPressedThisFrame)
+        if (keyboard == null || !keyboard.spaceKey.wasPressedThisFrame)
         {
             return;
         }
@@ -355,6 +368,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
     // MoveX/MoveY로 4방향 idle·walk를 Animator에 전달한다. 대각선은 지배 축 하나만 사용한다.
+    // 좌·우·아래는 P_MoveForth, 위는 P_MoveBack. 오른쪽을 보면 flipX로 반전한다.
     private void UpdateAnimator(Vector2 input)
     {
         if (animator == null)
@@ -377,11 +391,26 @@ public class PlayerMovement : MonoBehaviour
             }
 
             lastFacing = facing;
+
+            // 좌·우는 facing.x, 상·하는 함께 누른 좌우 입력으로 반전 여부를 정한다.
+            if (facing.x != 0f)
+            {
+                flipSpriteX = facing.x > 0f;
+            }
+            else
+            {
+                flipSpriteX = input.x > 0f;
+            }
         }
 
         animator.SetBool(IsMovingHash, isMoving);
         animator.SetFloat(MoveXHash, facing.x);
         animator.SetFloat(MoveYHash, facing.y);
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX = flipSpriteX;
+        }
     }
 
     // 0키 배치 모드에서 마우스가 가리키는 그리드 칸에 철광석 노드를 놓는다.
@@ -448,8 +477,8 @@ public class PlayerMovement : MonoBehaviour
         ProductionEndHandler.EndProduction();
     }
 
-    // MachineDatabase 목록으로 기계 지급 UI를 연다.
-    private void TryOpenMachineGrantUi()
+    // MachineDatabase 목록으로 기계 지급 UI를 토글한다.
+    private void TryToggleMachineGrantUi()
     {
         if (machineDatabase == null)
         {
@@ -464,7 +493,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        MachineGrantUI.Show(machineDatabase, inventory);
+        MachineGrantUI.Toggle(machineDatabase, inventory);
     }
 
     private PlayerInventory GetPlayerInventory()
@@ -474,13 +503,13 @@ public class PlayerMovement : MonoBehaviour
             return playerInventory;
         }
 
-        playerInventory = GetComponent<PlayerInventory>();
+        playerInventory = PlayerInventory.GetOrFind();
         if (playerInventory != null)
         {
             return playerInventory;
         }
 
-        playerInventory = FindAnyObjectByType<PlayerInventory>();
+        playerInventory = GetComponent<PlayerInventory>();
         if (playerInventory != null)
         {
             return playerInventory;

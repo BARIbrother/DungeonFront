@@ -153,13 +153,6 @@ public class ZoneManager : MonoBehaviour
             for (int y = minY; y < maxY; y++)
             {
                 GridCell cell = gridManager.GetCell(x, y);
-                // 사전 배치된 자원 노드·그 위 채굴기는 Locked를 유지한다.
-                if (cell.OccupantKind == OccupantKind.ResourceNode
-                    || cell.OccupantKind == OccupantKind.MachineOnResourceNode)
-                {
-                    continue;
-                }
-
                 cell.Type = GridCellType.Floor;
                 gridManager.SetCell(x, y, cell);
             }

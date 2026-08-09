@@ -61,15 +61,15 @@ public static class ProductionEndHandler
                     continue;
                 }
 
-                if (string.IsNullOrEmpty(entry.item.id))
+                if (string.IsNullOrEmpty(entry.item.Id))
                 {
                     continue;
                 }
 
-                string itemId = entry.item.id;
-                string displayName = string.IsNullOrEmpty(entry.item.displayName)
+                string itemId = entry.item.Id;
+                string displayName = string.IsNullOrEmpty(entry.item.DisplayName)
                     ? itemId
-                    : entry.item.displayName;
+                    : entry.item.DisplayName;
 
                 if (totals.TryGetValue(itemId, out ProductionSummaryLine existing))
                 {

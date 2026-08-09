@@ -57,16 +57,26 @@ public class PlacementController : MonoBehaviour
     private void Start()
     {
         ResolveReferences();
+        BindInventoryEvents();
         placementUI.Initialize(this, playerInventory);
         placementUI.SetVisible(false, true);
+    }
 
+    private void OnDestroy()
+    {
+        UnbindInventoryEvents();
+    }
+
+    private void BindInventoryEvents()
+    {
+        UnbindInventoryEvents();
         if (playerInventory != null)
         {
             playerInventory.OnMachinesChanged += HandleInventoryChanged;
         }
     }
 
-    private void OnDestroy()
+    private void UnbindInventoryEvents()
     {
         if (playerInventory != null)
         {
@@ -82,6 +92,8 @@ public class PlacementController : MonoBehaviour
 
     private void Update()
     {
+        ResolveReferences();
+
         if (!IsPreparePhase())
         {
             if (isPlacementMode)
@@ -112,13 +124,22 @@ public class PlacementController : MonoBehaviour
             return;
         }
 
-        if (selectedMachine == null || gridManager == null)
+        if (selectedMachine == null || gridManager == null || playerInventory == null)
         {
             return;
         }
 
         if (selectedMachine.definition == null || selectedMachine.definition.machinePrefab == null)
         {
+            return;
+        }
+
+        // 인벤에 해당 인스턴스가 없으면 배치하지 않는다.
+        if (FindMachineByInstanceId(selectedMachine.instanceId) == null)
+        {
+            selectedMachine = null;
+            placementPreview?.Hide();
+            placementUI.Refresh();
             return;
         }
 
@@ -145,14 +166,20 @@ public class PlacementController : MonoBehaviour
             ? gridManager.GetAnchorForCenteredFootprint(mouseWorld, prefabMachine.GetFootprintSize())
             : gridManager.WorldToGrid(mouseWorld);
 
+        MachineInventoryEntry placing = selectedMachine;
         if (gridManager.TryPlaceMachine(
-            selectedMachine.definition.machinePrefab,
+            placing.definition.machinePrefab,
             mouseWorld,
-            selectedMachine,
+            placing,
             beltFlowDirection))
         {
-            string placedDefinitionId = selectedMachine.definition.id;
-            playerInventory.TryRemoveMachine(selectedMachine.instanceId, out _);
+            string placedDefinitionId = placing.definition.id;
+            if (!playerInventory.TryRemoveMachine(placing.instanceId, out _))
+            {
+                Debug.LogWarning(
+                    $"[PlacementController] 배치는 됐지만 인벤 소모 실패: {placing.instanceId}");
+            }
+
             selectedMachine = FindFirstMachineOfType(placedDefinitionId);
 
             if (selectedMachine == null)
@@ -331,14 +358,25 @@ public class PlacementController : MonoBehaviour
             gridManager = FindAnyObjectByType<GridManager>();
         }
 
-        if (playerInventory == null)
+        PlayerInventory resolved = PlayerInventory.GetOrFind();
+        if (resolved != null && resolved != playerInventory)
         {
-            playerInventory = FindAnyObjectByType<PlayerInventory>();
+            UnbindInventoryEvents();
+            playerInventory = resolved;
+            BindInventoryEvents();
+            if (placementUI != null)
+            {
+                placementUI.Initialize(this, playerInventory);
+                placementUI.Refresh();
+            }
         }
-
-        if (playerInventory == null)
+        else if (playerInventory == null)
         {
-            Debug.LogWarning("[PlacementController] PlayerInventory를 찾을 수 없습니다. Player에 PlayerInventory를 붙여 주세요.");
+            playerInventory = resolved;
+            if (playerInventory == null)
+            {
+                Debug.LogWarning("[PlacementController] PlayerInventory를 찾을 수 없습니다. Player에 PlayerInventory를 붙여 주세요.");
+            }
         }
 
         if (mainCamera == null)
@@ -413,6 +451,24 @@ public class PlacementController : MonoBehaviour
         foreach (MachineInventoryEntry machine in playerInventory.Machines)
         {
             if (machine?.definition != null && machine.definition.id == definitionId)
+            {
+                return machine;
+            }
+        }
+
+        return null;
+    }
+
+    private MachineInventoryEntry FindMachineByInstanceId(string instanceId)
+    {
+        if (playerInventory == null || string.IsNullOrEmpty(instanceId))
+        {
+            return null;
+        }
+
+        foreach (MachineInventoryEntry machine in playerInventory.Machines)
+        {
+            if (machine != null && machine.instanceId == instanceId)
             {
                 return machine;
             }

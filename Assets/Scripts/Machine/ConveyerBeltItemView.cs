@@ -4,7 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(ConveyerBelt))]
 public class ConveyerBeltItemView : MonoBehaviour
 {
-    [SerializeField] private int sortingOrderOffset = 1;
+    [SerializeField] private int sortingOrderOffset = 10;
+    [SerializeField] private float iconWorldSize = 0.55f;
 
     private ConveyerBelt belt;
     private SpriteRenderer beltRenderer;
@@ -47,26 +48,15 @@ public class ConveyerBeltItemView : MonoBehaviour
             return;
         }
 
-        ItemDefinition itemDefinition = belt.HeldItemDefinition;
-        if (itemDefinition == null || itemDefinition.icon == null)
+        if (!TryApplyHeldItemSprite())
         {
             HideVisual();
             return;
         }
 
         bool wasHidden = !hasVisual;
-
-        EnsureItemRenderer();
-        ApplyBeltSorting();
-        itemRenderer.sprite = itemDefinition.icon;
-        itemRenderer.enabled = true;
         hasVisual = true;
-
         targetWorldPosition = belt.GetItemWorldPosition(belt.NormalizedProgress);
-        if (!itemRenderer.gameObject.activeSelf)
-        {
-            itemRenderer.gameObject.SetActive(true);
-        }
 
         if (wasHidden)
         {
@@ -85,18 +75,57 @@ public class ConveyerBeltItemView : MonoBehaviour
         itemRenderer.gameObject.SetActive(true);
     }
 
+    public void ApplyItemSprite(Item item)
+    {
+        ApplyItemSprite(item?.definition);
+    }
+
     public void ApplyItemSprite(ItemDefinition itemDefinition)
     {
-        if (itemDefinition == null || itemDefinition.icon == null)
+        if (itemDefinition == null)
         {
             return;
         }
 
+        TryApplyHeldItemSprite(itemDefinition);
+    }
+
+    private bool TryApplyHeldItemSprite()
+    {
+        return TryApplyHeldItemSprite(belt.HeldItemDefinition);
+    }
+
+    private bool TryApplyHeldItemSprite(ItemDefinition itemDefinition)
+    {
+        Sprite icon = ItemIconResolver.Resolve(itemDefinition);
+        if (icon == null)
+        {
+            return false;
+        }
+
         EnsureItemRenderer();
         ApplyBeltSorting();
-        itemRenderer.sprite = itemDefinition.icon;
+        ApplyIconScale(icon);
+        itemRenderer.sprite = icon;
+        itemRenderer.color = Color.white;
         itemRenderer.enabled = true;
+        itemRenderer.gameObject.SetActive(true);
         hasVisual = true;
+        return true;
+    }
+
+    private void ApplyIconScale(Sprite icon)
+    {
+        if (itemRenderer == null || icon == null)
+        {
+            return;
+        }
+
+        float pixels = Mathf.Max(icon.rect.width, icon.rect.height);
+        float ppu = icon.pixelsPerUnit > 0f ? icon.pixelsPerUnit : 32f;
+        float nativeWorld = pixels / ppu;
+        float scale = nativeWorld > 0.0001f ? iconWorldSize / nativeWorld : 1f;
+        itemRenderer.transform.localScale = new Vector3(scale, scale, 1f);
     }
 
     private float GetMoveStepPerFrame()
@@ -142,6 +171,10 @@ public class ConveyerBeltItemView : MonoBehaviour
         {
             itemRenderer.sortingLayerID = beltRenderer.sortingLayerID;
             itemRenderer.sortingOrder = beltRenderer.sortingOrder + sortingOrderOffset;
+        }
+        else
+        {
+            itemRenderer.sortingOrder = sortingOrderOffset;
         }
     }
 }

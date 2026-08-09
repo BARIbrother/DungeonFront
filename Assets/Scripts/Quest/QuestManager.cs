@@ -125,7 +125,7 @@ public class QuestManager : MonoBehaviour
                 continue;
             }
 
-            inventory.Remove(entry.item.id, entry.count);
+            inventory.Remove(entry.item.Id, entry.count);
         }
 
         finishQuest(quest);
@@ -310,7 +310,7 @@ public class QuestManager : MonoBehaviour
 
             clone.entries[i] = new ItemEntry
             {
-                item = entry.item,
+                item = entry.item != null ? entry.item.Clone() : null,
                 count = entry.count
             };
         }
@@ -328,12 +328,12 @@ public class QuestManager : MonoBehaviour
                 continue;
             }
 
-            if (string.IsNullOrEmpty(entry.item.id))
+            if (string.IsNullOrEmpty(entry.item.Id))
             {
                 return false;
             }
 
-            if (inventory.GetCount(entry.item.id) < entry.count)
+            if (inventory.GetCount(entry.item.Id) < entry.count)
             {
                 return false;
             }
@@ -362,14 +362,14 @@ public class QuestManager : MonoBehaviour
             return false;
         }
 
-        if (string.Equals(entry.item.id, "gold", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(entry.item.Id, "gold", StringComparison.OrdinalIgnoreCase))
         {
             GameSessionState.Instance.AddGold(entry.count);
             return true;
         }
 
-        if (string.Equals(entry.item.id, "fame", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(entry.item.id, "reputation", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(entry.item.Id, "fame", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(entry.item.Id, "reputation", StringComparison.OrdinalIgnoreCase))
         {
             GameSessionState.Instance.AddReputation(entry.count);
             return true;

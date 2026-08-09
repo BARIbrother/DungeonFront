@@ -5,7 +5,7 @@ public class QuestDeadlineController : MonoBehaviour
 {
     [SerializeField] private QuestManager questManager;
     [SerializeField] private Week3EconomyService economy;
-    [SerializeField] private GameOverController gameOverController;
+    [SerializeField] private QuestFailController gameOverController;
 
     private GameSessionState session;
     private int observedDay;
@@ -14,7 +14,7 @@ public class QuestDeadlineController : MonoBehaviour
     {
         questManager ??= FindAnyObjectByType<QuestManager>();
         economy ??= FindAnyObjectByType<Week3EconomyService>();
-        gameOverController ??= FindAnyObjectByType<GameOverController>();
+        gameOverController ??= FindAnyObjectByType<QuestFailController>();
         session = GameSessionState.Instance ?? FindAnyObjectByType<GameSessionState>();
 
         if (questManager != null)

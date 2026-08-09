@@ -99,6 +99,11 @@ public class MinerMachine : Machine, IFactoryProduction
         }
 
         GridCell cell = gridManager.GetCell(GridAnchor);
+        if (!string.IsNullOrEmpty(cell.ResourceItemId))
+        {
+            return cell.ResourceItemId;
+        }
+
         if (cell.Occupant == null)
         {
             return null;
@@ -117,7 +122,7 @@ public class MinerMachine : Machine, IFactoryProduction
 
         foreach (ItemEntry output in recipe.outputEntryList.entries)
         {
-            if (output?.item != null && output.item.id == itemId)
+            if (output?.item != null && output.item.Id == itemId)
             {
                 return true;
             }
@@ -196,7 +201,7 @@ public class MinerMachine : Machine, IFactoryProduction
                 continue;
             }
 
-            outputPort.TryAdd(new ItemEntry { item = output.item, count = output.count });
+            outputPort.TryAdd(new ItemEntry { item = output.item.Clone(), count = output.count });
         }
 
         return true;
@@ -227,7 +232,7 @@ public class MinerMachine : Machine, IFactoryProduction
     }
 
     // 버퍼에 쌓인 특정 아이템의 총 개수를 센다.
-    private int GetOutputBufferCount(ItemDefinition item)
+    private int GetOutputBufferCount(Item item)
     {
         if (outputPort?.entries == null || item == null)
         {
@@ -237,7 +242,7 @@ public class MinerMachine : Machine, IFactoryProduction
         int total = 0;
         foreach (ItemEntry entry in outputPort.entries)
         {
-            if (entry != null && entry.item != null && entry.item.id == item.id)
+            if (entry != null && entry.item != null && entry.item.CanStackWith(item))
             {
                 total += entry.count;
             }
@@ -267,9 +272,9 @@ public class MinerMachine : Machine, IFactoryProduction
                 builder.Append(", ");
             }
 
-            string itemName = string.IsNullOrEmpty(entry.item.displayName)
-                ? entry.item.id
-                : entry.item.displayName;
+            string itemName = string.IsNullOrEmpty(entry.item.DisplayName)
+                ? entry.item.Id
+                : entry.item.DisplayName;
             builder.Append($"{itemName} x{entry.count}");
         }
 

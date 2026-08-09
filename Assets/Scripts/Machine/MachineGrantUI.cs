@@ -34,9 +34,10 @@ public class MachineGrantUI : MonoBehaviour
         systemObject.AddComponent<MachineGrantUI>();
     }
 
-    // MachineDatabase의 기계 목록 UI를 연다.
+    // MachineDatabase 목록 UI를 연다.
     public static void Show(MachineDatabase database, PlayerInventory inventory)
     {
+        inventory ??= PlayerInventory.GetOrFind();
         if (database == null || inventory == null)
         {
             Debug.LogWarning("[MachineGrantUI] MachineDatabase 또는 PlayerInventory가 null입니다.");
@@ -45,6 +46,19 @@ public class MachineGrantUI : MonoBehaviour
 
         EnsureInstance();
         instance.Open(database, inventory);
+    }
+
+    // 열려 있으면 닫고, 닫혀 있으면 연다. (1키 토글)
+    public static void Toggle(MachineDatabase database, PlayerInventory inventory)
+    {
+        EnsureInstance();
+        if (instance.isOpen)
+        {
+            instance.Hide();
+            return;
+        }
+
+        Show(database, inventory);
     }
 
     private static void EnsureInstance()

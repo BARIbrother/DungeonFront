@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 [System.Serializable]
 public class ItemEntryList
 {
@@ -52,7 +54,7 @@ public class ItemEntryList
                 return false;
             }
 
-            if (portEntry.item.id != requiredEntry.item.id)
+            if (!portEntry.item.MatchesDefinition(requiredEntry.item))
             {
                 return false;
             }
@@ -88,7 +90,7 @@ public class ItemEntryList
                 continue;
             }
 
-            if (portEntry.item.id != outputEntry.item.id || portEntry.count > 0)
+            if (!portEntry.item.CanStackWith(outputEntry.item) || portEntry.count > 0)
             {
                 return false;
             }
@@ -130,7 +132,7 @@ public class ItemEntryList
         return true;
     }
 
-    // 비어 있는 슬롯 또는 동일 아이템 슬롯에 추가한다.
+    // 비어 있는 슬롯 또는 동일 스택 슬롯에 추가한다.
     public bool TryAdd(ItemEntry item)
     {
         if (item == null || item.item == null || item.count <= 0 || entries == null)
@@ -143,11 +145,11 @@ public class ItemEntryList
             ItemEntry portEntry = entries[i];
             if (portEntry == null)
             {
-                entries[i] = new ItemEntry { item = item.item, count = item.count };
+                entries[i] = new ItemEntry { item = item.item.Clone(), count = item.count };
                 return true;
             }
 
-            if (portEntry.item != null && portEntry.item.id == item.item.id)
+            if (portEntry.item != null && portEntry.item.CanStackWith(item.item))
             {
                 portEntry.count += item.count;
                 return true;
@@ -159,13 +161,13 @@ public class ItemEntryList
             ItemEntry portEntry = entries[i];
             if (portEntry == null)
             {
-                entries[i] = new ItemEntry { item = item.item, count = item.count };
+                entries[i] = new ItemEntry { item = item.item.Clone(), count = item.count };
                 return true;
             }
 
             if (portEntry.item == null || portEntry.count <= 0)
             {
-                portEntry.item = item.item;
+                portEntry.item = item.item.Clone();
                 portEntry.count = item.count;
                 return true;
             }
@@ -191,7 +193,7 @@ public class ItemEntryList
         for (int i = 0; i < entries.Length && i < recipe.inputEntryList.entries.Length && remaining > 0; i++)
         {
             ItemEntry required = recipe.inputEntryList.entries[i];
-            if (required == null || required.item == null || required.item.id != item.item.id)
+            if (required == null || required.item == null || !required.item.MatchesDefinition(item.item))
             {
                 continue;
             }
@@ -212,9 +214,9 @@ public class ItemEntryList
     }
 
     // 포트에 들어 있는 모든 항목을 복사해 반환한다. Resize 전 보존용.
-    public System.Collections.Generic.List<ItemEntry> CopyAllEntries()
+    public List<ItemEntry> CopyAllEntries()
     {
-        var copied = new System.Collections.Generic.List<ItemEntry>();
+        var copied = new List<ItemEntry>();
         if (entries == null)
         {
             return copied;
@@ -228,7 +230,7 @@ public class ItemEntryList
                 continue;
             }
 
-            copied.Add(new ItemEntry { item = entry.item, count = entry.count });
+            copied.Add(new ItemEntry { item = entry.item.Clone(), count = entry.count });
         }
 
         return copied;
@@ -250,7 +252,7 @@ public class ItemEntryList
         return entry.count;
     }
 
-    private void SetSlotItem(int index, ItemDefinition item, int count)
+    private void SetSlotItem(int index, Item item, int count)
     {
         if (entries == null || index < 0 || index >= entries.Length)
         {
@@ -262,8 +264,13 @@ public class ItemEntryList
             entries[index] = new ItemEntry();
         }
 
-        entries[index].item = item;
-        entries[index].count = count;
+        ItemEntry slot = entries[index];
+        if (slot.item == null || !slot.item.CanStackWith(item))
+        {
+            slot.item = item.Clone();
+        }
+
+        slot.count = count;
     }
 
     // 첫 비어 있지 않은 슬롯에서 항목을 꺼낸다.
@@ -283,7 +290,7 @@ public class ItemEntryList
                 continue;
             }
 
-            taken = new ItemEntry { item = portEntry.item, count = portEntry.count };
+            taken = new ItemEntry { item = portEntry.item.Clone(), count = portEntry.count };
             portEntry.item = null;
             portEntry.count = 0;
             return true;
@@ -308,7 +315,7 @@ public class ItemEntryList
                 continue;
             }
 
-            if (portEntry.item.id != request.item.id || portEntry.count < request.count)
+            if (!portEntry.item.CanStackWith(request.item) || portEntry.count < request.count)
             {
                 continue;
             }
@@ -352,7 +359,7 @@ public class ItemEntryList
                 entries[i] = new ItemEntry();
             }
 
-            entries[i].item = outputEntry.item;
+            entries[i].item = outputEntry.item.Clone();
             entries[i].count = outputEntry.count;
         }
 

@@ -8,6 +8,12 @@ public struct GridCell
     public GameObject Occupant;
     public OccupantKind OccupantKind;
 
+    // 타일맵 광석 레이어용 itemId (예: iron_ore). 비어 있으면 광석 타일 없음.
+    public string ResourceItemId;
+
+    // 미해금 구역 등에서 광석 타일·노드 표시 여부.
+    public bool ResourceNodeVisible;
+
     // Occupant가 있으면 true.
     public bool IsOccupied => Occupant != null;
 
@@ -17,5 +23,9 @@ public struct GridCell
         Type = type;
         Occupant = occupant;
         OccupantKind = occupantKind;
+        ResourceItemId = null;
+        ResourceNodeVisible = false;
     }
+
+    public bool HasResourceNode => !string.IsNullOrEmpty(ResourceItemId);
 }

@@ -6,7 +6,7 @@ public class ShopUI : MonoBehaviour
 {
     [SerializeField] private ShopCatalog catalog;
     [SerializeField] private Week3EconomyService economy;
-    [SerializeField] private UnlockManager unlockManager;
+    [SerializeField] private QuestUnlockManager unlockManager;
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private Transform listRoot;
     [SerializeField] private Button rowPrefab;
@@ -16,7 +16,7 @@ public class ShopUI : MonoBehaviour
     private void OnEnable()
     {
         economy ??= FindAnyObjectByType<Week3EconomyService>();
-        unlockManager ??= FindAnyObjectByType<UnlockManager>();
+        unlockManager ??= FindAnyObjectByType<QuestUnlockManager>();
         playerInventory ??= FindAnyObjectByType<PlayerInventory>();
 
         if (economy != null)
@@ -85,7 +85,11 @@ public class ShopUI : MonoBehaviour
         }
         else if (entry.item != null && playerInventory != null)
         {
-            playerInventory.Add(new ItemEntry { item = entry.item, count = entry.count });
+            playerInventory.Add(new ItemEntry
+            {
+                item = Item.FromDefinition(entry.item),
+                count = entry.count
+            });
         }
         else
         {

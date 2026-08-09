@@ -83,7 +83,58 @@ public class QuestPool : MonoBehaviour
                 continue;
             }
 
-            itemById[mapping.itemId] = mapping.item;
+            RegisterItem(mapping.itemId, mapping.item);
+            if (!string.IsNullOrWhiteSpace(mapping.item.id))
+            {
+                RegisterItem(mapping.item.id, mapping.item);
+            }
+        }
+
+        ApplyKnownAliases();
+    }
+
+    private void RegisterItem(string itemId, ItemDefinition item)
+    {
+        if (string.IsNullOrWhiteSpace(itemId) || item == null)
+        {
+            return;
+        }
+
+        itemById[itemId] = item;
+    }
+
+    // 퀘스트 JSON·SO·아이콘 맵에서 쓰는 서로 다른 id를 같은 ItemDefinition으로 묶는다.
+    private void ApplyKnownAliases()
+    {
+        string[][] aliasGroups =
+        {
+            new[] { "iron_ingot", "iron_bar", "iron" },
+            new[] { "gold", "Gold" },
+            new[] { "fame", "Fame" },
+        };
+
+        for (int groupIndex = 0; groupIndex < aliasGroups.Length; groupIndex++)
+        {
+            string[] group = aliasGroups[groupIndex];
+            ItemDefinition shared = null;
+            for (int i = 0; i < group.Length; i++)
+            {
+                if (itemById.TryGetValue(group[i], out ItemDefinition found) && found != null)
+                {
+                    shared = found;
+                    break;
+                }
+            }
+
+            if (shared == null)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < group.Length; i++)
+            {
+                RegisterItem(group[i], shared);
+            }
         }
     }
 
@@ -397,7 +448,7 @@ public class QuestPool : MonoBehaviour
 
             result.entries[index] = new ItemEntry
             {
-                item = ResolveItem(data.itemId),
+                item = Item.FromDefinition(ResolveItem(data.itemId)),
                 count = Mathf.Max(0, data.count)
             };
         }
