@@ -74,9 +74,12 @@ public class GameSessionState : MonoBehaviour
     // 생산 종료 요약 모달이 열린 동안 중복 EndProduction 호출을 막는다.
     private bool isEndingProduction;
     private float TargetProductionTime => isTestMode ? 10f : 300f;
+    private string lastTimerText;
 
     public GamePhase Phase => phase;
-    
+
+    public bool IsTestMode => isTestMode;
+
     public float ProductionRemainingSeconds
     {
         get
@@ -395,19 +398,32 @@ public class GameSessionState : MonoBehaviour
     {
         if (timerText == null) return;
 
+        string next;
         switch (phase)
         {
             case GamePhase.Prepare:
-                timerText.text = $"Time Left: {TargetProductionTime:F1}s";
+                next = $"Time Left: {TargetProductionTime:F1}s";
                 break;
             case GamePhase.Production:
+                // 0.1초 단위가 바뀔 때만 문자열을 갱신한다.
                 float remaining = ProductionRemainingSeconds;
-                timerText.text = $"Producing: {remaining:F1}s";
+                float rounded = Mathf.Ceil(remaining * 10f) / 10f;
+                next = $"Producing: {rounded:F1}s";
                 break;
             case GamePhase.Settlement:
-                timerText.text = $"Production Complete: 0.0s";
+                next = "Production Complete: 0.0s";
                 break;
+            default:
+                return;
         }
+
+        if (next == lastTimerText)
+        {
+            return;
+        }
+
+        lastTimerText = next;
+        timerText.text = next;
     }
 
     public void UpdateGoodsUI()
@@ -446,5 +462,46 @@ public class GameSessionState : MonoBehaviour
         }
 
         EndProduction();
+    }
+
+    // Dev Mode: 유효 전이 규칙을 무시하고 페이즈를 맞춘다.
+    public void ForcePhase(GamePhase next)
+    {
+        if (phase == next)
+        {
+            ApplyUIState(phase);
+            return;
+        }
+
+        phase = next;
+        if (phase == GamePhase.Production)
+        {
+            isEndingProduction = false;
+            productionEndTime = Time.time + TargetProductionTime;
+        }
+        else
+        {
+            productionEndTime = 0f;
+            isEndingProduction = false;
+        }
+
+        UpdateDayText();
+        ApplyUIState(phase);
+        UpdateTimerUI();
+        OnPhaseChanged?.Invoke(phase);
+        Debug.Log($"[GameSession] ForcePhase -> {phase}");
+    }
+
+    // Dev Mode: 일차를 절대값으로 맞춘다.
+    public void SetDay(int nextDay)
+    {
+        day = Mathf.Max(1, nextDay);
+        UpdateDayText();
+        if (phase == GamePhase.Settlement && settlementDayText != null)
+        {
+            settlementDayText.text = $"Day Progress: {day}";
+        }
+
+        Debug.Log($"[GameSession] SetDay -> {day}");
     }
 }

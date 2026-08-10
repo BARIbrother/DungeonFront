@@ -12,12 +12,6 @@ public static class TreeBorderTileSetup
     private const string TileFolder = "Assets/Art/Background/Tiles/Tree";
     private const float Ppu = 32f;
 
-    private const string FillPath = "Assets/Art/Background/tree_fill_64.png";
-    private const string EdgeLeftPath = "Assets/Art/Background/tree_edge_left_96x128.png";
-    private const string EdgeRightPath = "Assets/Art/Background/tree_edge_right_96x128.png";
-    private const string FringeLeftPath = "Assets/Art/Background/tree_fringe_left_64x128.png";
-    private const string FringeRightPath = "Assets/Art/Background/tree_fringe_right_64x128.png";
-
     [MenuItem("DungeonFront/Ensure Tree Border Tiles")]
     public static void EnsureFromMenu()
     {
@@ -35,11 +29,11 @@ public static class TreeBorderTileSetup
         EnsureFolder(TileFolder);
         EnsureFolder("Assets/Data");
 
-        EnsureSliceSprites(FillPath, 2, 2, "fill");
-        EnsureSliceSprites(EdgeLeftPath, 3, 4, "edge_left");
-        EnsureSliceSprites(EdgeRightPath, 3, 4, "edge_right");
-        EnsureSliceSprites(FringeLeftPath, 2, 4, "fringe_left");
-        EnsureSliceSprites(FringeRightPath, 2, 4, "fringe_right");
+        // SIDE / MID / BOTTOM 슬라이스는 Tools/slice_tree_parts.py로 생성한다.
+        ConfigureExistingSlices(1, 4, "side_left");
+        ConfigureExistingSlices(1, 4, "side_right");
+        ConfigureExistingSlices(2, 2, "mid");
+        ConfigureExistingSlices(16, 4, "bottom");
 
         TreeBorderTileSet set = AssetDatabase.LoadAssetAtPath<TreeBorderTileSet>(TileSetPath);
         if (set == null)
@@ -48,11 +42,10 @@ public static class TreeBorderTileSetup
             AssetDatabase.CreateAsset(set, TileSetPath);
         }
 
-        set.fill2x2Sprites = LoadSliceSprites(2, 2, "fill");
-        set.edgeLeft3x4Sprites = LoadSliceSprites(3, 4, "edge_left");
-        set.edgeRight3x4Sprites = LoadSliceSprites(3, 4, "edge_right");
-        set.fringeLeft2x4Sprites = LoadSliceSprites(2, 4, "fringe_left");
-        set.fringeRight2x4Sprites = LoadSliceSprites(2, 4, "fringe_right");
+        set.mid2x2Sprites = LoadSliceSprites(2, 2, "mid");
+        set.sideLeft1x4Sprites = LoadSliceSprites(1, 4, "side_left");
+        set.sideRight1x4Sprites = LoadSliceSprites(1, 4, "side_right");
+        set.bottom16x4Sprites = LoadSliceSprites(16, 4, "bottom");
         set.RebuildTiles();
         EditorUtility.SetDirty(set);
 
@@ -61,6 +54,24 @@ public static class TreeBorderTileSetup
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log("[TreeBorderTileSetup] TreeBorderTileSet 생성·씬 연결 완료");
+    }
+
+    private static void ConfigureExistingSlices(int cols, int rows, string prefix)
+    {
+        for (int ty = 0; ty < rows; ty++)
+        {
+            for (int tx = 0; tx < cols; tx++)
+            {
+                string pngPath = $"{TileFolder}/{prefix}_{tx}_{ty}.png";
+                if (AssetDatabase.LoadAssetAtPath<Sprite>(pngPath) == null)
+                {
+                    Debug.LogWarning($"[TreeBorderTileSetup] 슬라이스 없음: {pngPath} (Tools/slice_tree_parts.py 실행)");
+                    continue;
+                }
+
+                ConfigureSliceImporter(pngPath);
+            }
+        }
     }
 
     private static Sprite[] LoadSliceSprites(int cols, int rows, string prefix)

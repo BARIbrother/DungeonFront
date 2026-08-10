@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q005
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100005
+  title: "세 번째 시험"
+  clientName: "감사관 이브"
+  content: "특례를 적용한 것이 헛되지 않은 것 같아 다행입니다. 지금부터는 본격적으로 합금을 만들어야 할 시기입니다. 당신이라도 쉽지는 않을 겁니다."
+  requiredItems:
+    length: 3
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: c1207a99355a4a3083423a44251a2fc5, type: 2}
+        level: 1
+        enchantments: []
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: ae58a7a6ca9d41e7ad38284c27feb4ab, type: 2}
+        level: 1
+        enchantments: []
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 281ab3184e424dbe9101026154f289bb, type: 2}
+        level: 1
+        enchantments: []
+      count: 10
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 430
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 430
+  deadlineDays: 3
+  currentleftDeadlineDays: 0

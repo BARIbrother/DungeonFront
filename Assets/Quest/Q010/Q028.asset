@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q028
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100028
+  title: "더 좋은 갑옷"
+  clientName: "모험가 플린트"
+  content: "저번 탐사에서 아끼는 갑옷이 깨져 버렸어. 역시 레벨 1 갑옷으로는 던전 깊은 곳까지 가기엔 무리가 있나 봐..\n레벨 2 투구랑 갑옷 줄 수 있을까?"
+  requiredItems:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 53423af3ce834413a989ef99b750ac56, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 306cbfdaeadb4e02a080797cdea1a063, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 17
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 17
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

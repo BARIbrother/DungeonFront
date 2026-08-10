@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q033
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100033
+  title: "그녀의 10가지 이름"
+  clientName: "모험가 로페"
+  content: "네. 또 저예요. 걱정 마세요. 이번에는 언니들도, 조카들도 다같이 고향으로 돌아가서 며칠 쉬고 오거든요. 집에 사람은 저밖에 없어요.\n\n대신 고양이들이 있죠. 걔네들한테 마법을 가르치려는데 스크롤마다  이름을 적어 주시겠어요?\n네로, 냐리, 코네, 레나, 노키, 캬우, 섀카, 타냐, 리타, 슈노, 유니, 마요, 미키예요."
+  requiredItems:
+    length: 6
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 230bf421ba414af6bef113de14689149, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+        - attribute: 2
+          form: 0
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 230bf421ba414af6bef113de14689149, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+        - attribute: 6
+          form: 0
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 230bf421ba414af6bef113de14689149, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+        - attribute: 1
+          form: 0
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 230bf421ba414af6bef113de14689149, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 2
+          form: 0
+        - attribute: 1
+          form: 0
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 230bf421ba414af6bef113de14689149, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 2
+          form: 0
+        - attribute: 6
+          form: 0
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 230bf421ba414af6bef113de14689149, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 6
+          form: 0
+        - attribute: 1
+          form: 0
+      count: 10
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 540
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 540
+  deadlineDays: 2
+  currentleftDeadlineDays: 0

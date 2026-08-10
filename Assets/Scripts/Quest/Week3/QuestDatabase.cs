@@ -47,7 +47,7 @@ public class QuestDatabase : ScriptableObject
 
         foreach (Quest quest in source)
         {
-            string questId = QuestRuntimeRegistry.GetStableId(quest);
+            string questId = ResolveQuestId(quest);
             if (quest == null || string.IsNullOrWhiteSpace(questId))
             {
                 continue;
@@ -58,5 +58,42 @@ public class QuestDatabase : ScriptableObject
                 Debug.LogWarning($"Duplicate quest id ignored: {questId}", quest);
             }
         }
+    }
+
+    public Quest[] GetAll()
+    {
+        EnsureIndex();
+        if (byId.Count == 0)
+        {
+            return Array.Empty<Quest>();
+        }
+
+        var list = new List<Quest>(byId.Count);
+        foreach (KeyValuePair<string, Quest> pair in byId)
+        {
+            list.Add(pair.Value);
+        }
+
+        list.Sort((left, right) =>
+            string.Compare(
+                ResolveQuestId(left),
+                ResolveQuestId(right),
+                StringComparison.Ordinal));
+        return list.ToArray();
+    }
+
+    private static string ResolveQuestId(Quest quest)
+    {
+        if (quest == null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(quest.id))
+        {
+            return quest.id;
+        }
+
+        return QuestRuntimeRegistry.GetStableId(quest);
     }
 }

@@ -16,11 +16,17 @@ MonoBehaviour:
   inputEntryList:
     length: 1
     entries:
-    - item: {fileID: 11400000, guid: afec3cb35a1d0ee4b91f1f72f5c53ea7, type: 2}
+    - _item:
+        definition: {fileID: 11400000, guid: afec3cb35a1d0ee4b91f1f72f5c53ea7, type: 2}
+        level: 1
+        enchantmentIds: []
       count: 1
   outputEntryList:
     length: 1
     entries:
-    - item: {fileID: 11400000, guid: c8d22b486e74ef44aa4dbf35ace038a1, type: 2}
+    - _item:
+        definition: {fileID: 11400000, guid: c8d22b486e74ef44aa4dbf35ace038a1, type: 2}
+        level: 1
+        enchantmentIds: []
       count: 1
-  recipeTime: 10
+  recipeTime: 20

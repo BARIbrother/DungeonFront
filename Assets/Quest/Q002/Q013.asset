@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q013
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100013
+  title: "쌍날검?"
+  clientName: "모험가 마울"
+  content: "검 두 개.\n쌍검이 아니야. 앞뒤로 붙여 쓸 거야."
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: cd35974530ec43dd868d334785b7aed2, type: 2}
+        level: 1
+        enchantments: []
+      count: 2
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 1430
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 1430
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

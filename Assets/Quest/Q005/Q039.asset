@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q039
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100039
+  title: "상시 - 백강 세트 납품"
+  clientName: "모험가 협회"
+  content: "순백석은 유연하고, 충격에 잘 견디지만 다른 것에 타격을 주는 능력은 거의 전무합니다. 이 역시 철과 녹여 백강을 만들어 사용합니다. 백강으로 만든 방어구는 초보자가 입을 수 있는 방어구 중 가장 단단합니다."
+  requiredItems:
+    length: 5
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 96c8d59654a94680a5273228d49a7ad5, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 85597423caf2451cb3721b699ddc31c5, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: c1207a99355a4a3083423a44251a2fc5, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 9e9ea039721e4c14a627db8fe4874a8d, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 34ebeeecbbdb4974b24db678cbfe110f, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 71
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 71
+  deadlineDays: 0
+  currentleftDeadlineDays: 0

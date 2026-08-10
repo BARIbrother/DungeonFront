@@ -14,4 +14,7 @@ public class ItemDefinition : ScriptableObject
 
     // UI·사용 규칙 구분용 분류 (Material: 가방 품목, Currency: 골드·명성 등)
     public ItemCategory category;
+
+    // 이 아이템 인스턴스에 붙일 수 있는 인챈트 최대 개수. 0이면 인챈트 불가.
+    public int enchantmentSlotCount;
 }

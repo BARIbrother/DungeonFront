@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q047
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100047
+  title: "대가족"
+  clientName: "모험가 로페"
+  content: "또 저예요. 걱정 마세요, 이번에는 새로운 이름 안 보실 거예요. 2단계 마법을 인챈트한 마나강 갑옷이 필요해요. \n누구한테 줄 거냐고요? 전부 다요. \n로페, 로베, 포레, 베로, 샤티, 세티, 샤테, 세토, 토슈, 슈텐, 샤시, 테스, 네로, 냐리, 코네, 레나, 노키, 캬우, 섀카, 타냐, 리타, 슈노, 유니, 마요, 미키예요. 다 기억나시죠?"
+  requiredItems:
+    length: 6
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+        - attribute: 2
+          form: 0
+      count: 3
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+        - attribute: 6
+          form: 0
+      count: 3
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+        - attribute: 1
+          form: 0
+      count: 3
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 2
+          form: 0
+        - attribute: 1
+          form: 0
+      count: 3
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 2
+          form: 0
+        - attribute: 6
+          form: 0
+      count: 3
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 6
+          form: 0
+        - attribute: 1
+          form: 0
+      count: 3
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 360
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 360
+  deadlineDays: 3
+  currentleftDeadlineDays: 0

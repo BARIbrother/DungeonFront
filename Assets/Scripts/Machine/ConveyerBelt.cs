@@ -29,6 +29,8 @@ public class ConveyerBelt : Machine
 
         flowDirection = direction;
         transform.rotation = Quaternion.Euler(0f, 0f, GetVisualRotationZ(direction));
+        RefreshNeighborMachinesFromGrid();
+        TickManager.Instance?.MarkBeltOrderDirty();
     }
 
     // 시계 방향으로 한 칸 회전한 flowDirection을 반환한다.
@@ -331,19 +333,13 @@ public class ConveyerBelt : Machine
     // 캐시된 upstream 기계 outputPort에서만 당긴다.
     private void TryPullFromUpstreamMachine()
     {
-        RefreshNeighborMachinesFromGrid();
-
         if (upstreamMachine == null)
         {
-            // Debug.Log(
-            //     $"[ConveyerBelt] pull 스킵 @ {GridAnchor} : upstream 기계 없음 "
-            //     + $"(upstreamCoord={upstreamCoord}, flow={flowDirection}, occupant={DescribeOccupant(occupant)}{downstreamHint})");
             return;
         }
 
         if (upstreamMachine.outputPort == null)
         {
-            // Debug.Log($"[ConveyerBelt] pull 스킵 @ {GridAnchor} : upstream outputPort 없음 ({upstreamMachine.name})");
             return;
         }
 
@@ -353,17 +349,12 @@ public class ConveyerBelt : Machine
             cellProgressTicks = 0;
             itemView?.InheritWorldPosition(GetItemWorldPosition(0f));
             itemView?.ApplyItemSprite(taken.item);
-            // Debug.Log($"[ConveyerBelt] pull 성공 @ {GridAnchor} : {DescribeItemEntry(taken)} from {upstreamMachine.name}");
             return;
         }
-
-        // Debug.Log($"[ConveyerBelt] pull 실패 @ {GridAnchor} : outputPort 비어 있음 ({upstreamMachine.name}, slots={upstreamMachine.outputPort.length})");
     }
 
     private bool TryPushToDownstream()
     {
-        RefreshNeighborMachinesFromGrid();
-
         if (downstreamMachine == null)
         {
             return false;

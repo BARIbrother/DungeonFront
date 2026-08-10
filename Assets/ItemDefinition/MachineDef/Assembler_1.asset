@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: "\uC790\uB3D9 \uC81C\uC791\uAE30"
   icon: {fileID: 0}
   category: 0
+  enchantmentSlotCount: 0
   machineTypeId: Assembler
   requiresManualWork: 0
   machinePrefab: {fileID: 8012345678901235001, guid: d2e3f4a5b6c748899011223344556788, type: 3}

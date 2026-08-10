@@ -17,12 +17,14 @@ public class GridTilemapRenderer : MonoBehaviour
 
     [SerializeField] private TileEntry[] tiles;
     [SerializeField] private TreeBorderTileSet treeBorderTileSet;
+    [SerializeField] private TreeZoneStampSet treeZoneStampSet;
     [SerializeField] private Sprite floorSprite;
     [SerializeField] private Sprite[] floorDecorationSprites;
 
     private Dictionary<GridCellType, TileBase> tileLookup;
     private TileBase floorTile;
     private TileBase[] floorDecorationTiles;
+    private ZoneManager zoneManager;
 
     // 타일 lookup을 구성하고 gridManager·tilemap 참조를 찾는다.
     private void Awake()
@@ -47,7 +49,9 @@ public class GridTilemapRenderer : MonoBehaviour
             tilemap = FindAnyObjectByType<Tilemap>();
         }
 
+        zoneManager = FindAnyObjectByType<ZoneManager>();
         EnsureTreeBorderTileSet();
+        EnsureTreeZoneStampSet();
         EnsureFloorTile();
         EnsureFloorDecorationTiles();
     }
@@ -154,6 +158,19 @@ public class GridTilemapRenderer : MonoBehaviour
 #endif
     }
 
+    private void EnsureTreeZoneStampSet()
+    {
+        if (treeZoneStampSet != null)
+        {
+            return;
+        }
+
+#if UNITY_EDITOR
+        treeZoneStampSet = UnityEditor.AssetDatabase.LoadAssetAtPath<TreeZoneStampSet>(
+            "Assets/Data/TreeZoneStampSet.asset");
+#endif
+    }
+
     // GridManager.CellChanged 이벤트를 구독한다.
     private void OnEnable()
     {
@@ -161,6 +178,35 @@ public class GridTilemapRenderer : MonoBehaviour
         {
             gridManager.CellChanged += OnCellChanged;
         }
+
+        if (zoneManager == null)
+        {
+            zoneManager = FindAnyObjectByType<ZoneManager>();
+        }
+
+        if (zoneManager != null)
+        {
+            zoneManager.OnZoneUnlocked -= OnZoneUnlocked;
+            zoneManager.OnZoneUnlocked += OnZoneUnlocked;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (gridManager != null)
+        {
+            gridManager.CellChanged -= OnCellChanged;
+        }
+
+        if (zoneManager != null)
+        {
+            zoneManager.OnZoneUnlocked -= OnZoneUnlocked;
+        }
+    }
+
+    private void OnZoneUnlocked(string zoneId)
+    {
+        RefreshAllTiles();
     }
 
     // 설정 검증 후 전체 타일을 Tilemap에 반영한다.
@@ -183,15 +229,6 @@ public class GridTilemapRenderer : MonoBehaviour
         }
 
         SyncAllTiles();
-    }
-
-    // GridManager.CellChanged 이벤트 구독을 해제한다.
-    private void OnDisable()
-    {
-        if (gridManager != null)
-        {
-            gridManager.CellChanged -= OnCellChanged;
-        }
     }
 
     // Inspector 연결·타일 에셋·Grid Cell Size·위치 정합성을 검사한다.
@@ -337,9 +374,22 @@ public class GridTilemapRenderer : MonoBehaviour
             return ResolveFloorTile(x, y);
         }
 
-        if (cell.Type == GridCellType.Locked && treeBorderTileSet != null)
+        if (cell.Type == GridCellType.Locked)
         {
-            if (TreeBorderTilePicker.TryPick(
+            if (treeZoneStampSet != null
+                && TreeZoneStampPicker.TryPick(
+                    x,
+                    y,
+                    gridManager,
+                    zoneManager,
+                    treeZoneStampSet,
+                    out TileBase stamped))
+            {
+                return stamped;
+            }
+
+            if (treeBorderTileSet != null
+                && TreeBorderTilePicker.TryPick(
                     x,
                     y,
                     gridManager.Width,

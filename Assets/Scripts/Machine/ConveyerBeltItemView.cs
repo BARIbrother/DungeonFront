@@ -13,6 +13,9 @@ public class ConveyerBeltItemView : MonoBehaviour
     private Vector3 displayWorldPosition;
     private Vector3 targetWorldPosition;
     private bool hasVisual;
+    private float cachedTickInterval = 0.1f;
+    private float cachedCellSize = 1f;
+    private bool cachesValid;
 
     public Vector3 CurrentWorldPosition => displayWorldPosition;
 
@@ -23,11 +26,18 @@ public class ConveyerBeltItemView : MonoBehaviour
         belt = GetComponent<ConveyerBelt>();
         beltRenderer = GetComponent<SpriteRenderer>();
         EnsureItemRenderer();
+        RefreshCaches();
     }
 
     private void Update()
     {
         if (!hasVisual || itemRenderer == null)
+        {
+            return;
+        }
+
+        if ((displayWorldPosition - targetWorldPosition).sqrMagnitude
+            <= 0.0000001f)
         {
             return;
         }
@@ -61,6 +71,10 @@ public class ConveyerBeltItemView : MonoBehaviour
         if (wasHidden)
         {
             displayWorldPosition = targetWorldPosition;
+            if (itemRenderer != null)
+            {
+                itemRenderer.transform.position = displayWorldPosition;
+            }
         }
     }
 
@@ -73,6 +87,7 @@ public class ConveyerBeltItemView : MonoBehaviour
         hasVisual = true;
         itemRenderer.enabled = true;
         itemRenderer.gameObject.SetActive(true);
+        itemRenderer.transform.position = displayWorldPosition;
     }
 
     public void ApplyItemSprite(Item item)
@@ -130,12 +145,27 @@ public class ConveyerBeltItemView : MonoBehaviour
 
     private float GetMoveStepPerFrame()
     {
-        float tickInterval = TickManager.Instance != null
+        if (!cachesValid)
+        {
+            RefreshCaches();
+        }
+
+        float segmentLength = cachedCellSize / ConveyerBelt.TicksPerCell;
+        return segmentLength * (Time.deltaTime / cachedTickInterval);
+    }
+
+    private void RefreshCaches()
+    {
+        cachedTickInterval = TickManager.Instance != null
             ? TickManager.Instance.TickInterval
             : 0.1f;
-        float cellSize = belt.GetCellSize();
-        float segmentLength = cellSize / ConveyerBelt.TicksPerCell;
-        return segmentLength * (Time.deltaTime / tickInterval);
+        if (cachedTickInterval <= 0.0001f)
+        {
+            cachedTickInterval = 0.1f;
+        }
+
+        cachedCellSize = belt != null ? belt.GetCellSize() : 1f;
+        cachesValid = true;
     }
 
     private void HideVisual()

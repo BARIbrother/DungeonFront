@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000035
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_war_stained_executor_greatsword
+  inputEntryList:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 22dfdeb4bc5d4f80b2d8197f572913f2, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: be4224bac5af42e9a9e551a00874040c, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 436c3d0492d6445194b655b52abb2a79, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 320

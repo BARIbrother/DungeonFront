@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q044
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100044
+  title: "상시 - 진강 세트 납품"
+  clientName: "대장장이 협회"
+  content: "진강은 칠흑석과 순백석을 합금해서 둘의 장점만을 가져온, 이 던전에서 구할 수 있는 최강의 재료입니다. 보통 용광로로는 못 다루는 재료이니, 이걸 다룰 수 있다는 것은 곧 대장장이의 능력을 보증하는 것이기도 합니다."
+  requiredItems:
+    length: 5
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 71477db677604603bb27921ae3dc92dc, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 78288d2be12145e1a9a5529e38b6b472, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 24e7ce49c2fe42aebed51a05857bf499, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 73a154d56d7b4001b708eb73dc9ac84f, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 690ec40466f141418661642c15fd60f0, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 286
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 286
+  deadlineDays: 0
+  currentleftDeadlineDays: 0

@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q027
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100027
+  title: "롤링 페이퍼"
+  clientName: "모험가 로페"
+  content: "오랜만이에요. 언니들은 다 며칠 전 남편들이랑 단체 여행 갔어요.\n미혼만 남아서 귀찮은 조카들이나 돌보고 있죠.. 에휴.\n스크롤만 좀 주세요. 기본 속성별로 10장씩.\n아, 스크롤에 조카들 이름 좀 적어 주시겠어요? 샤티, 세티, 샤테, 세토, 토슈, 슈텐, 샤시, 테스예요."
+  requiredItems:
+    length: 4
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 1
+          form: 0
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 2
+          form: 0
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 6
+          form: 0
+      count: 10
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 160
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 160
+  deadlineDays: 2
+  currentleftDeadlineDays: 0

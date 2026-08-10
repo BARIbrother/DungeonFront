@@ -21,6 +21,7 @@ using UnityEngine;
 // - id: 필수. 조회 키
 // - recipeTime: 필수. 완성 진행도 목표 (기계 workSpeed 누적)
 // - inputs / outputs: 필수. itemId는 ItemManager에 등록된 id
+// - inputs/outputs[].level: 선택. 기본 1. 레시피 요구·산출 Item 레벨
 public class RecipeManager : MonoBehaviour
 {
     [SerializeField] private ItemManager itemManager;
@@ -156,7 +157,7 @@ public class RecipeManager : MonoBehaviour
 
             list.entries[i] = new ItemEntry
             {
-                item = Item.FromDefinition(itemManager.Get(record.itemId)),
+                item = Item.FromDefinition(itemManager.Get(record.itemId), record.level),
                 count = record.count
             };
         }
@@ -188,6 +189,8 @@ public class RecipeItemJsonRecord
 {
     public string itemId;
     public int count;
+    // 0 이하면 Item.FromDefinition이 1로 보정한다.
+    public int level;
 }
 
 [System.Serializable]

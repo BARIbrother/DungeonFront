@@ -75,7 +75,9 @@ public static class QuestRuntimeRegistry
             return info;
         }
 
-        string fallbackId = quest.name;
+        string fallbackId = !string.IsNullOrWhiteSpace(quest.id)
+            ? quest.id
+            : quest.name;
         info = new QuestRuntimeInfo
         {
             questId = fallbackId,

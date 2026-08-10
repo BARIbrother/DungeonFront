@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q016
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100016
+  title: "돌도 씹어 먹을 나이"
+  clientName: "오우거 A-B-게일"
+  content: "마나강 30개가 먹고 싶,아니, 필요하다. "
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 0ce18cff58ce428895e6f3e2296247a1, type: 2}
+        level: 1
+        enchantments: []
+      count: 30
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 60
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 60
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

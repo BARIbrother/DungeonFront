@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000067
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_greysteel_warhammer
+  inputEntryList:
+    length: 3
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 200e793479e54c43911b4c2b7ddf6d9b, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: cc4f3e3a513d4d3f95f3af2c07ee9601, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 3254931a49424a88b6bfdc3e9442f491, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 2
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 7556374ab0cf4deb9614ac500ec70638, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 160

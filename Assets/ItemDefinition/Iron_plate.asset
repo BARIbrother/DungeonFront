@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Iron_plate
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: iron_plate
-  displayName: Iron plate
+  displayName: 철 판
   icon: {fileID: -7123456789012345678, guid: b7c8d9e0f1a2435566778899aabbcc01, type: 3}
   category: 0

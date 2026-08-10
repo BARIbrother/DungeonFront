@@ -1079,10 +1079,16 @@ MonoBehaviour:
   dict:
   - itemId: iron_ore
     item: {fileID: 11400000, guid: c84e6b264b30d41438d7374cf1e1444e, type: 2}
+  - itemId: iron_ingot
+    item: {fileID: 11400000, guid: afec3cb35a1d0ee4b91f1f72f5c53ea7, type: 2}
+  - itemId: iron_bar
+    item: {fileID: 11400000, guid: afec3cb35a1d0ee4b91f1f72f5c53ea7, type: 2}
   - itemId: iron_plate
     item: {fileID: 11400000, guid: c8d22b486e74ef44aa4dbf35ace038a1, type: 2}
   - itemId: gold
     item: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+  - itemId: fame
+    item: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
   questManager: {fileID: 1511768436}
   allQuests: []
 --- !u!114 &1511768436

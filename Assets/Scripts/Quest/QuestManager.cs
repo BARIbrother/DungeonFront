@@ -125,7 +125,7 @@ public class QuestManager : MonoBehaviour
                 continue;
             }
 
-            inventory.Remove(entry.item.Id, entry.count);
+            inventory.Remove(entry.item, entry.count);
         }
 
         finishQuest(quest);
@@ -186,6 +186,7 @@ public class QuestManager : MonoBehaviour
         }
 
         Quest instance = ScriptableObject.CreateInstance<Quest>();
+        instance.id = source.id;
         instance.title = source.title;
         instance.clientName = source.clientName;
         instance.content = source.content;
@@ -333,7 +334,7 @@ public class QuestManager : MonoBehaviour
                 return false;
             }
 
-            if (inventory.GetCount(entry.item.Id) < entry.count)
+            if (inventory.GetCount(entry.item) < entry.count)
             {
                 return false;
             }

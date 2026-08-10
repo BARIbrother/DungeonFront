@@ -14,11 +14,10 @@ TILESET_SCRIPT_GUID = "cda3efdb3fac5684896bb540994065d6"
 RENDERER_SCRIPT_GUID = "180f4ace787ca6f4dbbdc97ee681e575"
 
 SLICES = [
-    (2, 2, "fill", "fill2x2Sprites"),
-    (3, 4, "edge_left", "edgeLeft3x4Sprites"),
-    (3, 4, "edge_right", "edgeRight3x4Sprites"),
-    (2, 4, "fringe_left", "fringeLeft2x4Sprites"),
-    (2, 4, "fringe_right", "fringeRight2x4Sprites"),
+    (2, 2, "mid", "mid2x2Sprites"),
+    (1, 4, "side_left", "sideLeft1x4Sprites"),
+    (1, 4, "side_right", "sideRight1x4Sprites"),
+    (16, 4, "bottom", "bottom16x4Sprites"),
 ]
 
 

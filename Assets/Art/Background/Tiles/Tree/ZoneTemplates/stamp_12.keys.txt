@@ -1,0 +1,16 @@
+side_left_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 side_right_0_0
+side_left_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 side_right_0_1
+side_left_0_2 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 side_right_0_2
+side_left_0_3 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 side_right_0_3
+side_left_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 side_right_0_0
+side_left_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 side_right_0_1
+side_left_0_2 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 side_right_0_2
+side_left_0_3 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 side_right_0_3
+side_left_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 side_right_0_0
+side_left_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 side_right_0_1
+side_left_0_2 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 side_right_0_2
+side_left_0_3 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 side_right_0_3
+side_left_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 side_right_0_0
+side_left_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 side_right_0_1
+side_left_0_2 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 side_right_0_2
+side_left_0_3 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 side_right_0_3

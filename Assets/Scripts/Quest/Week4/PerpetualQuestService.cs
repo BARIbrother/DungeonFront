@@ -30,7 +30,7 @@ public class PerpetualQuestService : MonoBehaviour
                 continue;
             }
 
-            int possible = inventory.GetCount(requirement.item.Id) / requirement.count;
+            int possible = inventory.GetCount(requirement.item) / requirement.count;
             maximum = Mathf.Min(maximum, possible);
         }
 
@@ -54,7 +54,7 @@ public class PerpetualQuestService : MonoBehaviour
         {
             if (requirement?.item != null && requirement.count > 0)
             {
-                inventory.Remove(requirement.item.Id, requirement.count * multiplier);
+                inventory.Remove(requirement.item, requirement.count * multiplier);
             }
         }
 

@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff78e7977d68e6e4c92531d3559c200b, type: 3}
+  m_Name: WoodLog
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  id: wood_log
+  displayName: 나무 원목
+  icon: {fileID: 7121491342221841053, guid: 488f30d34c9c07243bef267d4a69c46e, type: 3}
+  category: 0

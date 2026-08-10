@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q010
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100010
+  title: "새로운 지평선"
+  clientName: "모험가 알렉"
+  content: "지금껏 레벨 1 광물만 쓰고 있었던 거야?! 네 실력에 그건 너무 아까운데, 이참에 한 번 도전해 봐! 제작 속도 따위, 느려도 괜찮아. 딱 하나만 만들어 주면 충분해!"
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: afec3cb35a1d0ee4b91f1f72f5c53ea7, type: 2}
+        level: 2
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 5
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 5
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

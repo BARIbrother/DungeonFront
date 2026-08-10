@@ -483,12 +483,14 @@ public abstract class Machine : MonoBehaviour
 
     private void LogPortContents()
     {
+#if UNITY_EDITOR
         var log = new StringBuilder();
         log.AppendLine("InputPort:");
         AppendPortLines(log, inputPort);
         log.AppendLine("OutputPort:");
         AppendPortLines(log, outputPort);
         Debug.Log(log.ToString());
+#endif
     }
 
     private static void AppendPortLines(StringBuilder log, ItemEntryList port)

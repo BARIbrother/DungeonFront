@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff78e7977d68e6e4c92531d3559c200b, type: 3}
+  m_Name: DarksteelPlate
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  id: darksteel_plate
+  displayName: 흑강 판
+  icon: {fileID: 1500300692706435323, guid: 8fa6baf9d90a9654f9d456e5a6c08598, type: 3}
+  category: 0

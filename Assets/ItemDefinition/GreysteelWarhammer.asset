@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff78e7977d68e6e4c92531d3559c200b, type: 3}
+  m_Name: GreysteelWarhammer
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  id: greysteel_warhammer
+  displayName: 진강 전투 망치
+  icon: {fileID: -4971789122797821252, guid: fd4cef1c09da7614fb2a1b0be6478ec8, type: 3}
+  category: 0

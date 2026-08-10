@@ -19,6 +19,7 @@ public class InventoryUI : MonoBehaviour
     private ItemManager itemManager;
     private PlayerInventory subscribedInventory;
     private readonly List<GameObject> itemSlots = new();
+    private readonly List<GameObject> itemSlotPool = new();
     private bool isOpen;
 
     public static bool IsOpen => instance != null && instance.isOpen;
@@ -194,19 +195,29 @@ public class InventoryUI : MonoBehaviour
             itemManager = FindAnyObjectByType<ItemManager>();
         }
 
-        List<KeyValuePair<string, int>> owned = inventory.GetOwnedItemCounts();
-        owned.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
+        List<ItemEntry> owned = inventory.GetOwnedItemEntries();
+        owned.Sort((a, b) =>
+        {
+            string idA = a?.item?.Id ?? string.Empty;
+            string idB = b?.item?.Id ?? string.Empty;
+            int byId = string.CompareOrdinal(idA, idB);
+            if (byId != 0)
+            {
+                return byId;
+            }
+
+            return a.count.CompareTo(b.count);
+        });
 
         for (int i = 0; i < owned.Count; i++)
         {
-            string itemId = owned[i].Key;
-            int count = owned[i].Value;
-            if (IsCurrencyItem(itemId))
+            ItemEntry entry = owned[i];
+            if (entry?.item == null || entry.count <= 0 || IsCurrencyItem(entry.item.Id))
             {
                 continue;
             }
 
-            CreateItemSlot(itemId, count);
+            CreateItemSlot(entry.item, entry.count);
         }
 
         // 기계는 종류별로 묶어 같은 그리드에 표시한다. (B키 배치 소모 대상)
@@ -249,23 +260,11 @@ public class InventoryUI : MonoBehaviour
             ? definition.displayName
             : definition.id;
 
-        var slotObject = new GameObject($"Machine_{definition.id}");
-        slotObject.transform.SetParent(itemGridRect, false);
-
-        var slotImage = slotObject.AddComponent<Image>();
+        GameObject slotObject = RentItemSlot($"Machine_{definition.id}");
+        Image slotImage = slotObject.GetComponent<Image>();
         slotImage.color = new Color(0.16f, 0.2f, 0.28f, 1f);
 
-        var iconObject = new GameObject("Icon");
-        iconObject.transform.SetParent(slotObject.transform, false);
-        var iconRect = iconObject.AddComponent<RectTransform>();
-        iconRect.anchorMin = new Vector2(0.5f, 0.55f);
-        iconRect.anchorMax = new Vector2(0.5f, 0.55f);
-        iconRect.pivot = new Vector2(0.5f, 0.5f);
-        iconRect.sizeDelta = new Vector2(48f, 48f);
-
-        var iconImage = iconObject.AddComponent<Image>();
-        iconImage.preserveAspect = true;
-        iconImage.raycastTarget = false;
+        Image iconImage = slotObject.transform.Find("Icon").GetComponent<Image>();
         Sprite icon = ItemIconResolver.Resolve(definition);
         if (icon != null)
         {
@@ -274,18 +273,11 @@ public class InventoryUI : MonoBehaviour
         }
         else
         {
+            iconImage.sprite = null;
             iconImage.color = new Color(0.4f, 0.55f, 0.75f, 1f);
         }
 
-        var countObject = new GameObject("Count");
-        countObject.transform.SetParent(slotObject.transform, false);
-        var countRect = countObject.AddComponent<RectTransform>();
-        countRect.anchorMin = new Vector2(0f, 0f);
-        countRect.anchorMax = new Vector2(1f, 0.35f);
-        countRect.offsetMin = new Vector2(4f, 2f);
-        countRect.offsetMax = new Vector2(-4f, -2f);
-
-        var countText = countObject.AddComponent<Text>();
+        Text countText = slotObject.transform.Find("Count").GetComponent<Text>();
         countText.font = uiFont;
         countText.fontSize = 14;
         countText.alignment = TextAnchor.MiddleCenter;
@@ -293,48 +285,28 @@ public class InventoryUI : MonoBehaviour
         countText.text = $"{label}\nx{count}";
         countText.horizontalOverflow = HorizontalWrapMode.Wrap;
         countText.verticalOverflow = VerticalWrapMode.Truncate;
-
-        itemSlots.Add(slotObject);
     }
 
-    private void CreateItemSlot(string itemId, int count)
+    private void CreateItemSlot(Item item, int count)
     {
-        ItemDefinition definition = null;
-        if (itemManager != null)
-        {
-            definition = itemManager.Get(itemId);
-        }
-
-        if (definition == null)
-        {
-            PlayerInventory inventory = PlayerInventory.Instance != null
-                ? PlayerInventory.Instance
-                : FindAnyObjectByType<PlayerInventory>();
-            definition = inventory != null ? inventory.GetDefinition(itemId) : null;
-        }
-
-        if (definition != null && definition.category == ItemCategory.Currency)
+        if (item?.definition == null || count <= 0)
         {
             return;
         }
 
-        var slotObject = new GameObject($"Item_{itemId}");
-        slotObject.transform.SetParent(itemGridRect, false);
+        if (item.Category == ItemCategory.Currency)
+        {
+            return;
+        }
 
-        var slotImage = slotObject.AddComponent<Image>();
+        ItemDefinition definition = item.definition;
+        string itemId = item.Id;
+
+        GameObject slotObject = RentItemSlot($"Item_{itemId}");
+        Image slotImage = slotObject.GetComponent<Image>();
         slotImage.color = new Color(0.18f, 0.18f, 0.22f, 1f);
 
-        var iconObject = new GameObject("Icon");
-        iconObject.transform.SetParent(slotObject.transform, false);
-        var iconRect = iconObject.AddComponent<RectTransform>();
-        iconRect.anchorMin = new Vector2(0.5f, 0.55f);
-        iconRect.anchorMax = new Vector2(0.5f, 0.55f);
-        iconRect.pivot = new Vector2(0.5f, 0.5f);
-        iconRect.sizeDelta = new Vector2(48f, 48f);
-
-        var iconImage = iconObject.AddComponent<Image>();
-        iconImage.preserveAspect = true;
-        iconImage.raycastTarget = false;
+        Image iconImage = slotObject.transform.Find("Icon").GetComponent<Image>();
         Sprite icon = ItemIconResolver.Resolve(definition);
         if (icon == null && !string.IsNullOrEmpty(itemId))
         {
@@ -348,8 +320,56 @@ public class InventoryUI : MonoBehaviour
         }
         else
         {
+            iconImage.sprite = null;
             iconImage.color = new Color(0.35f, 0.35f, 0.4f, 1f);
         }
+
+        Text countText = slotObject.transform.Find("Count").GetComponent<Text>();
+        countText.font = uiFont;
+        countText.fontSize = 14;
+        countText.alignment = TextAnchor.MiddleCenter;
+        countText.color = Color.white;
+        countText.text = $"x{count}";
+        countText.horizontalOverflow = HorizontalWrapMode.Overflow;
+        countText.verticalOverflow = VerticalWrapMode.Overflow;
+    }
+
+    private GameObject RentItemSlot(string slotName)
+    {
+        GameObject slotObject;
+        if (itemSlotPool.Count > 0)
+        {
+            int last = itemSlotPool.Count - 1;
+            slotObject = itemSlotPool[last];
+            itemSlotPool.RemoveAt(last);
+            slotObject.SetActive(true);
+        }
+        else
+        {
+            slotObject = BuildItemSlotShell();
+        }
+
+        slotObject.name = slotName;
+        slotObject.transform.SetParent(itemGridRect, false);
+        itemSlots.Add(slotObject);
+        return slotObject;
+    }
+
+    private GameObject BuildItemSlotShell()
+    {
+        var slotObject = new GameObject("Slot");
+        slotObject.AddComponent<Image>();
+
+        var iconObject = new GameObject("Icon");
+        iconObject.transform.SetParent(slotObject.transform, false);
+        var iconRect = iconObject.AddComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0.5f, 0.55f);
+        iconRect.anchorMax = new Vector2(0.5f, 0.55f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.sizeDelta = new Vector2(48f, 48f);
+        var iconImage = iconObject.AddComponent<Image>();
+        iconImage.preserveAspect = true;
+        iconImage.raycastTarget = false;
 
         var countObject = new GameObject("Count");
         countObject.transform.SetParent(slotObject.transform, false);
@@ -358,17 +378,9 @@ public class InventoryUI : MonoBehaviour
         countRect.anchorMax = new Vector2(1f, 0.35f);
         countRect.offsetMin = new Vector2(4f, 2f);
         countRect.offsetMax = new Vector2(-4f, -2f);
+        countObject.AddComponent<Text>();
 
-        var countText = countObject.AddComponent<Text>();
-        countText.font = uiFont;
-        countText.fontSize = 14;
-        countText.alignment = TextAnchor.MiddleCenter;
-        countText.color = Color.white;
-        countText.text = $"x{count}";
-        countText.horizontalOverflow = HorizontalWrapMode.Overflow;
-        countText.verticalOverflow = VerticalWrapMode.Overflow;
-
-        itemSlots.Add(slotObject);
+        return slotObject;
     }
 
     private static bool IsCurrencyItem(string itemId)
@@ -382,10 +394,14 @@ public class InventoryUI : MonoBehaviour
     {
         for (int i = 0; i < itemSlots.Count; i++)
         {
-            if (itemSlots[i] != null)
+            GameObject slot = itemSlots[i];
+            if (slot == null)
             {
-                Destroy(itemSlots[i]);
+                continue;
             }
+
+            slot.SetActive(false);
+            itemSlotPool.Add(slot);
         }
 
         itemSlots.Clear();

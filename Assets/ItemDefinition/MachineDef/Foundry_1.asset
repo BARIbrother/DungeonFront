@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: "\uC8FC\uC870\uC18C"
   icon: {fileID: 0}
   category: 0
+  enchantmentSlotCount: 0
   machineTypeId: Foundry
   requiresManualWork: 0
   machinePrefab: {fileID: 8012345678901235001, guid: a11b22c33d44e55f6677889900aabb05, type: 3}

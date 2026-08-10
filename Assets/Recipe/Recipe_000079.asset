@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000079
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_altar
+  inputEntryList:
+    length: 3
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 3e1180eb04d4488eae10cf0d081c1023, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 8
+    - _item:
+        definition: {fileID: 11400000, guid: eb1d587fd45f4861b4788cf8de6ca83d, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 2
+    - _item:
+        definition: {fileID: 11400000, guid: 7d2040d12b4a4960b8e4807d627b1be3, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 6a004be1746c41b5bae66628256f0cd0, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 320

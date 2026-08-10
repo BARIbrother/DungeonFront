@@ -151,7 +151,7 @@ public class MachineRecipeUI : MonoBehaviour
             : FindAnyObjectByType<PlayerInventory>();
         if (subscribedInventory != null)
         {
-            subscribedInventory.OnItemsChanged += RebuildContent;
+            subscribedInventory.OnItemsChanged += HandleInventoryChanged;
         }
     }
 
@@ -159,8 +159,16 @@ public class MachineRecipeUI : MonoBehaviour
     {
         if (subscribedInventory != null)
         {
-            subscribedInventory.OnItemsChanged -= RebuildContent;
+            subscribedInventory.OnItemsChanged -= HandleInventoryChanged;
             subscribedInventory = null;
+        }
+    }
+
+    private void HandleInventoryChanged()
+    {
+        if (modalRoot != null && modalRoot.activeSelf && targetMachine != null)
+        {
+            RebuildContent();
         }
     }
 
@@ -221,13 +229,7 @@ public class MachineRecipeUI : MonoBehaviour
             PlayerInventory inventory = GetInventory();
             if (inventory != null)
             {
-                List<KeyValuePair<string, int>> owned = inventory.GetOwnedItemCounts();
-                hash = hash * 31 + owned.Count;
-                for (int i = 0; i < owned.Count; i++)
-                {
-                    hash = hash * 31 + (owned[i].Key != null ? owned[i].Key.GetHashCode() : 0);
-                    hash = hash * 31 + owned[i].Value;
-                }
+                hash = hash * 31 + inventory.ComputeOwnedItemsHash();
             }
 
             return hash;
@@ -251,11 +253,36 @@ public class MachineRecipeUI : MonoBehaviour
                 continue;
             }
 
-            hash = hash * 31 + (entry.item.Id != null ? entry.item.Id.GetHashCode() : 0);
+            hash = hash * 31 + HashItemState(entry.item);
             hash = hash * 31 + entry.count;
         }
 
         return hash;
+    }
+
+    private static int HashItemState(Item item)
+    {
+        if (item == null)
+        {
+            return 0;
+        }
+
+        unchecked
+        {
+            int hash = item.Id != null ? item.Id.GetHashCode() : 0;
+            hash = hash * 31 + item.ResolvedLevel;
+            IReadOnlyList<Enchantment> enchantments = item.Enchantments;
+            int count = enchantments != null ? enchantments.Count : 0;
+            hash = hash * 31 + count;
+            for (int i = 0; i < count; i++)
+            {
+                Enchantment enchantment = enchantments[i];
+                hash = hash * 31 + (int)enchantment.attribute;
+                hash = hash * 31 + (int)enchantment.form;
+            }
+
+            return hash;
+        }
     }
 
     // 레시피·포트 ItemDefinition을 ItemManager에 올려 아이콘 조회가 되게 한다.
@@ -922,7 +949,7 @@ public class MachineRecipeUI : MonoBehaviour
             return;
         }
 
-        List<KeyValuePair<string, int>> owned = inventory.GetOwnedItemCounts();
+        List<ItemEntry> owned = inventory.GetOwnedItemEntries();
         if (owned.Count == 0)
         {
             return;
@@ -942,20 +969,22 @@ public class MachineRecipeUI : MonoBehaviour
         grid.childAlignment = TextAnchor.UpperLeft;
 
         bool any = false;
-        foreach (KeyValuePair<string, int> pair in owned)
+        for (int i = 0; i < owned.Count; i++)
         {
-            Item item = ResolveItem(pair.Key);
-            if (item == null || item.Category == ItemCategory.Currency)
+            ItemEntry ownedEntry = owned[i];
+            Item item = ownedEntry?.item;
+            if (item == null || item.Category == ItemCategory.Currency || ownedEntry.count <= 0)
             {
                 continue;
             }
 
             any = true;
             Item depositItem = item;
+            int displayCount = ownedEntry.count;
             CreateItemIconButton(
                 rowObject.transform,
                 depositItem,
-                pair.Value,
+                displayCount,
                 new Color(0.28f, 0.3f, 0.4f, 1f),
                 () => TryDepositOne(depositItem));
         }

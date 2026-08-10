@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Iron_ore
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: iron_ore
-  displayName: Iron ore
+  displayName: 철광석
   icon: {fileID: -1391671487018178756, guid: 8de1d99a7a6d952439cbbbc1951915fe, type: 3}
   category: 0

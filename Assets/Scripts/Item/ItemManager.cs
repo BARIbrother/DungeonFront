@@ -17,9 +17,10 @@ using UnityEngine;
     // - id: 필수. 인벤토리·조회 키
     // - displayName: 필수
     // - iconPath: 선택. Resources 폴더 기준 경로
-    // - category: 선택. 0=Material, 1=Currency (생략 시 0)
-    public class ItemManager : MonoBehaviour
-    {
+// - category: 선택. 0=Material, 1=Currency (생략 시 0)
+// - enchantmentSlotCount: 선택. 인챈트 슬롯 수 (생략 시 0)
+public class ItemManager : MonoBehaviour
+{
         // 에디터에서 미리 만든 아이템 SO 목록
         [SerializeField] private ItemDefinition[] editorItems;
 
@@ -127,6 +128,7 @@ using UnityEngine;
             item.id = record.id;
             item.displayName = record.displayName;
             item.category = record.category;
+            item.enchantmentSlotCount = record.enchantmentSlotCount;
 
             if (!string.IsNullOrEmpty(record.iconPath))
             {
@@ -145,6 +147,7 @@ public class ItemJsonRecord
     public string displayName;
     public string iconPath;
     public ItemCategory category;
+    public int enchantmentSlotCount;
 }
 
 [System.Serializable]

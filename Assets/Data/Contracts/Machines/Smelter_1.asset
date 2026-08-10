@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: "\uC6A9\uAD11\uB85C"
   icon: {fileID: 0}
   category: 0
+  enchantmentSlotCount: 0
   machineTypeId: Smelter
   requiresManualWork: 0
   machinePrefab: {fileID: 9012345678901234001, guid: a11b22c33d44e55f6677889900aabb08, type: 3}

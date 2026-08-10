@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q018
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100018
+  title: "용도 외 사용"
+  clientName: "사냥꾼 아나스타샤"
+  content: "복장이 더워 보인다고? 그야 난 페레즈 출신이니까.\n화염 스크롤 부탁하지. 되도록 많이. 이게 난방에 아주 좋거든."
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments: []
+      count: 30
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 120
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 120
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q041
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100041
+  title: "상시 - 2레벨 철 갑옷 세트 납품"
+  clientName: "대장장이 협회"
+  content: "갑옷의 레벨은 들어간 재료 중 가장 낮은 레벨의 재료를 따라갑니다. 실수로 레벨 1 재료가 섞여 들어가지 않게 조심하면서 생산 라인을 구축하십시오."
+  requiredItems:
+    length: 4
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 53423af3ce834413a989ef99b750ac56, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 306cbfdaeadb4e02a080797cdea1a063, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 4f2e47ee59684b84bdf69d9364561037, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 9c57b85b927441f985470c450efe238a, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 28
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 28
+  deadlineDays: 0
+  currentleftDeadlineDays: 0

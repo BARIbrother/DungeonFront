@@ -167,10 +167,15 @@ public class FactoryStoryHooks : MonoBehaviour
 
     private void HandleNewGame()
     {
-        firedStoryIds.Clear();
+        ResetFiredStoryIds();
         // NewGame은 SetPhase를 거치지 않으므로 Prepare 진입 Bus 이벤트를 직접 발행한다.
         StoryEventBus.Raise("OnPrepareEntered:1");
         TryRaiseDay1Opening();
+    }
+
+    public void ResetFiredStoryIds()
+    {
+        firedStoryIds.Clear();
     }
 
     private void HandlePhaseChanged(GamePhase phase)

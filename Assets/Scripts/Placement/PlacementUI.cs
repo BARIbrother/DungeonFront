@@ -19,6 +19,7 @@ public class PlacementUI : MonoBehaviour
     private RectTransform contentRect;
     private Image pickupButtonImage;
     private readonly List<GameObject> machineButtons = new();
+    private readonly List<GameObject> machineButtonPool = new();
     private bool isVisible;
     private float targetAnchoredY;
     private float slideHeight;
@@ -272,19 +273,56 @@ public class PlacementUI : MonoBehaviour
             return;
         }
 
-        var buttonObject = new GameObject($"Machine_{definition.id}");
-        buttonObject.transform.SetParent(contentRect, false);
-
-        var buttonRect = buttonObject.AddComponent<RectTransform>();
-        buttonRect.sizeDelta = new Vector2(96f, 96f);
-
-        var buttonImage = buttonObject.AddComponent<Image>();
+        GameObject buttonObject = RentMachineButton($"Machine_{definition.id}");
+        Image buttonImage = buttonObject.GetComponent<Image>();
         bool isSelected = definition.id == selectedDefinitionId;
-        buttonImage.color = isSelected ? new Color(0.35f, 0.55f, 0.85f, 1f) : new Color(0.2f, 0.22f, 0.28f, 1f);
+        buttonImage.color = isSelected
+            ? new Color(0.35f, 0.55f, 0.85f, 1f)
+            : new Color(0.2f, 0.22f, 0.28f, 1f);
 
-        var button = buttonObject.AddComponent<Button>();
+        Button button = buttonObject.GetComponent<Button>();
+        button.onClick.RemoveAllListeners();
         string definitionId = definition.id;
         button.onClick.AddListener(() => placementController.SelectMachineDefinition(definitionId));
+
+        Text label = buttonObject.transform.Find("Label").GetComponent<Text>();
+        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        label.fontSize = 14;
+        label.alignment = TextAnchor.MiddleCenter;
+        label.color = Color.white;
+        label.text = $"{definition.displayName}\nx{count}";
+        label.horizontalOverflow = HorizontalWrapMode.Wrap;
+        label.verticalOverflow = VerticalWrapMode.Truncate;
+    }
+
+    private GameObject RentMachineButton(string buttonName)
+    {
+        GameObject buttonObject;
+        if (machineButtonPool.Count > 0)
+        {
+            int last = machineButtonPool.Count - 1;
+            buttonObject = machineButtonPool[last];
+            machineButtonPool.RemoveAt(last);
+            buttonObject.SetActive(true);
+        }
+        else
+        {
+            buttonObject = BuildMachineButtonShell();
+        }
+
+        buttonObject.name = buttonName;
+        buttonObject.transform.SetParent(contentRect, false);
+        machineButtons.Add(buttonObject);
+        return buttonObject;
+    }
+
+    private GameObject BuildMachineButtonShell()
+    {
+        var buttonObject = new GameObject("MachineButton");
+        var buttonRect = buttonObject.AddComponent<RectTransform>();
+        buttonRect.sizeDelta = new Vector2(96f, 96f);
+        buttonObject.AddComponent<Image>();
+        buttonObject.AddComponent<Button>();
 
         var labelObject = new GameObject("Label");
         labelObject.transform.SetParent(buttonObject.transform, false);
@@ -293,27 +331,28 @@ public class PlacementUI : MonoBehaviour
         labelRect.anchorMax = Vector2.one;
         labelRect.offsetMin = new Vector2(4f, 4f);
         labelRect.offsetMax = new Vector2(-4f, -4f);
+        labelObject.AddComponent<Text>();
 
-        var label = labelObject.AddComponent<Text>();
-        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        label.fontSize = 14;
-        label.alignment = TextAnchor.MiddleCenter;
-        label.color = Color.white;
-        label.text = $"{definition.displayName}\nx{count}";
-        label.horizontalOverflow = HorizontalWrapMode.Wrap;
-        label.verticalOverflow = VerticalWrapMode.Truncate;
-
-        machineButtons.Add(buttonObject);
+        return buttonObject;
     }
 
     private void ClearMachineButtons()
     {
         foreach (GameObject buttonObject in machineButtons)
         {
-            if (buttonObject != null)
+            if (buttonObject == null)
             {
-                Destroy(buttonObject);
+                continue;
             }
+
+            Button button = buttonObject.GetComponent<Button>();
+            if (button != null)
+            {
+                button.onClick.RemoveAllListeners();
+            }
+
+            buttonObject.SetActive(false);
+            machineButtonPool.Add(buttonObject);
         }
 
         machineButtons.Clear();

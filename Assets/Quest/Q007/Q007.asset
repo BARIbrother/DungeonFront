@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q007
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100007
+  title: "다섯 번째 시험"
+  clientName: "감사관 이브"
+  content: "돈으로 살 수 없는 기계도 존재합니다. 특히나 이런 거대한 기계는 현장에서 만들어 쓰는 수밖에 없죠. 직접 주조소로 구조물을 만들 수 있다면 어엿한 대장장이로서 1인분을 할 준비를 마친 거네요."
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 636a8c3e8ac344a2a1c59ca3fa47d0c3, type: 2}
+        level: 1
+        enchantments: []
+      count: 5
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 110
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 110
+  deadlineDays: 3
+  currentleftDeadlineDays: 0

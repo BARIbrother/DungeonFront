@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: "\uCC3D\uACE0"
   icon: {fileID: 0}
   category: 0
+  enchantmentSlotCount: 0
   machineTypeId: Warehouse
   requiresManualWork: 1
   machinePrefab: {fileID: 8012345678901235001, guid: a11b22c33d44e55f6677889900aabb06, type: 3}

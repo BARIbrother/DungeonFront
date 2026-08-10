@@ -1,0 +1,16 @@
+mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0
+mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1
+mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0
+mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1
+mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0
+mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1
+mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0
+mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1
+mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0
+mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1
+mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0
+mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1
+mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0
+mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1
+mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0 mid_0_0 mid_1_0
+mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1 mid_0_1 mid_1_1

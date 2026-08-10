@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000031
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_ritual_scroll
+  inputEntryList:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 0503132f6b58408584ba8928b29f66f5, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 6a763d74217e499bacafd06d27848d48, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1000
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: f6c45db38b714b7fbff31a1b5b2c12fe, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 80

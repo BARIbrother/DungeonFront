@@ -39,6 +39,9 @@ public class GridManager : MonoBehaviour
     // 배치된 기계 (조회·추후 제거용)
     private List<Machine> placedMachines;
 
+    // footprint 셀 → Machine. GetMachineAt O(1).
+    private readonly Dictionary<Vector2Int, Machine> machineByCoord = new();
+
     public int Width => width;
     public int Height => height;
     public GridPlane Plane => plane;
@@ -169,9 +172,14 @@ public class GridManager : MonoBehaviour
         return GetCell(coord).Occupant;
     }
 
-    // coord에 배치된 Machine을 반환한다. occupant가 없으면 footprint로도 찾는다.
+    // coord에 배치된 Machine을 반환한다. occupant가 없으면 footprint 인덱스로도 찾는다.
     public Machine GetMachineAt(Vector2Int coord)
     {
+        if (machineByCoord.TryGetValue(coord, out Machine indexed) && indexed != null)
+        {
+            return indexed;
+        }
+
         GameObject occupant = GetOccupantAt(coord);
         if (occupant != null)
         {
@@ -179,20 +187,6 @@ public class GridManager : MonoBehaviour
             if (occupantMachine != null)
             {
                 return occupantMachine;
-            }
-        }
-
-        for (int i = 0; i < placedMachines.Count; i++)
-        {
-            Machine machine = placedMachines[i];
-            if (machine == null)
-            {
-                continue;
-            }
-
-            if (FootprintContainsCoord(machine.GridAnchor, machine.GetFootprintSize(), coord))
-            {
-                return machine;
             }
         }
 
@@ -511,6 +505,7 @@ public class GridManager : MonoBehaviour
         }
 
         ClearFootprint(anchor, footprintSize, clearedKind);
+        UnregisterMachineCoords(machine, anchor, footprintSize);
         placedMachines.Remove(machine);
         RefreshBeltNeighborsAtFootprint(anchor, footprintSize);
         TickManager.Instance?.UnregisterMachine(machine);
@@ -577,6 +572,7 @@ public class GridManager : MonoBehaviour
         TickManager.Instance?.RegisterMachine(machine);
 
         OccupyFootprint(anchor, footprintSize, instance, machine.GetOccupantKind());
+        RegisterMachineCoords(machine, anchor, footprintSize);
         RefreshBeltNeighborsForMachine(machine);
 
         return true;
@@ -688,6 +684,38 @@ public class GridManager : MonoBehaviour
                 cell.Occupant = occupant;
                 cell.OccupantKind = occupantKind;
                 SetCell(coord, cell);
+            }
+        }
+    }
+
+    private void RegisterMachineCoords(Machine machine, Vector2Int anchor, Vector2Int footprintSize)
+    {
+        if (machine == null)
+        {
+            return;
+        }
+
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                machineByCoord[new Vector2Int(anchor.x + x, anchor.y + y)] = machine;
+            }
+        }
+    }
+
+    private void UnregisterMachineCoords(Machine machine, Vector2Int anchor, Vector2Int footprintSize)
+    {
+        for (int x = 0; x < footprintSize.x; x++)
+        {
+            for (int y = 0; y < footprintSize.y; y++)
+            {
+                Vector2Int coord = new Vector2Int(anchor.x + x, anchor.y + y);
+                if (machineByCoord.TryGetValue(coord, out Machine mapped)
+                    && mapped == machine)
+                {
+                    machineByCoord.Remove(coord);
+                }
             }
         }
     }

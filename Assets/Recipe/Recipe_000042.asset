@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000042
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_darksteel_helmet
+  inputEntryList:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 53423af3ce834413a989ef99b750ac56, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 131f879cfe6a4c0993f911d6ab5f02a9, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 3
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 8a5078c62ef84991bfaa36dfee3dbf49, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 80

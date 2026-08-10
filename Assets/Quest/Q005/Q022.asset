@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q022
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100022
+  title: "모두 고려하기"
+  clientName: "모험가 Ko.Y"
+  content: "아, 안녕하세요. 여기를 지난 며칠 간 지켜봤는데 다행히 바가지 씌우거나 그런 데는 아닌 것 같아서.. 주문할게요. 말로 하면 잘 못 알아들을 수도 있으니까 써 온 걸 드릴게요. 이대로 주시면 돼요."
+  requiredItems:
+    length: 4
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: ae58a7a6ca9d41e7ad38284c27feb4ab, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 2dfaefc873a943f78e85cafa4915330b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 2dfaefc873a943f78e85cafa4915330b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 1
+          form: 0
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 59
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 59
+  deadlineDays: 2
+  currentleftDeadlineDays: 0

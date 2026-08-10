@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q031
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100031
+  title: "겉모습"
+  clientName: "대장장이 클로"
+  content: "어이, 신참. 혹시나 노파심에 말하는 건데, 흑마법석으로 '흑마법석 검'같은 걸 만들 생각은 추호도 하지 마. 그런 건 그저 장식용일 뿐이야. 흑마법석은 자체 내구도가 너무 약해 단일 재료로 검을 만들면 쉽게 부러져 버린다네. \n장점이라곤 칠흑같은 빛, 마법석 검과는 결이 다른 메탈릭한 금속음, 검날의 중간 중간 보이는 새빨간 마력선밖에 없다네.\n...말하니까 하나 갖고 싶어졌네. 재료만 만들어 줘."
+  requiredItems:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: d96506fa011047e08edd08ea0f8f02c1, type: 2}
+        level: 1
+        enchantments: []
+      count: 4
+    - _item:
+        definition: {fileID: 11400000, guid: 37b9c5794f524d16b82b99b489184574, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 69
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 69
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

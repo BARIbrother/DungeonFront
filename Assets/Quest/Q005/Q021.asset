@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q021
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100021
+  title: "흑과 백"
+  clientName: "모험가 잭"
+  content: "흑강 헬멧, 백강 흉갑, 흑강 각반, 백강 부츠요.\n균형을 중시해, 누가 누구에게 집어삼켜지지 않도록.."
+  requiredItems:
+    length: 4
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 8a5078c62ef84991bfaa36dfee3dbf49, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: c1207a99355a4a3083423a44251a2fc5, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 9e4740dfbc6048b49aad26080c0aaea2, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 34ebeeecbbdb4974b24db678cbfe110f, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 64
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 64
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

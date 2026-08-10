@@ -797,6 +797,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 180f4ace787ca6f4dbbdc97ee681e575, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridTilemapRenderer
+  treeZoneStampSet: {fileID: 11400000, guid: fbb58d9ff9064ccf817ecc1c2a693e86, type: 2}
   floorDecorationSprites:
   - {fileID: 21300000, guid: 885f8e13834c450798b523064cc72c8f, type: 3}
   - {fileID: 21300000, guid: 2f0c77d58d8b46a791e613a652cb784b, type: 3}
@@ -808,7 +809,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 52b072b417934b1ea886d70b4b191286, type: 3}
 
   floorSprite: {fileID: 21300000, guid: e55db70bc0e34725bc9e7eb9f58e5795, type: 3}
-  treeBorderTileSet: {fileID: 11400000, guid: 6e300fc223b24aa3899e01aa6772f014, type: 2}
+  treeBorderTileSet: {fileID: 11400000, guid: d7c99f7d457d47f48b77211ecb93d872, type: 2}
   gridManager: {fileID: 2133904198}
   tilemap: {fileID: 1130709040}
   tiles:

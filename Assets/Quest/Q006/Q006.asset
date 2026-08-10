@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q006
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100006
+  title: "네 번째 시험"
+  clientName: "감사관 이브"
+  content: "높은 레벨의 광물을 다룰 수 있게 된다는 건 그만큼 정밀하고 섬세한 실력을 갖춰야 한다는 뜻입니다. 마하르 님의 격언, '큰 망치에는 큰 책임이 따른다'처럼요."
+  requiredItems:
+    length: 3
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 37b9c5794f524d16b82b99b489184574, type: 2}
+        level: 1
+        enchantments: []
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 281ab3184e424dbe9101026154f289bb, type: 2}
+        level: 1
+        enchantments: []
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 96c8d59654a94680a5273228d49a7ad5, type: 2}
+        level: 1
+        enchantments: []
+      count: 10
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 150
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 150
+  deadlineDays: 2
+  currentleftDeadlineDays: 0

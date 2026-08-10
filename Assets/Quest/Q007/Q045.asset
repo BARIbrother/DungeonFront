@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q045
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100045
+  title: "혼합"
+  clientName: "발명가 스라키"
+  content: "원인을 찾았어요. 흑강과 백강이 아무리 좋아도 둘이 조밀하게 결합되지 않는다면 바람을 못 버틸 거예요. 둘을 합친 광물, 진강이 필요해요."
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: b33d20f02966490ab332c6056b95061f, type: 2}
+        level: 1
+        enchantments: []
+      count: 30
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 480
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 480
+  deadlineDays: 2
+  currentleftDeadlineDays: 0

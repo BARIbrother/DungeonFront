@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q020
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100020
+  title: "검은 몸으로 되어 있다"
+  clientName: "어둠의 모험가 제네시스"
+  content: "역사에 길이 남을 서사시를 경험했네. 여정에서 많은 것을 얻기도, 그에 버금가는 것을 잃기도 했지..\n무엇보다 내 아름다운 밤의 눈동자 같은 코트가 타 버린 게 너무 상심이 크다네.\n그에 미치진 못하겠지만, 적어도 그것을 기억할 만한 갑옷을 만들어 주게."
+  requiredItems:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 8a5078c62ef84991bfaa36dfee3dbf49, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 1bf4b4d6f71146309722463581537976, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 38
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 38
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

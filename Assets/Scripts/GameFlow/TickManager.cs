@@ -12,10 +12,12 @@ public class TickManager : MonoBehaviour
     [SerializeField] private float ticksPerSecond = 10f;
 
     private readonly List<Machine> machinesOnGrid = new();
+    private readonly List<ConveyerBelt> beltsOnGrid = new();
     private float tickInterval;
     private float tickAccumulator;
     private bool isRunning;
     private int productionTick;
+    private bool beltOrderDirty = true;
 
     public IReadOnlyList<Machine> MachinesOnGrid => machinesOnGrid;
     public bool IsRunning => isRunning;
@@ -130,6 +132,11 @@ public class TickManager : MonoBehaviour
         }
 
         machinesOnGrid.Add(machine);
+        if (machine is ConveyerBelt belt)
+        {
+            beltsOnGrid.Add(belt);
+            beltOrderDirty = true;
+        }
     }
 
     // 그리드에서 기계가 회수·제거될 때 목록에서 해제한다.
@@ -141,6 +148,17 @@ public class TickManager : MonoBehaviour
         }
 
         machinesOnGrid.Remove(machine);
+        if (machine is ConveyerBelt belt)
+        {
+            beltsOnGrid.Remove(belt);
+            beltOrderDirty = true;
+        }
+    }
+
+    // 벨트 방향·배치 변경 시 물류 처리 순서를 다시 정렬한다.
+    public void MarkBeltOrderDirty()
+    {
+        beltOrderDirty = true;
     }
 
     // T키로 생산 틱을 시작/정지한다.
@@ -238,24 +256,28 @@ public class TickManager : MonoBehaviour
     // 2. 물류: 컨베이어 이동. 이동 방향 역순으로 처리해 이중 이동을 막는다.
     private void TickLogisticsPhase()
     {
-        var belts = new List<ConveyerBelt>();
-        for (int i = 0; i < machinesOnGrid.Count; i++)
+        if (beltOrderDirty)
         {
-            if (machinesOnGrid[i] is ConveyerBelt belt)
+            beltsOnGrid.Sort(CompareBeltsForProcessingOrder);
+            beltOrderDirty = false;
+        }
+
+        for (int i = beltsOnGrid.Count - 1; i >= 0; i--)
+        {
+            if (beltsOnGrid[i] == null)
             {
-                belts.Add(belt);
+                beltsOnGrid.RemoveAt(i);
             }
         }
 
-        belts.Sort(CompareBeltsForProcessingOrder);
-        for (int i = 0; i < belts.Count; i++)
+        for (int i = 0; i < beltsOnGrid.Count; i++)
         {
-            belts[i].TickLogistics();
+            beltsOnGrid[i].TickLogistics();
         }
 
-        for (int i = 0; i < belts.Count; i++)
+        for (int i = 0; i < beltsOnGrid.Count; i++)
         {
-            belts[i].SyncItemVisual();
+            beltsOnGrid[i].SyncItemVisual();
         }
     }
 

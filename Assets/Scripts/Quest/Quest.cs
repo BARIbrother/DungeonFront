@@ -4,6 +4,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Quest", menuName = "DungeonFront/Quest")]
 public class Quest : ScriptableObject
 {
+    // 진행도·세이브 키. 예: "0100001" (Q001). 비어 있으면 asset 이름을 쓴다.
+    public string id;
+
     // 의뢰 제목
     public string title;
 

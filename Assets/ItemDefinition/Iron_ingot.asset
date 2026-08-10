@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Iron_ingot
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: iron_bar
-  displayName: Iron bar
+  displayName: 철 주괴
   icon: {fileID: -8999993682669104154, guid: fa307116f4fc87145b38857daa8c172a, type: 3}
   category: 0

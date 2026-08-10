@@ -19,6 +19,9 @@ MonoBehaviour:
   outputEntryList:
     length: 1
     entries:
-    - item: {fileID: 11400000, guid: c84e6b264b30d41438d7374cf1e1444e, type: 2}
+    - _item:
+        definition: {fileID: 11400000, guid: c84e6b264b30d41438d7374cf1e1444e, type: 2}
+        level: 1
+        enchantmentIds: []
       count: 1
-  durationByTick: 10
+  recipeTime: 5

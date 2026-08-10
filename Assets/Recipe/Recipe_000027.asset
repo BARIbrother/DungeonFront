@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000027
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_element_form_scroll
+  inputEntryList:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 6a763d74217e499bacafd06d27848d48, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 100
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: b548f3ffef274b12895c461926c91101, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 80

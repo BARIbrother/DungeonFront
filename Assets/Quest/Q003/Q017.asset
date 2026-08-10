@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q017
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100017
+  title: "보강된 갑옷"
+  clientName: "모험가 플린트"
+  content: "저번 탐사에서 아끼는 흉갑이 상해 버렸지 뭐야, 이참에 마법 공격에 대비한 갑옷도 구비해 둬야겠어. 마나강 강화 흉갑을 만들어 줄 수 있을까? 방어 마법도 인챈트해서 부탁해."
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 1
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 20
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 20
+  deadlineDays: 2
+  currentleftDeadlineDays: 0

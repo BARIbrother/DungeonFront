@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: "\uC81C\uB2E8"
   icon: {fileID: 0}
   category: 0
+  enchantmentSlotCount: 0
   machineTypeId: Altar
   requiresManualWork: 0
   machinePrefab: {fileID: 8012345678901235001, guid: a11b22c33d44e55f6677889900aabb04, type: 3}

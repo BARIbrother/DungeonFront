@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000041
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_darksteel_warhammer
+  inputEntryList:
+    length: 3
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 558b667ffc5b4664b3ea13d1e34697c5, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 131f879cfe6a4c0993f911d6ab5f02a9, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 4
+    - _item:
+        definition: {fileID: 11400000, guid: 8fb7a56235f5491889ce19ec371ac344, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 2
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 200e793479e54c43911b4c2b7ddf6d9b, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 80

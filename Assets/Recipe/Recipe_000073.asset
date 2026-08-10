@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000073
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_iron_pillar_frame
+  inputEntryList:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: afec3cb35a1d0ee4b91f1f72f5c53ea7, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 10
+    - _item:
+        definition: {fileID: 11400000, guid: 083dc4b1827845e088cc57c977098c9c, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 20
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 636a8c3e8ac344a2a1c59ca3fa47d0c3, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 40

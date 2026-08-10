@@ -11,6 +11,8 @@ public class QuestPool : MonoBehaviour
     {
         public string itemId;
         public int count;
+        public int level = 1;
+        public Enchantment[] enchantments;
     }
 
     [Serializable]
@@ -49,6 +51,7 @@ public class QuestPool : MonoBehaviour
     [SerializeField] private ItemMapping[] dict = Array.Empty<ItemMapping>();
     [SerializeField] private QuestManager questManager;
     [SerializeField] private QuestProgressionService progression;
+    [SerializeField] private ItemManager itemManager;
 
     public List<Questplus> allQuests = new();
 
@@ -68,6 +71,7 @@ public class QuestPool : MonoBehaviour
         questManager ??= FindAnyObjectByType<QuestManager>();
         progression ??= QuestProgressionService.Instance;
         progression ??= FindAnyObjectByType<QuestProgressionService>();
+        itemManager ??= FindAnyObjectByType<ItemManager>();
     }
 
     private void BuildItemDictionary()
@@ -111,6 +115,18 @@ public class QuestPool : MonoBehaviour
             new[] { "iron_ingot", "iron_bar", "iron" },
             new[] { "gold", "Gold" },
             new[] { "fame", "Fame" },
+            new[] { "manasteel_bar", "Manasteel_ingot", "mana_core" },
+            new[] { "magicrobe", "mage_robe" },
+            new[] { "dark_mana_wand", "dark_magic_staff" },
+            new[] { "bright_mana_wand", "light_magic_staff" },
+            new[] { "darkmana_core", "dark_magic_core" },
+            new[] { "greysteel_battlehammer", "greysteel_warhammer" },
+            new[] { "steel_column_framwork", "iron_pillar_frame" },
+            new[] { "structural_column", "structure_pillar" },
+            new[] { "structural_girder", "structure_beam" },
+            new[] { "structural_roof", "structure_roof" },
+            new[] { "warstained_executional_greatsword", "war_stained_executor_greatsword" },
+            new[] { "iron_blade", "greatsword_blade" },
         };
 
         for (int groupIndex = 0; groupIndex < aliasGroups.Length; groupIndex++)
@@ -214,8 +230,11 @@ public class QuestPool : MonoBehaviour
                 clientName = sourceQuest.clientName,
                 content = sourceQuest.content,
                 deadlineDays = Mathf.Max(0, sourceQuest.deadlineDays),
-                requiredItems = ConvertQuestLineItems(sourceQuest.requiredItems),
+                requiredItems = ConvertQuestLineItems(
+                    sourceQuest.id,
+                    sourceQuest.requiredItems),
                 rewards = ConvertQuestLineRewards(
+                    sourceQuest.id,
                     sourceQuest.reward,
                     out int reputationReward),
                 rewardReputation = reputationReward,
@@ -230,22 +249,35 @@ public class QuestPool : MonoBehaviour
         return true;
     }
 
-    private static ItemEntryName[] ConvertQuestLineItems(QuestLineItem[] source)
+    private static ItemEntryName[] ConvertQuestLineItems(
+        string questLineId,
+        QuestLineItem[] source)
     {
         source ??= Array.Empty<QuestLineItem>();
         var result = new ItemEntryName[source.Length];
+        var occurrence = new Dictionary<string, int>(StringComparer.Ordinal);
         for (int index = 0; index < source.Length; index++)
         {
+            string itemCode = source[index]?.itemcode;
+            occurrence.TryGetValue(itemCode ?? string.Empty, out int occ);
+            occurrence[itemCode ?? string.Empty] = occ + 1;
+
+            QuestItemCodeResolver.ResolvedItem resolved =
+                QuestItemCodeResolver.Resolve(questLineId, itemCode, occ);
+
             result[index] = new ItemEntryName
             {
-                itemId = source[index]?.itemcode,
-                count = Mathf.Max(0, source[index]?.number ?? 0)
+                itemId = resolved.itemId,
+                count = Mathf.Max(0, source[index]?.number ?? 0),
+                level = resolved.level > 0 ? resolved.level : 1,
+                enchantments = resolved.enchantments
             };
         }
         return result;
     }
 
     private static ItemEntryName[] ConvertQuestLineRewards(
+        string questLineId,
         QuestLineItem[] source,
         out int reputationReward)
     {
@@ -265,10 +297,15 @@ public class QuestPool : MonoBehaviour
                 continue;
             }
 
+            QuestItemCodeResolver.ResolvedItem resolved =
+                QuestItemCodeResolver.Resolve(questLineId, item.itemcode, 0);
+
             rewards.Add(new ItemEntryName
             {
-                itemId = item.itemcode,
-                count = Mathf.Max(0, item.number)
+                itemId = resolved.itemId,
+                count = Mathf.Max(0, item.number),
+                level = resolved.level > 0 ? resolved.level : 1,
+                enchantments = resolved.enchantments
             });
         }
         return rewards.ToArray();
@@ -410,6 +447,7 @@ public class QuestPool : MonoBehaviour
         quest.rewards = MakeItemEntryList(data.rewards);
 
         string questId = FormatQuestId(data.id);
+        quest.id = questId;
         QuestRuntimeRegistry.Register(quest, new QuestRuntimeInfo
         {
             questId = questId,
@@ -446,9 +484,21 @@ public class QuestPool : MonoBehaviour
                 continue;
             }
 
+            Item item = Item.FromDefinition(
+                ResolveItem(data.itemId),
+                data.level > 0 ? data.level : 1);
+
+            if (data.enchantments != null)
+            {
+                for (int enchantIndex = 0; enchantIndex < data.enchantments.Length; enchantIndex++)
+                {
+                    item.TryAddEnchantment(data.enchantments[enchantIndex]);
+                }
+            }
+
             result.entries[index] = new ItemEntry
             {
-                item = Item.FromDefinition(ResolveItem(data.itemId)),
+                item = item,
                 count = Mathf.Max(0, data.count)
             };
         }
@@ -461,6 +511,21 @@ public class QuestPool : MonoBehaviour
         if (itemById.TryGetValue(itemId, out ItemDefinition item))
         {
             return item;
+        }
+
+        if (itemManager == null)
+        {
+            itemManager = FindAnyObjectByType<ItemManager>();
+        }
+
+        if (itemManager != null)
+        {
+            item = itemManager.Get(itemId);
+            if (item != null)
+            {
+                RegisterItem(itemId, item);
+                return item;
+            }
         }
 
         // 독립 테스트용 placeholder. ID 기반 인벤토리이므로 납품 로직은 동일하게 동작한다.

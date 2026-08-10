@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q030
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100030
+  title: "흑과 백은 어떻게 합쳐지는가"
+  clientName: "마법사 헌츠"
+  content: "흑마법, 백마법 코어도 똑같네. 왜 철 주괴에 마력석 결정, 칠흑석 주괴를 합금해야만 만들 수 있는 거지? 마력 코어에 칠흑석 주괴를 조합하면 안 되는 건가? 제작자가 레시피 두 개를 만들기 귀찮았다고 생각할 수도 있지.\n그것도 맞네."
+  requiredItems:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 9ffad95164fd4185b9dfaa6d7f9927f9, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 409ceda185e74c10807d022f24ac8c39, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 40
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 40
+  deadlineDays: 2
+  currentleftDeadlineDays: 0

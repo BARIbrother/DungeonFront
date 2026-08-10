@@ -1,26 +1,24 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-// 32px 그리드 셀 단위로 잘린 숲 경계 스프라이트 → 런타임 Tile 캐시.
+// 32px 그리드: 밑(BOTTOM)·옆(SIDE)·가운데(MID) 스프라이트 → 런타임 Tile 캐시.
 [CreateAssetMenu(fileName = "TreeBorderTileSet", menuName = "DungeonFront/Tree Border Tile Set")]
 public class TreeBorderTileSet : ScriptableObject
 {
-    [Header("2x2 (64px fill)")]
-    public Sprite[] fill2x2Sprites = new Sprite[4];
+    [Header("2x2 MID (fill)")]
+    public Sprite[] mid2x2Sprites = new Sprite[4];
 
-    [Header("3x4 (96x128 edge)")]
-    public Sprite[] edgeLeft3x4Sprites = new Sprite[12];
-    public Sprite[] edgeRight3x4Sprites = new Sprite[12];
+    [Header("1x4 SIDE")]
+    public Sprite[] sideLeft1x4Sprites = new Sprite[4];
+    public Sprite[] sideRight1x4Sprites = new Sprite[4];
 
-    [Header("2x4 (64x128 fringe)")]
-    public Sprite[] fringeLeft2x4Sprites = new Sprite[8];
-    public Sprite[] fringeRight2x4Sprites = new Sprite[8];
+    [Header("16x4 BOTTOM (floor grad + 7 trees)")]
+    public Sprite[] bottom16x4Sprites = new Sprite[64];
 
-    private TileBase[] fill2x2;
-    private TileBase[] edgeLeft3x4;
-    private TileBase[] edgeRight3x4;
-    private TileBase[] fringeLeft2x4;
-    private TileBase[] fringeRight2x4;
+    private TileBase[] mid2x2;
+    private TileBase[] sideLeft1x4;
+    private TileBase[] sideRight1x4;
+    private TileBase[] bottom16x4;
 
     private void OnEnable()
     {
@@ -29,41 +27,50 @@ public class TreeBorderTileSet : ScriptableObject
 
     public void RebuildTiles()
     {
-        fill2x2 = BuildTiles(fill2x2Sprites);
-        edgeLeft3x4 = BuildTiles(edgeLeft3x4Sprites);
-        edgeRight3x4 = BuildTiles(edgeRight3x4Sprites);
-        fringeLeft2x4 = BuildTiles(fringeLeft2x4Sprites);
-        fringeRight2x4 = BuildTiles(fringeRight2x4Sprites);
+        mid2x2 = BuildTiles(mid2x2Sprites);
+        sideLeft1x4 = BuildTiles(sideLeft1x4Sprites);
+        sideRight1x4 = BuildTiles(sideRight1x4Sprites);
+        bottom16x4 = BuildTiles(bottom16x4Sprites);
     }
 
     public TileBase GetTile(TreeBorderTileKind kind, int localX, int localY)
     {
-        if (fill2x2 == null)
+        if (mid2x2 == null)
         {
             RebuildTiles();
         }
 
-        int index;
         switch (kind)
         {
-            case TreeBorderTileKind.Fill:
-                index = (localX % 2) + (localY % 2) * 2;
-                return GetClamped(fill2x2, index);
-            case TreeBorderTileKind.EdgeLeft:
-                index = (localX % 3) + (localY % 4) * 3;
-                return GetClamped(edgeLeft3x4, index);
-            case TreeBorderTileKind.EdgeRight:
-                index = (localX % 3) + (localY % 4) * 3;
-                return GetClamped(edgeRight3x4, index);
-            case TreeBorderTileKind.FringeLeft:
-                index = (localX % 2) + (localY % 4) * 2;
-                return GetClamped(fringeLeft2x4, index);
-            case TreeBorderTileKind.FringeRight:
-                index = (localX % 2) + (localY % 4) * 2;
-                return GetClamped(fringeRight2x4, index);
+            case TreeBorderTileKind.Mid:
+            case TreeBorderTileKind.EdgeTop:
+                return GetFromGrid(mid2x2, 2, 2, localX, localY);
+
+            case TreeBorderTileKind.SideLeft:
+            case TreeBorderTileKind.CornerTopLeft:
+                return GetFromGrid(sideLeft1x4, 1, 4, localX, localY);
+
+            case TreeBorderTileKind.SideRight:
+            case TreeBorderTileKind.CornerTopRight:
+                return GetFromGrid(sideRight1x4, 1, 4, localX, localY);
+
+            case TreeBorderTileKind.Bottom:
+                return GetFromGrid(bottom16x4, 16, 4, localX, localY);
+
             default:
                 return null;
         }
+    }
+
+    private static TileBase GetFromGrid(TileBase[] tiles, int cols, int rows, int localX, int localY)
+    {
+        if (tiles == null || tiles.Length == 0)
+        {
+            return null;
+        }
+
+        int index = (localX % cols) + (localY % rows) * cols;
+        return GetClamped(tiles, index);
     }
 
     private static TileBase[] BuildTiles(Sprite[] sprites)

@@ -54,7 +54,7 @@ public class ItemEntryList
                 return false;
             }
 
-            if (!portEntry.item.MatchesDefinition(requiredEntry.item))
+            if (!portEntry.item.SatisfiesRecipeRequirement(requiredEntry.item))
             {
                 return false;
             }
@@ -193,7 +193,8 @@ public class ItemEntryList
         for (int i = 0; i < entries.Length && i < recipe.inputEntryList.entries.Length && remaining > 0; i++)
         {
             ItemEntry required = recipe.inputEntryList.entries[i];
-            if (required == null || required.item == null || !required.item.MatchesDefinition(item.item))
+            if (required == null || required.item == null
+                || !item.item.SatisfiesRecipeRequirement(required.item))
             {
                 continue;
             }

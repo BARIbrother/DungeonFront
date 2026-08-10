@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q048
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100048
+  title: "두 번 다시 쓰지 않을"
+  clientName: "어둠의 모험가 제네시스"
+  content: "지난번 던전을 탐사하던 도중, 실로 강직하고도 장대한 방해물을 만났네. 그것은 나의 날카로운 검으로도 뚫을 수 없었지. 구조물을 부수기 위한 특제 망치가 필요할 것 같더군.\n..의뢰가 너무 정상적이라고?! 자네 이미지에 난 대체 어떻게 되어 있는 건가!!"
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 7556374ab0cf4deb9614ac500ec70638, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 53
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 53
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

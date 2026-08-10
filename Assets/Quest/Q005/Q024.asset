@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q024
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100024
+  title: "최선의 방어를 위한 갑옷?"
+  clientName: "모험가 플린트"
+  content: "저번 탐사에서 무기가 부러졌을 때, 아무 것도 못 하고 맞으면서 도망쳐야 했었어. 갑옷으로도 싸울 수있도록 흑강 흉갑을 부탁할게!"
+  requiredItems:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 1bf4b4d6f71146309722463581537976, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 9e4740dfbc6048b49aad26080c0aaea2, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 43
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 43
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

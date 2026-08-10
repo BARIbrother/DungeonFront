@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q036
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100036
+  title: "상시 - 기본 스크롤 납품"
+  clientName: "마법학회"
+  content: "학생들은 다양한 목적으로 스크롤을 사용합니다. 마법 연구, 실전 연습, 실생활 응용, 가끔은 자기들끼리 싸울 때도요. \n어찌됐건, 스크롤은 많으면 많을수록 좋습니다."
+  requiredItems:
+    length: 4
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 0
+          form: 0
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 1
+          form: 0
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 2
+          form: 0
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments:
+        - attribute: 6
+          form: 0
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 16
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 16
+  deadlineDays: 0
+  currentleftDeadlineDays: 0

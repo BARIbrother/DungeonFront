@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: "\uCC44\uAD74\uAE30"
   icon: {fileID: 0}
   category: 0
+  enchantmentSlotCount: 0
   machineTypeId: Miner
   requiresManualWork: 0
   machinePrefab: {fileID: 7012345678901234001, guid: c1d2e3f4a5b647899011223344556677, type: 3}

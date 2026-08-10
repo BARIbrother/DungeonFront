@@ -78,7 +78,20 @@ public class PlayerInventory : MonoBehaviour
         OnItemsChanged?.Invoke();
     }
 
-    // definition id 기준 합산 수량. 인챈트가 달라도 같은 id면 합친다.
+    // Dev Mode: 보유 아이템(기계 제외)을 모두 비운다.
+    public void ClearItems()
+    {
+        if (itemEntries.Count == 0)
+        {
+            return;
+        }
+
+        itemEntries.Clear();
+        OnItemsChanged?.Invoke();
+    }
+
+    // definition id 기준 합산 수량. 퀘스트 등 id만 보는 용도. 인챈트·레벨은 구분하지 않는다.
+    // 스택 단위 표시·입출고는 GetOwnedItemEntries / GetCount(Item) / Remove(Item)를 쓴다.
     public int GetCount(string itemId)
     {
         if (string.IsNullOrEmpty(itemId))
@@ -178,7 +191,7 @@ public class PlayerInventory : MonoBehaviour
         return null;
     }
 
-    // 보유량 > 0인 아이템 id·수량을 복사해 반환한다. 기계 UI 등 표시용.
+    // 보유량 > 0인 아이템 id·수량을 id 기준으로 합산해 반환한다. 인챈트 구분이 필요하면 GetOwnedItemEntries.
     public List<KeyValuePair<string, int>> GetOwnedItemCounts()
     {
         var totals = new Dictionary<string, int>();
@@ -224,6 +237,32 @@ public class PlayerInventory : MonoBehaviour
         }
 
         return owned;
+    }
+
+    // UI 해시용. 클론 없이 id·레벨·인챈트 수·수량만 반영한다.
+    public int ComputeOwnedItemsHash()
+    {
+        unchecked
+        {
+            int hash = 17;
+            hash = hash * 31 + itemEntries.Count;
+            for (int i = 0; i < itemEntries.Count; i++)
+            {
+                ItemEntry entry = itemEntries[i];
+                if (entry?.item == null || entry.count <= 0)
+                {
+                    continue;
+                }
+
+                string id = entry.item.Id;
+                hash = hash * 31 + (id != null ? id.GetHashCode() : 0);
+                hash = hash * 31 + entry.item.ResolvedLevel;
+                hash = hash * 31 + entry.item.Enchantments.Count;
+                hash = hash * 31 + entry.count;
+            }
+
+            return hash;
+        }
     }
 
     public int Remove(string itemId, int amount)

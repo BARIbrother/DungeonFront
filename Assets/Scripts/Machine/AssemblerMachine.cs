@@ -21,7 +21,9 @@ public class AssemblerMachine : Machine, IFactoryProduction
         }
 
         string recipeId = currentRecipe != null ? currentRecipe.id : "(없음)";
+#if UNITY_EDITOR
         Debug.Log($"[AssemblerMachine] 생산 성공 @ {GridAnchor} : {recipeId} → {DescribePortEntries(currentRecipe?.outputEntryList)} / 출력 {DescribePortEntries(outputPort)}");
+#endif
     }
 
     public void TickStartProduction()

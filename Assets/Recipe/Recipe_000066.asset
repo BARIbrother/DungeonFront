@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000066
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_greysteel_sword
+  inputEntryList:
+    length: 3
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 281ab3184e424dbe9101026154f289bb, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 96c8d59654a94680a5273228d49a7ad5, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 3254931a49424a88b6bfdc3e9442f491, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 2
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 71477db677604603bb27921ae3dc92dc, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 160

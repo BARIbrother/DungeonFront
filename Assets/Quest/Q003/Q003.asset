@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q003
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100003
+  title: "두 번째 시험"
+  clientName: "감사관 이브"
+  content: "마법을 쓸 줄 아는 부랑자라니, 흥미롭군요. 마침 이번 의뢰에 필요한 물품도 마법에 관련되어 있습니다. 그녀가 대장간 일에 도움을 줄 수 있다는 것이 증명된다면 조수로서 인정해 드리겠습니다."
+  requiredItems:
+    length: 6
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 0ce18cff58ce428895e6f3e2296247a1, type: 2}
+        level: 1
+        enchantments: []
+      count: 20
+    - _item:
+        definition: {fileID: 11400000, guid: b635bf363cd940f3bda9bac4f39de851, type: 2}
+        level: 1
+        enchantments: []
+      count: 5
+    - _item:
+        definition: {fileID: 11400000, guid: d249b6aea20a47b893fdd9f16f67ec3b, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: ae58a7a6ca9d41e7ad38284c27feb4ab, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 2dfaefc873a943f78e85cafa4915330b, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 5d59c7038ded4a1dabafea821184c1dc, type: 2}
+        level: 1
+        enchantments: []
+      count: 1
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 103
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 103
+  deadlineDays: 2
+  currentleftDeadlineDays: 0

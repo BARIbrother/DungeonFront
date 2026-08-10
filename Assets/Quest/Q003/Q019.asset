@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8d8b808bf67ae24fb23a7fd2b79d659, type: 3}
+  m_Name: Q019
+  m_EditorClassIdentifier: Assembly-CSharp::Quest
+  id: 00100019
+  title: "용도 외 사용 2"
+  clientName: "아이기스 켈"
+  content: "휴.. 여긴 아르-도라하랑 비교하면 엄청 서늘하네요. 여기 계속 살고 싶다.\n아, 주문해야지. 물 스크롤이 많이 필요합니다.\n네? 샤워할 때 쓸 거냐고요? 무슨 농담인가요, 그건? 하하하.\n음료수 만들어 먹을 거예요."
+  requiredItems:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: fac054c5c9cc4942b0425b8a6f108570, type: 2}
+        level: 1
+        enchantments: []
+      count: 30
+  rewards:
+    length: 2
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: a32cdc12e6d7eae47b8d57e4457e13bf, type: 2}
+        level: 1
+        enchantments: []
+      count: 120
+    - _item:
+        definition: {fileID: 11400000, guid: 0817d54197436f149a034658b64935d6, type: 2}
+        level: 1
+        enchantments: []
+      count: 120
+  deadlineDays: 1
+  currentleftDeadlineDays: 0

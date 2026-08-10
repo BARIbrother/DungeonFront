@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1838c1f731d8a9940a2b6cbd9952bec2, type: 3}
+  m_Name: Recipe_000070
+  m_EditorClassIdentifier: Assembly-CSharp::Recipe
+  id: craft_greysteel_leggings
+  inputEntryList:
+    length: 3
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 9e4740dfbc6048b49aad26080c0aaea2, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 9e9ea039721e4c14a627db8fe4874a8d, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+    - _item:
+        definition: {fileID: 11400000, guid: 73520b8e05fc41a283d5df8564c5d5d0, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 2
+  outputEntryList:
+    length: 1
+    entries:
+    - _item:
+        definition: {fileID: 11400000, guid: 73a154d56d7b4001b708eb73dc9ac84f, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
+  recipeTime: 160
