@@ -321,12 +321,14 @@ public class GameSessionState : MonoBehaviour
         {
             startProductionButton.onClick.RemoveAllListeners();
             startProductionButton.onClick.AddListener(StartProduction);
+            UiButtonStyle.Apply(startProductionButton);
         }
 
         if (advanceDayButton != null)
         {
             advanceDayButton.onClick.RemoveAllListeners();
             advanceDayButton.onClick.AddListener(AdvanceDay);
+            UiButtonStyle.Apply(advanceDayButton);
         }
     }
 

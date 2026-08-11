@@ -197,6 +197,8 @@ public class MachineGrantUI : MonoBehaviour
             button.onClick.AddListener(() => OnMachineButtonClicked(captured));
         }
 
+        UiButtonStyle.Apply(button);
+
         var labelObject = new GameObject("Label");
         labelObject.transform.SetParent(buttonObject.transform, false);
         var labelRect = labelObject.AddComponent<RectTransform>();
@@ -304,7 +306,7 @@ public class MachineGrantUI : MonoBehaviour
         panelRect.sizeDelta = new Vector2(520f, 560f);
 
         var panelImage = panelObject.AddComponent<Image>();
-        panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
+        UiPanelFrame.Apply(panelImage);
 
         var headerObject = new GameObject("Header");
         headerObject.transform.SetParent(panelObject.transform, false);
@@ -335,8 +337,8 @@ public class MachineGrantUI : MonoBehaviour
         var scrollRectTransform = scrollObject.AddComponent<RectTransform>();
         scrollRectTransform.anchorMin = Vector2.zero;
         scrollRectTransform.anchorMax = Vector2.one;
-        scrollRectTransform.offsetMin = new Vector2(12f, 12f);
-        scrollRectTransform.offsetMax = new Vector2(-12f, -60f);
+        scrollRectTransform.offsetMin = new Vector2(36f, 36f);
+        scrollRectTransform.offsetMax = new Vector2(-36f, -68f);
 
         var viewportObject = new GameObject("Viewport");
         viewportObject.transform.SetParent(scrollObject.transform, false);
@@ -394,6 +396,7 @@ public class MachineGrantUI : MonoBehaviour
 
         var closeButton = closeObject.AddComponent<Button>();
         closeButton.onClick.AddListener(Hide);
+        UiButtonStyle.Apply(closeButton);
 
         var labelObject = new GameObject("Label");
         labelObject.transform.SetParent(closeObject.transform, false);
@@ -409,6 +412,7 @@ public class MachineGrantUI : MonoBehaviour
         label.alignment = TextAnchor.MiddleCenter;
         label.color = Color.white;
         label.text = "×";
+        label.raycastTarget = false;
     }
 
     private static void EnsureEventSystem()

@@ -223,7 +223,7 @@ public class ProductionSummaryUI : MonoBehaviour
         panelRect.sizeDelta = new Vector2(480f, 420f);
 
         var panelImage = panelObject.AddComponent<Image>();
-        panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
+        UiPanelFrame.Apply(panelImage);
 
         var headerObject = new GameObject("Header");
         headerObject.transform.SetParent(panelObject.transform, false);
@@ -252,8 +252,8 @@ public class ProductionSummaryUI : MonoBehaviour
         var scrollRectTransform = scrollObject.AddComponent<RectTransform>();
         scrollRectTransform.anchorMin = Vector2.zero;
         scrollRectTransform.anchorMax = Vector2.one;
-        scrollRectTransform.offsetMin = new Vector2(16f, 72f);
-        scrollRectTransform.offsetMax = new Vector2(-16f, -56f);
+        scrollRectTransform.offsetMin = new Vector2(36f, 88f);
+        scrollRectTransform.offsetMax = new Vector2(-36f, -68f);
 
         var viewportObject = new GameObject("Viewport");
         viewportObject.transform.SetParent(scrollObject.transform, false);
@@ -328,6 +328,7 @@ public class ProductionSummaryUI : MonoBehaviour
         buttonImage.color = new Color(0.35f, 0.55f, 0.85f, 1f);
 
         var button = buttonObject.AddComponent<Button>();
+        UiButtonStyle.Apply(button);
         button.onClick.AddListener(OnConfirmClicked);
 
         var labelObject = new GameObject("Label");

@@ -75,6 +75,44 @@ public class QuestWindowController : MonoBehaviour
         {
             orderWindowPanel.SetActive(false);
         }
+
+        ApplyPanelFrame();
+    }
+
+    // LightFantasy 패널 프레임을 의뢰창에 적용한다.
+    private void ApplyPanelFrame()
+    {
+        UiPanelFrame.ApplyTo(orderWindowPanel);
+        EnlargeQuestOpenButton();
+        UiButtonStyle.ApplyInChildren(orderWindowPanel);
+        UiButtonStyle.Apply(questOpenButton != null ? questOpenButton.GetComponent<Button>() : null);
+        if (acceptButton != null)
+        {
+            UiButtonStyle.Apply(acceptButton);
+        }
+
+        TmpUiStyle.ApplyToHierarchy(orderWindowPanel);
+        if (questOpenButton != null)
+        {
+            TmpUiStyle.ApplyToHierarchy(questOpenButton);
+        }
+    }
+
+    // 의뢰 열기 버튼을 키워 글씨가 잘리지 않게 한다.
+    private void EnlargeQuestOpenButton()
+    {
+        if (questOpenButton == null)
+        {
+            return;
+        }
+
+        RectTransform rect = questOpenButton.GetComponent<RectTransform>();
+        if (rect == null)
+        {
+            return;
+        }
+
+        rect.sizeDelta = new Vector2(168f, 56f);
     }
 
     private void OnEnable()
@@ -113,6 +151,7 @@ public class QuestWindowController : MonoBehaviour
         questOpenButton = openButton;
         orderWindowPanel = orderWindow;
         layoutReady = false;
+        ApplyPanelFrame();
     }
 
     public void Bind(
@@ -140,6 +179,7 @@ public class QuestWindowController : MonoBehaviour
         }
 
         EnsureLayout();
+        ApplyPanelFrame();
         if (orderWindowPanel == null)
         {
             return;
@@ -482,8 +522,9 @@ public class QuestWindowController : MonoBehaviour
         CacheCloseButton();
 
         RectTransform panelRect = orderWindowPanel.GetComponent<RectTransform>();
-        // 상단은 Close 버튼 영역을 비워 둔다.
-        const float topInset = 48f;
+        // 상단은 Close 버튼 영역을 비워 두고, 장식 테두리 inset을 확보한다.
+        const float topInset = 56f;
+        const float sideInset = 36f;
         if (listContent == null || !layoutReady)
         {
             listContent = FindOrCreateChild(
@@ -491,7 +532,7 @@ public class QuestWindowController : MonoBehaviour
                 "QuestListContent",
                 new Vector2(0f, 0f),
                 new Vector2(0.42f, 1f),
-                new Vector2(12f, 12f),
+                new Vector2(sideInset, sideInset),
                 new Vector2(-6f, -topInset));
         }
 
@@ -501,7 +542,7 @@ public class QuestWindowController : MonoBehaviour
             layout = listContent.gameObject.AddComponent<VerticalLayoutGroup>();
         }
 
-        layout.spacing = 6f;
+        layout.spacing = 10f;
         layout.padding = new RectOffset(4, 4, 4, 4);
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.childControlHeight = false;
@@ -524,8 +565,8 @@ public class QuestWindowController : MonoBehaviour
                 "QuestDetailRoot",
                 new Vector2(0.42f, 0f),
                 new Vector2(1f, 1f),
-                new Vector2(6f, 12f),
-                new Vector2(-12f, -topInset));
+                new Vector2(6f, sideInset),
+                new Vector2(-sideInset, -topInset));
         }
 
         if (detailContentText == null)
@@ -553,7 +594,8 @@ public class QuestWindowController : MonoBehaviour
             bodyRect.offsetMin = new Vector2(8f, 8f);
             bodyRect.offsetMax = new Vector2(-8f, -8f);
             detailContentText = body.GetComponent<TextMeshProUGUI>();
-            detailContentText.fontSize = 18f;
+            detailContentText.alignment = TextAlignmentOptions.TopLeft;
+            TmpUiStyle.Apply(detailContentText, TmpUiStyle.Role.Body);
             detailContentText.color = Color.white;
             detailContentText.alignment = TextAlignmentOptions.TopLeft;
             detailContentText.textWrappingMode = TextWrappingModes.Normal;
@@ -579,16 +621,42 @@ public class QuestWindowController : MonoBehaviour
 
     private void CacheCloseButton()
     {
-        if (closeButtonTransform != null || orderWindowPanel == null)
+        if (orderWindowPanel == null)
         {
             return;
         }
 
-        Transform found = orderWindowPanel.transform.Find("QuestCloseButton");
-        if (found != null)
+        if (closeButtonTransform == null)
         {
-            closeButtonTransform = found;
+            Transform found = orderWindowPanel.transform.Find("QuestCloseButton");
+            if (found != null)
+            {
+                closeButtonTransform = found;
+            }
         }
+
+        PlaceCloseButtonTopRight();
+    }
+
+    // 닫기 버튼을 의뢰 패널 우상단에 둔다.
+    private void PlaceCloseButtonTopRight()
+    {
+        if (closeButtonTransform == null)
+        {
+            return;
+        }
+
+        RectTransform rect = closeButtonTransform as RectTransform;
+        if (rect == null)
+        {
+            return;
+        }
+
+        rect.anchorMin = new Vector2(1f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(1f, 1f);
+        rect.anchoredPosition = new Vector2(-28f, -28f);
+        rect.sizeDelta = new Vector2(120f, 44f);
     }
 
     private void BringCloseButtonToFront()
@@ -654,10 +722,10 @@ public class QuestWindowController : MonoBehaviour
         buttonObject.transform.SetParent(parent, false);
 
         RectTransform rect = buttonObject.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.55f, 0f);
-        rect.anchorMax = new Vector2(1f, 0.18f);
-        rect.offsetMin = new Vector2(8f, 8f);
-        rect.offsetMax = new Vector2(-8f, -8f);
+        rect.anchorMin = new Vector2(0.5f, 0f);
+        rect.anchorMax = new Vector2(1f, 0.22f);
+        rect.offsetMin = new Vector2(12f, 14f);
+        rect.offsetMax = new Vector2(-28f, -12f);
 
         Image image = buttonObject.GetComponent<Image>();
         image.color = new Color(0.25f, 0.55f, 0.35f, 1f);
@@ -670,15 +738,15 @@ public class QuestWindowController : MonoBehaviour
         RectTransform labelRect = labelObject.GetComponent<RectTransform>();
         labelRect.anchorMin = Vector2.zero;
         labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = Vector2.zero;
+        labelRect.offsetMin = new Vector2(8f, 4f);
+        labelRect.offsetMax = new Vector2(-8f, -4f);
 
         TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
         label.text = "수락";
         label.alignment = TextAlignmentOptions.Center;
-        label.fontSize = 22f;
-        label.color = Color.white;
+        TmpUiStyle.Apply(label, TmpUiStyle.Role.Button);
 
+        UiButtonStyle.Apply(button);
         return button;
     }
 }

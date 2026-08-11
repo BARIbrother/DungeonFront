@@ -10,6 +10,7 @@ public class SettlementQuestListUI : MonoBehaviour
     [SerializeField] private GameObject panel;
 
     private GameSessionState session;
+    private bool frameApplied;
 
     private void OnEnable()
     {
@@ -28,6 +29,7 @@ public class SettlementQuestListUI : MonoBehaviour
             HandlePhaseChanged(session.Phase);
         }
 
+        ApplyPanelFrame();
         Refresh();
     }
 
@@ -79,6 +81,19 @@ public class SettlementQuestListUI : MonoBehaviour
             card.SetAcceptAction(() => TryDeliver(quest));
             card.SetAcceptButtonInteractable(questManager.CanCompleteQuest(quest));
         }
+    }
+
+    // LightFantasy 패널 프레임을 결산 의뢰 목록에 적용한다.
+    private void ApplyPanelFrame()
+    {
+        if (frameApplied)
+        {
+            return;
+        }
+
+        UiPanelFrame.ApplyTo(panel);
+        UiButtonStyle.ApplyInChildren(panel);
+        frameApplied = panel != null;
     }
 
     private void TryDeliver(Quest quest)

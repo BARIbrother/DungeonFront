@@ -174,6 +174,8 @@ public class ZoneExpansionUI : MonoBehaviour
             button.onClick.AddListener(() => OnZoneButtonClicked(capturedX, capturedY));
         }
 
+        UiButtonStyle.Apply(button);
+
         var labelObject = new GameObject("Label");
         labelObject.transform.SetParent(buttonObject.transform, false);
         var labelRect = labelObject.AddComponent<RectTransform>();
@@ -296,7 +298,7 @@ public class ZoneExpansionUI : MonoBehaviour
         panelRect.sizeDelta = new Vector2(420f, 560f);
 
         var panelImage = panelObject.AddComponent<Image>();
-        panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
+        UiPanelFrame.Apply(panelImage);
 
         var headerObject = new GameObject("Header");
         headerObject.transform.SetParent(panelObject.transform, false);
@@ -327,8 +329,8 @@ public class ZoneExpansionUI : MonoBehaviour
         zoneGridRect = gridObject.AddComponent<RectTransform>();
         zoneGridRect.anchorMin = Vector2.zero;
         zoneGridRect.anchorMax = Vector2.one;
-        zoneGridRect.offsetMin = new Vector2(24f, 24f);
-        zoneGridRect.offsetMax = new Vector2(-24f, -60f);
+        zoneGridRect.offsetMin = new Vector2(36f, 36f);
+        zoneGridRect.offsetMax = new Vector2(-36f, -72f);
 
         var layout = gridObject.AddComponent<GridLayoutGroup>();
         layout.cellSize = new Vector2(110f, 100f);
@@ -356,6 +358,7 @@ public class ZoneExpansionUI : MonoBehaviour
 
         var closeButton = closeObject.AddComponent<Button>();
         closeButton.onClick.AddListener(Hide);
+        UiButtonStyle.Apply(closeButton);
 
         var labelObject = new GameObject("Label");
         labelObject.transform.SetParent(closeObject.transform, false);
@@ -371,6 +374,7 @@ public class ZoneExpansionUI : MonoBehaviour
         label.alignment = TextAnchor.MiddleCenter;
         label.color = Color.white;
         label.text = "×";
+        label.raycastTarget = false;
     }
 
     private static void EnsureEventSystem()

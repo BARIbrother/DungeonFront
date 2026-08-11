@@ -46,8 +46,13 @@ public class QuestCard : MonoBehaviour
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
-    {   
-        if(quest) SetQuest(quest);
+    {
+        if (quest)
+        {
+            SetQuest(quest);
+        }
+
+        UiButtonStyle.Apply(acceptButton);
     }
 
 
@@ -68,6 +73,7 @@ public class QuestCard : MonoBehaviour
 
         acceptButton.onClick.RemoveAllListeners();
         acceptButton.onClick.AddListener(action);
+        UiButtonStyle.Apply(acceptButton);
     }
 
     public void SetButtonLabel(string label)

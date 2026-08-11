@@ -363,6 +363,7 @@ public class MachineRecipeUI : MonoBehaviour
 
         var button = buttonObject.AddComponent<Button>();
         button.onClick.AddListener(ToggleRecipePicker);
+        UiButtonStyle.Apply(button);
 
         var row = new GameObject("RecipeIcons");
         row.transform.SetParent(buttonObject.transform, false);
@@ -536,6 +537,7 @@ public class MachineRecipeUI : MonoBehaviour
 
         var button = buttonObject.AddComponent<Button>();
         button.onClick.AddListener(() => OnRecipePicked(recipe));
+        UiButtonStyle.Apply(button);
 
         var row = new GameObject("Icons");
         row.transform.SetParent(buttonObject.transform, false);
@@ -1334,15 +1336,15 @@ public class MachineRecipeUI : MonoBehaviour
         panelRect.sizeDelta = new Vector2(460f * UiScale, 520f * UiScale);
 
         var panelImage = panelObject.AddComponent<Image>();
-        panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
+        UiPanelFrame.Apply(panelImage);
 
         CreateCloseButton(panelObject.transform);
 
         contentListRect = CreateScrollContent(
             panelObject.transform,
             "ContentScroll",
-            new Vector2(12f, 12f),
-            new Vector2(-12f, -52f));
+            new Vector2(36f, 36f),
+            new Vector2(-36f, -60f));
 
         CreateRecipePickerPanel();
     }
@@ -1359,13 +1361,13 @@ public class MachineRecipeUI : MonoBehaviour
         recipePickerPanel.sizeDelta = new Vector2(360f * UiScale, 520f * UiScale);
 
         var pickerImage = pickerObject.AddComponent<Image>();
-        pickerImage.color = new Color(0.12f, 0.13f, 0.16f, 0.97f);
+        UiPanelFrame.Apply(pickerImage);
 
         recipePickerListRect = CreateScrollContent(
             pickerObject.transform,
             "PickerScroll",
-            new Vector2(12f, 12f),
-            new Vector2(-12f, -12f));
+            new Vector2(36f, 36f),
+            new Vector2(-36f, -36f));
 
         pickerObject.SetActive(false);
     }
@@ -1441,6 +1443,7 @@ public class MachineRecipeUI : MonoBehaviour
 
         var closeButton = closeObject.AddComponent<Button>();
         closeButton.onClick.AddListener(Hide);
+        UiButtonStyle.Apply(closeButton);
 
         var labelObject = new GameObject("Label");
         labelObject.transform.SetParent(closeObject.transform, false);
@@ -1456,6 +1459,7 @@ public class MachineRecipeUI : MonoBehaviour
         label.alignment = TextAnchor.MiddleCenter;
         label.color = Color.white;
         label.text = "×";
+        label.raycastTarget = false;
     }
 
     private static void EnsureEventSystem()

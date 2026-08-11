@@ -455,15 +455,15 @@ public class InventoryUI : MonoBehaviour
         panelRect.offsetMax = Vector2.zero;
 
         var panelImage = panelObject.AddComponent<Image>();
-        panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
+        UiPanelFrame.Apply(panelImage);
 
         var gridScrollObject = new GameObject("ItemScroll");
         gridScrollObject.transform.SetParent(panelObject.transform, false);
         var scrollRectTransform = gridScrollObject.AddComponent<RectTransform>();
         scrollRectTransform.anchorMin = Vector2.zero;
         scrollRectTransform.anchorMax = Vector2.one;
-        scrollRectTransform.offsetMin = new Vector2(16f, 72f);
-        scrollRectTransform.offsetMax = new Vector2(-16f, -16f);
+        scrollRectTransform.offsetMin = new Vector2(36f, 88f);
+        scrollRectTransform.offsetMax = new Vector2(-36f, -36f);
 
         var viewportObject = new GameObject("Viewport");
         viewportObject.transform.SetParent(gridScrollObject.transform, false);

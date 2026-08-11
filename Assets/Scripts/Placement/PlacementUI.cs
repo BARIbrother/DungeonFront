@@ -180,6 +180,7 @@ public class PlacementUI : MonoBehaviour
 
         var pickupButton = pickupButtonObject.AddComponent<Button>();
         pickupButton.onClick.AddListener(() => placementController.TogglePickupMode());
+        UiButtonStyle.Apply(pickupButton);
 
         var pickupLabelObject = new GameObject("Label");
         pickupLabelObject.transform.SetParent(pickupButtonObject.transform, false);
@@ -206,15 +207,15 @@ public class PlacementUI : MonoBehaviour
         panelRect.anchoredPosition = Vector2.zero;
 
         var panelImage = panelObject.AddComponent<Image>();
-        panelImage.color = new Color(0.1f, 0.1f, 0.12f, 0.92f);
+        UiPanelFrame.Apply(panelImage);
 
         var scrollObject = new GameObject("MachineScroll");
         scrollObject.transform.SetParent(panelObject.transform, false);
         var scrollRect = scrollObject.AddComponent<RectTransform>();
         scrollRect.anchorMin = Vector2.zero;
         scrollRect.anchorMax = Vector2.one;
-        scrollRect.offsetMin = new Vector2(12f, 12f);
-        scrollRect.offsetMax = new Vector2(-12f, -12f);
+        scrollRect.offsetMin = new Vector2(32f, 32f);
+        scrollRect.offsetMax = new Vector2(-32f, -32f);
 
         var viewportObject = new GameObject("Viewport");
         viewportObject.transform.SetParent(scrollObject.transform, false);

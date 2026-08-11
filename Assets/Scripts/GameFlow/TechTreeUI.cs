@@ -22,6 +22,106 @@ public class TechTreeUI : MonoBehaviour
         // 평소 및 게임 시작 시 팝업과 패널 비활성화
         if (confirmPopupPanel != null) confirmPopupPanel.SetActive(false);
         if (techTreePanel != null) techTreePanel.SetActive(false);
+
+        ApplyPanelFrames();
+        ApplyOpenButtonStyle();
+    }
+
+    // LightFantasy 패널 프레임을 테크 트리·확인 팝업에 적용한다.
+    private void ApplyPanelFrames()
+    {
+        UiPanelFrame.ApplyTo(techTreePanel);
+        UiPanelFrame.ApplyTo(confirmPopupPanel);
+        PlaceCloseButtonTopRight(techTreePanel);
+        PlaceCloseButtonTopRight(confirmPopupPanel);
+        EnlargeTechOpenButton();
+        UiButtonStyle.ApplyInChildren(techTreePanel);
+        UiButtonStyle.ApplyInChildren(confirmPopupPanel);
+        if (confirmButton != null)
+        {
+            UiButtonStyle.Apply(confirmButton);
+        }
+
+        if (cancelButton != null)
+        {
+            UiButtonStyle.Apply(cancelButton);
+        }
+
+        TmpUiStyle.ApplyToHierarchy(techTreePanel);
+        TmpUiStyle.ApplyToHierarchy(confirmPopupPanel);
+    }
+
+    private static void EnlargeTechOpenButton()
+    {
+        GameObject open = GameObject.Find("TechTreeOpenButton");
+        if (open == null)
+        {
+            return;
+        }
+
+        RectTransform rect = open.GetComponent<RectTransform>();
+        if (rect != null)
+        {
+            rect.sizeDelta = new Vector2(168f, 56f);
+        }
+
+        TmpUiStyle.ApplyToHierarchy(open);
+    }
+
+    // 닫기 버튼을 패널 우상단에 둔다.
+    private static void PlaceCloseButtonTopRight(GameObject panel)
+    {
+        if (panel == null)
+        {
+            return;
+        }
+
+        Transform close = panel.transform.Find("CloseButton");
+        if (close == null)
+        {
+            foreach (Transform child in panel.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name == "CloseButton" || child.name == "QuestCloseButton")
+                {
+                    close = child;
+                    break;
+                }
+            }
+        }
+
+        if (close == null)
+        {
+            return;
+        }
+
+        RectTransform rect = close as RectTransform;
+        if (rect == null)
+        {
+            return;
+        }
+
+        // 확인 팝업 안이 아니라 해당 패널 직속 자식으로 둔다.
+        if (close.parent != panel.transform)
+        {
+            close.SetParent(panel.transform, false);
+        }
+
+        rect.anchorMin = new Vector2(1f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(1f, 1f);
+        rect.anchoredPosition = new Vector2(-28f, -28f);
+        rect.sizeDelta = new Vector2(120f, 44f);
+        close.SetAsLastSibling();
+    }
+
+    private static void ApplyOpenButtonStyle()
+    {
+        EnlargeTechOpenButton();
+        GameObject open = GameObject.Find("TechTreeOpenButton");
+        if (open != null)
+        {
+            UiButtonStyle.Apply(open.GetComponent<Button>());
+        }
     }
 
     // 런타임/에디터 복사 후 참조를 연결할 때 사용한다.
@@ -41,6 +141,7 @@ public class TechTreeUI : MonoBehaviour
         popupCostText = cost;
         confirmButton = confirm;
         cancelButton = cancel;
+        ApplyPanelFrames();
     }
 
     // 테크 트리 전체 패널 열기/닫기 토글

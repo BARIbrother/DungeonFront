@@ -75,30 +75,31 @@ public class QuestListEntry : MonoBehaviour
         root.transform.SetParent(parent, false);
 
         RectTransform rootRect = root.GetComponent<RectTransform>();
-        rootRect.sizeDelta = new Vector2(0f, 48f);
+        rootRect.sizeDelta = new Vector2(0f, 64f);
 
         Image background = root.GetComponent<Image>();
         background.color = new Color(0.15f, 0.18f, 0.28f, 0.95f);
 
         Button button = root.GetComponent<Button>();
         button.targetGraphic = background;
+        UiButtonStyle.Apply(button);
 
         QuestListEntry entry = root.GetComponent<QuestListEntry>();
         entry.button = button;
-        entry.titleText = CreateLabel(root.transform, "Title", TextAlignmentOptions.Left, 18f);
-        entry.deadlineText = CreateLabel(root.transform, "Deadline", TextAlignmentOptions.Right, 14f);
+        entry.titleText = CreateLabel(root.transform, "Title", TextAlignmentOptions.Left, TmpUiStyle.Role.Body);
+        entry.deadlineText = CreateLabel(root.transform, "Deadline", TextAlignmentOptions.Right, TmpUiStyle.Role.Caption);
 
         RectTransform titleRect = entry.titleText.rectTransform;
         titleRect.anchorMin = new Vector2(0f, 0f);
-        titleRect.anchorMax = new Vector2(0.7f, 1f);
-        titleRect.offsetMin = new Vector2(10f, 4f);
-        titleRect.offsetMax = new Vector2(-4f, -4f);
+        titleRect.anchorMax = new Vector2(0.68f, 1f);
+        titleRect.offsetMin = new Vector2(14f, 8f);
+        titleRect.offsetMax = new Vector2(-6f, -8f);
 
         RectTransform deadlineRect = entry.deadlineText.rectTransform;
-        deadlineRect.anchorMin = new Vector2(0.7f, 0f);
+        deadlineRect.anchorMin = new Vector2(0.68f, 0f);
         deadlineRect.anchorMax = new Vector2(1f, 1f);
-        deadlineRect.offsetMin = new Vector2(4f, 4f);
-        deadlineRect.offsetMax = new Vector2(-10f, -4f);
+        deadlineRect.offsetMin = new Vector2(6f, 8f);
+        deadlineRect.offsetMax = new Vector2(-14f, -8f);
 
         return entry;
     }
@@ -107,16 +108,15 @@ public class QuestListEntry : MonoBehaviour
         Transform parent,
         string name,
         TextAlignmentOptions alignment,
-        float fontSize)
+        TmpUiStyle.Role role)
     {
         GameObject labelObject = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
         labelObject.transform.SetParent(parent, false);
         TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
         label.alignment = alignment;
-        label.fontSize = fontSize;
-        label.color = Color.white;
         label.textWrappingMode = TextWrappingModes.NoWrap;
         label.overflowMode = TextOverflowModes.Ellipsis;
+        TmpUiStyle.Apply(label, role);
         return label;
     }
 }

@@ -4,63 +4,64 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-// Factory 씬 TMP UI가 폰트 에셋을 못 찾을 때 기본 폰트를 다시 연결한다.
+// 씬 TMP에 나눔고딕 + UI 텍스트 스타일(크림/아웃라인)을 적용한다.
 public static class TmpUiFontBootstrap
 {
-    private const string FontAssetPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
-    private const string SourceFontPath = "Assets/TextMesh Pro/Fonts/LiberationSans.ttf";
-
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void AssignMissingUIFonts()
     {
-        TMP_FontAsset font = ResolveDefaultFont();
+        TMP_FontAsset font = TmpUiStyle.ResolveFont();
         if (font == null)
         {
-            Debug.LogWarning("[TmpUiFontBootstrap] LiberationSans SDF를 찾지 못했습니다.");
+            Debug.LogWarning("[TmpUiFontBootstrap] NanumGothic SDF를 찾지 못했습니다.");
             return;
         }
 
         TextMeshProUGUI[] texts = Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include);
-
-        foreach (TextMeshProUGUI text in texts)
+        for (int i = 0; i < texts.Length; i++)
         {
-            if (text == null || text.font != null)
+            TextMeshProUGUI text = texts[i];
+            if (text == null)
             {
                 continue;
             }
 
-            text.font = font;
+            // 폰트가 비었거나 기본 Liberation만 있는 경우 스타일을 덮어쓴다.
+            if (text.font == null
+                || text.font.name.IndexOf("LiberationSans", System.StringComparison.OrdinalIgnoreCase) >= 0
+                || text.font.name.IndexOf("NanumGothic", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                TmpUiStyle.Apply(text, InferBootstrapRole(text));
+            }
         }
     }
 
-    private static TMP_FontAsset ResolveDefaultFont()
+    private static TmpUiStyle.Role InferBootstrapRole(TextMeshProUGUI text)
     {
-        TMP_FontAsset font = TMP_Settings.defaultFontAsset;
-        if (font != null)
+        string name = text.gameObject.name;
+        Transform parent = text.transform.parent;
+        string parentName = parent != null ? parent.name : string.Empty;
+
+        if (parentName.IndexOf("Button", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || name.IndexOf("Button", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || name.Equals("Label", System.StringComparison.OrdinalIgnoreCase))
         {
-            return font;
+            return TmpUiStyle.Role.Button;
         }
 
-        font = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
-        if (font != null)
+        if (name.IndexOf("Title", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || name.IndexOf("DayText", System.StringComparison.OrdinalIgnoreCase) >= 0)
         {
-            return font;
+            return TmpUiStyle.Role.Title;
         }
 
-#if UNITY_EDITOR
-        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontAssetPath);
-        if (font != null)
+        if (name.IndexOf("Timer", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || name.IndexOf("Gold", System.StringComparison.OrdinalIgnoreCase) >= 0
+            || name.IndexOf("Reputation", System.StringComparison.OrdinalIgnoreCase) >= 0)
         {
-            return font;
+            return TmpUiStyle.Role.Caption;
         }
 
-        Font sourceFont = AssetDatabase.LoadAssetAtPath<Font>(SourceFontPath);
-        if (sourceFont != null)
-        {
-            return TMP_FontAsset.CreateFontAsset(sourceFont);
-        }
-#endif
-
-        return null;
+        return TmpUiStyle.Role.Body;
     }
 }

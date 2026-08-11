@@ -149,6 +149,7 @@ public class UIManager : MonoBehaviour
 
         var button = buttonObject.AddComponent<Button>();
         button.targetGraphic = image;
+        UiButtonStyle.Apply(button);
 
         var labelObject = new GameObject("Label", typeof(RectTransform));
         var labelRect = (RectTransform)labelObject.transform;
