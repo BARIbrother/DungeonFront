@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 8e658577c2f311c49beeaf8a8544f318
+guid: c459c8fefcee0a44fb724a8752ecf0db
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8718731512694761891
-    second: LightFantasy_button_dark_highlight_0
+      213: -1326394384466938377
+    second: LightFantasy_frame_tall_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +52,7 @@ TextureImporter:
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 16, y: 16, z: 16, w: 16}
+  spriteBorder: {x: 28, y: 28, z: 28, w: 28}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: LightFantasy_button_dark_highlight_0
+      name: LightFantasy_frame_tall_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 144
-        height: 144
+        width: 336
+        height: 544
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d5613dd02e7d00780800000000000000
-      internalID: -8718731512694761891
+      spriteID: 7f576c9b553b79de0800000000000000
+      internalID: -1326394384466938377
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      LightFantasy_button_dark_highlight_0: -8718731512694761891
+      LightFantasy_frame_tall_0: -1326394384466938377
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

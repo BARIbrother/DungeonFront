@@ -12,10 +12,10 @@ public static class TmpUiStyle
     public static readonly Color MutedColor = new Color(0.78f, 0.72f, 0.62f, 1f);
     public static readonly Color OutlineColor = new Color(0.12f, 0.09f, 0.08f, 0.85f);
 
-    public const float TitleSize = 28f;
-    public const float BodySize = 20f;
-    public const float ButtonSize = 24f;
-    public const float CaptionSize = 16f;
+    public const float TitleSize = 34f;
+    public const float BodySize = 26f;
+    public const float ButtonSize = 28f;
+    public const float CaptionSize = 20f;
 
     private const string NanumResourcesPath = "Fonts & Materials/NanumGothic SDF";
     private const string NanumAssetPath =
@@ -86,13 +86,13 @@ public static class TmpUiStyle
                 text.characterSpacing = -1f;
                 text.lineSpacing = 0f;
                 text.enableAutoSizing = false;
-                text.overflowMode = TextOverflowModes.Ellipsis;
+                text.overflowMode = TextOverflowModes.Overflow;
                 text.textWrappingMode = TextWrappingModes.NoWrap;
                 ApplyOutline(text, 0.2f);
                 break;
             case Role.Caption:
                 text.fontSize = CaptionSize;
-                text.fontStyle = FontStyles.Normal;
+                text.fontStyle = FontStyles.Bold;
                 text.color = MutedColor;
                 text.characterSpacing = -0.5f;
                 text.lineSpacing = 4f;
@@ -100,13 +100,28 @@ public static class TmpUiStyle
                 break;
             default:
                 text.fontSize = BodySize;
-                text.fontStyle = FontStyles.Normal;
+                text.fontStyle = FontStyles.Bold;
                 text.color = BodyColor;
                 text.characterSpacing = -0.8f;
                 text.lineSpacing = 6f;
                 ApplyOutline(text, 0.18f);
                 break;
         }
+    }
+
+    // 밝은 패널(배너·양피지)용. 검정 글씨 + 얇은 밝은 윤곽.
+    public static void ApplyOnLightPanel(TMP_Text text, Role role = Role.Body)
+    {
+        Apply(text, role);
+        if (text == null)
+        {
+            return;
+        }
+
+        text.color = new Color(0.08f, 0.06f, 0.05f, 1f);
+        text.fontStyle = FontStyles.Bold;
+        text.outlineColor = new Color(1f, 0.97f, 0.9f, 0.35f);
+        text.outlineWidth = 0.08f;
     }
 
     public static void ApplyToHierarchy(GameObject root)

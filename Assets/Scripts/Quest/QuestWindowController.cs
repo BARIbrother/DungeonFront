@@ -27,6 +27,13 @@ public class QuestWindowController : MonoBehaviour
     [SerializeField] private TMP_Text detailContentText;
     [SerializeField] private Button acceptButton;
 
+    private TMP_Text detailTitleText;
+    private TMP_Text detailBodyText;
+    private TMP_Text detailRequireText;
+    private TMP_Text detailRewardsText;
+    private Transform detailRequireSlotsRoot;
+    private Transform detailRewardSlotsRoot;
+
     private GameSessionState session;
     private Quest selectedQuest;
     private bool layoutReady;
@@ -373,36 +380,27 @@ public class QuestWindowController : MonoBehaviour
 
         if (detailCard != null)
         {
-            detailCard.gameObject.SetActive(true);
-            detailCard.SetQuest(quest);
-            detailCard.SetButtonLabel("수락");
-            detailCard.SetAcceptAction(TryAcceptSelected);
-            detailCard.SetAcceptButtonInteractable(CanAccept(quest));
+            // 섹션 패널 상세를 쓰므로 카드 프리팹 UI는 숨긴다.
+            detailCard.gameObject.SetActive(false);
         }
+
+        ApplyDetailSections(quest);
 
         if (detailContentText != null)
         {
-            detailContentText.gameObject.SetActive(true);
-            detailContentText.text = detailCard != null && !string.IsNullOrWhiteSpace(quest.content)
-                ? quest.content
-                : BuildDetailText(quest);
+            detailContentText.gameObject.SetActive(false);
         }
 
         if (acceptButton != null)
         {
-            // QuestCard에 수락 버튼이 있으면 중복 버튼을 숨긴다.
-            bool useCardAccept = detailCard != null;
-            acceptButton.gameObject.SetActive(!useCardAccept);
-            if (!useCardAccept)
+            acceptButton.gameObject.SetActive(true);
+            acceptButton.interactable = CanAccept(quest);
+            acceptButton.onClick.RemoveAllListeners();
+            acceptButton.onClick.AddListener(TryAcceptSelected);
+            TMP_Text label = acceptButton.GetComponentInChildren<TMP_Text>();
+            if (label != null)
             {
-                acceptButton.interactable = CanAccept(quest);
-                acceptButton.onClick.RemoveAllListeners();
-                acceptButton.onClick.AddListener(TryAcceptSelected);
-                TMP_Text label = acceptButton.GetComponentInChildren<TMP_Text>();
-                if (label != null)
-                {
-                    label.text = "수락";
-                }
+                label.text = "수락";
             }
         }
     }
@@ -415,14 +413,72 @@ public class QuestWindowController : MonoBehaviour
             detailCard.gameObject.SetActive(false);
         }
 
+        if (detailTitleText != null)
+        {
+            detailTitleText.text = "받을 수 있는 의뢰가 없습니다.";
+        }
+
+        if (detailBodyText != null)
+        {
+            detailBodyText.text = "-";
+        }
+
+        if (detailRequireText != null)
+        {
+            detailRequireText.text = "-";
+        }
+
+        QuestItemIconSlot.Clear(detailRequireSlotsRoot);
+        QuestItemIconSlot.Clear(detailRewardSlotsRoot);
+
+        if (detailRewardsText != null)
+        {
+            detailRewardsText.gameObject.SetActive(false);
+        }
+
         if (detailContentText != null)
         {
-            detailContentText.text = "받을 수 있는 의뢰가 없습니다.";
+            detailContentText.gameObject.SetActive(false);
         }
 
         if (acceptButton != null)
         {
             acceptButton.interactable = false;
+        }
+    }
+
+    private void ApplyDetailSections(Quest quest)
+    {
+        if (detailTitleText != null)
+        {
+            string title = string.IsNullOrWhiteSpace(quest.title) ? "-" : quest.title.Trim();
+            string client = string.IsNullOrWhiteSpace(quest.clientName)
+                ? ""
+                : quest.clientName.Trim();
+            detailTitleText.text = string.IsNullOrEmpty(client)
+                ? title
+                : $"{title}\n<size=70%>수취인: {client}</size>";
+        }
+
+        if (detailBodyText != null)
+        {
+            detailBodyText.text = string.IsNullOrWhiteSpace(quest.content)
+                ? "-"
+                : quest.content.Trim();
+            detailBodyText.ForceMeshUpdate();
+        }
+
+        if (detailRequireText != null)
+        {
+            detailRequireText.text = QuestCard.FormatDeadline(quest);
+        }
+
+        QuestItemIconSlot.Populate(detailRequireSlotsRoot, quest.requiredItems);
+        QuestItemIconSlot.PopulateRewards(detailRewardSlotsRoot, quest);
+
+        if (detailRewardsText != null)
+        {
+            detailRewardsText.gameObject.SetActive(false);
         }
     }
 
@@ -455,32 +511,6 @@ public class QuestWindowController : MonoBehaviour
         {
             Destroy(listContent.GetChild(i).gameObject);
         }
-    }
-
-    private static string BuildDetailText(Quest quest)
-    {
-        var builder = new StringBuilder();
-        builder.AppendLine(quest.title);
-        if (!string.IsNullOrWhiteSpace(quest.clientName))
-        {
-            builder.Append("의뢰인: ");
-            builder.AppendLine(quest.clientName);
-        }
-
-        builder.AppendLine(QuestCard.FormatDeadline(quest));
-        builder.AppendLine();
-        if (!string.IsNullOrWhiteSpace(quest.content))
-        {
-            builder.AppendLine(quest.content);
-            builder.AppendLine();
-        }
-
-        builder.AppendLine("[요구]");
-        builder.AppendLine(FormatItems(quest.requiredItems));
-        builder.AppendLine();
-        builder.AppendLine("[보상]");
-        builder.Append(FormatItems(quest.rewards));
-        return builder.ToString().TrimEnd();
     }
 
     private static string FormatItems(ItemEntryList list)
@@ -523,7 +553,7 @@ public class QuestWindowController : MonoBehaviour
 
         RectTransform panelRect = orderWindowPanel.GetComponent<RectTransform>();
         // 상단은 Close 버튼 영역을 비워 두고, 장식 테두리 inset을 확보한다.
-        const float topInset = 56f;
+        const float topInset = 64f;
         const float sideInset = 36f;
         if (listContent == null || !layoutReady)
         {
@@ -536,19 +566,28 @@ public class QuestWindowController : MonoBehaviour
                 new Vector2(-6f, -topInset));
         }
 
-        VerticalLayoutGroup layout = listContent.gameObject.GetComponent<VerticalLayoutGroup>();
-        if (layout == null)
+        // 가로로 채운 뒤 다음 줄로 넘어가는 그리드.
+        VerticalLayoutGroup legacyVertical = listContent.GetComponent<VerticalLayoutGroup>();
+        if (legacyVertical != null)
         {
-            layout = listContent.gameObject.AddComponent<VerticalLayoutGroup>();
+            UnityEngine.Object.DestroyImmediate(legacyVertical);
         }
 
-        layout.spacing = 10f;
-        layout.padding = new RectOffset(4, 4, 4, 4);
-        layout.childAlignment = TextAnchor.UpperCenter;
-        layout.childControlHeight = false;
-        layout.childControlWidth = true;
-        layout.childForceExpandHeight = false;
-        layout.childForceExpandWidth = true;
+        GridLayoutGroup grid = listContent.GetComponent<GridLayoutGroup>();
+        if (grid == null)
+        {
+            grid = listContent.gameObject.AddComponent<GridLayoutGroup>();
+        }
+
+        grid.cellSize = new Vector2(
+            QuestListEntry.CellWidth,
+            QuestListEntry.CellHeight);
+        grid.spacing = new Vector2(8f, 8f);
+        grid.padding = new RectOffset(2, 2, 2, 2);
+        grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+        grid.childAlignment = TextAnchor.UpperLeft;
+        grid.constraint = GridLayoutGroup.Constraint.Flexible;
 
         ContentSizeFitter fitter = listContent.gameObject.GetComponent<ContentSizeFitter>();
         if (fitter == null)
@@ -556,6 +595,7 @@ public class QuestWindowController : MonoBehaviour
             fitter = listContent.gameObject.AddComponent<ContentSizeFitter>();
         }
 
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         if (detailRoot == null || !layoutReady)
@@ -565,58 +605,753 @@ public class QuestWindowController : MonoBehaviour
                 "QuestDetailRoot",
                 new Vector2(0.42f, 0f),
                 new Vector2(1f, 1f),
-                new Vector2(6f, sideInset),
+                new Vector2(10f, sideInset),
                 new Vector2(-sideInset, -topInset));
         }
 
-        if (detailContentText == null)
-        {
-            Transform existingSummary = orderWindowPanel.transform.Find("QuestSummaryText");
-            if (existingSummary != null)
-            {
-                detailContentText = existingSummary.GetComponent<TMP_Text>();
-                existingSummary.SetParent(detailRoot, false);
-                RectTransform summaryRect = existingSummary.GetComponent<RectTransform>();
-                summaryRect.anchorMin = new Vector2(0f, 0.2f);
-                summaryRect.anchorMax = new Vector2(1f, 1f);
-                summaryRect.offsetMin = new Vector2(8f, 8f);
-                summaryRect.offsetMax = new Vector2(-8f, -8f);
-            }
-        }
+        EnsureDetailSections();
 
-        if (detailContentText == null)
-        {
-            GameObject body = new GameObject("QuestDetailBody", typeof(RectTransform), typeof(TextMeshProUGUI));
-            body.transform.SetParent(detailRoot, false);
-            RectTransform bodyRect = body.GetComponent<RectTransform>();
-            bodyRect.anchorMin = new Vector2(0f, 0.2f);
-            bodyRect.anchorMax = new Vector2(1f, 1f);
-            bodyRect.offsetMin = new Vector2(8f, 8f);
-            bodyRect.offsetMax = new Vector2(-8f, -8f);
-            detailContentText = body.GetComponent<TextMeshProUGUI>();
-            detailContentText.alignment = TextAlignmentOptions.TopLeft;
-            TmpUiStyle.Apply(detailContentText, TmpUiStyle.Role.Body);
-            detailContentText.color = Color.white;
-            detailContentText.alignment = TextAlignmentOptions.TopLeft;
-            detailContentText.textWrappingMode = TextWrappingModes.Normal;
-        }
-
-        // 상세 텍스트가 Close 버튼 클릭을 가로채지 않게 한다.
-        if (detailContentText != null)
-        {
-            detailContentText.raycastTarget = false;
-        }
-
-        // QuestCard 프리팹은 목록형 레이아웃이라, 상세는 텍스트+수락 버튼을 기본으로 쓴다.
+        // QuestCard 프리팹은 목록형 레이아웃이라, 상세는 섹션 패널+수락 버튼을 기본으로 쓴다.
         // 씬에 detailCard를 직접 연결한 경우에만 카드 UI를 사용한다.
 
         if (acceptButton == null)
         {
             acceptButton = CreateAcceptButton(detailRoot);
         }
+        else
+        {
+            ConfigureAcceptButtonLayout(acceptButton);
+            acceptButton.transform.SetParent(detailRoot, false);
+        }
+
+        acceptButton.transform.SetAsLastSibling();
 
         BringCloseButtonToFront();
         layoutReady = true;
+    }
+
+    // 상세를 이름·수취인·내용·보상 패널로 나눈다.
+    private void EnsureDetailSections()
+    {
+        if (detailRoot == null)
+        {
+            return;
+        }
+
+        UiPanelFrame.ClearCache();
+
+        // 바깥 통짜 패널 프레임은 제거하고 섹션만 패널로 쓴다.
+        Image detailRootImage = detailRoot.GetComponent<Image>();
+        if (detailRootImage != null)
+        {
+            detailRootImage.enabled = false;
+            detailRootImage.raycastTarget = false;
+        }
+
+        VerticalLayoutGroup layout = detailRoot.GetComponent<VerticalLayoutGroup>();
+        if (layout == null)
+        {
+            layout = detailRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+        }
+
+        layout.spacing = 10f;
+        layout.padding = new RectOffset(0, 0, 0, 0);
+        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childControlHeight = true;
+        layout.childControlWidth = true;
+        layout.childForceExpandHeight = false;
+        layout.childForceExpandWidth = true;
+
+        // 제목(+수취인 작은 글씨) · 내용 패널(요구·보상 내부 얇은 테두리)
+        detailTitleText = EnsureDetailSection(
+            detailRoot,
+            "DetailTitlePanel",
+            headerLabel: null,
+            preferredHeight: 96f,
+            TmpUiStyle.Role.Title,
+            UiPanelFrame.Kind.BannerCream,
+            lightBackground: true,
+            bodyAlignment: TextAlignmentOptions.Center,
+            scrollableBody: false,
+            out _);
+
+        // 수취인 전용 탭은 쓰지 않는다.
+        HideLegacyDetailChild("DetailClientPanel");
+
+        detailBodyText = null;
+        detailRequireText = null;
+        detailRewardsText = null;
+        EnsureCombinedBodyPanel(out LayoutElement bodyLayout);
+        bodyLayout.flexibleHeight = 1f;
+        bodyLayout.minHeight = 320f;
+        bodyLayout.preferredHeight = 400f;
+
+        // 예전 분리 패널은 숨긴다.
+        HideLegacyDetailChild("DetailContentPanel");
+        HideLegacyDetailChild("DetailRequirePanel");
+        HideLegacyDetailChild("DetailRewardsPanel");
+
+        // 섹션 순서를 고정한다.
+        SetDetailSibling("DetailTitlePanel", 0);
+        SetDetailSibling("DetailBodyPanel", 1);
+
+        if (detailContentText != null)
+        {
+            detailContentText.gameObject.SetActive(false);
+        }
+
+        Transform legacySummary = orderWindowPanel != null
+            ? orderWindowPanel.transform.Find("QuestSummaryText")
+            : null;
+        if (legacySummary != null)
+        {
+            legacySummary.gameObject.SetActive(false);
+        }
+    }
+
+    private void HideLegacyDetailChild(string name)
+    {
+        if (detailRoot == null)
+        {
+            return;
+        }
+
+        Transform child = detailRoot.Find(name);
+        if (child != null)
+        {
+            child.gameObject.SetActive(false);
+        }
+    }
+
+    // 내용(스크롤) · 요구 · 보상을 한 프레임 안에 세로로 쌓아 겹치지 않게 한다.
+    private void EnsureCombinedBodyPanel(out LayoutElement layoutElement)
+    {
+        Transform existing = detailRoot.Find("DetailBodyPanel");
+        GameObject rootObject;
+        if (existing != null)
+        {
+            rootObject = existing.gameObject;
+            rootObject.SetActive(true);
+        }
+        else
+        {
+            rootObject = new GameObject(
+                "DetailBodyPanel",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(LayoutElement),
+                typeof(VerticalLayoutGroup));
+            rootObject.transform.SetParent(detailRoot, false);
+        }
+
+        layoutElement = rootObject.GetComponent<LayoutElement>();
+        if (layoutElement == null)
+        {
+            layoutElement = rootObject.AddComponent<LayoutElement>();
+        }
+
+        layoutElement.minHeight = 320f;
+        layoutElement.preferredHeight = 400f;
+        layoutElement.flexibleWidth = 1f;
+        layoutElement.flexibleHeight = 1f;
+
+        Image panelImage = rootObject.GetComponent<Image>();
+        if (panelImage == null)
+        {
+            panelImage = rootObject.AddComponent<Image>();
+        }
+
+        UiPanelFrame.Apply(panelImage, UiPanelFrame.Kind.Content, 0.6f);
+        panelImage.raycastTarget = false;
+
+        VerticalLayoutGroup sectionLayout = rootObject.GetComponent<VerticalLayoutGroup>();
+        if (sectionLayout == null)
+        {
+            sectionLayout = rootObject.AddComponent<VerticalLayoutGroup>();
+        }
+
+        // 바깥 내용 프레임과 안쪽 텍스트/블록 사이 margin. 위·좌우를 더 확보한다.
+        sectionLayout.padding = new RectOffset(36, 36, 40, 24);
+        sectionLayout.spacing = 12f;
+        sectionLayout.childAlignment = TextAnchor.UpperCenter;
+        sectionLayout.childControlHeight = true;
+        sectionLayout.childControlWidth = true;
+        sectionLayout.childForceExpandHeight = false;
+        sectionLayout.childForceExpandWidth = true;
+
+        // '내용' 라벨은 쓰지 않는다.
+        Transform contentHeaderTransform = rootObject.transform.Find("ContentHeader");
+        if (contentHeaderTransform != null)
+        {
+            contentHeaderTransform.gameObject.SetActive(false);
+        }
+
+        detailBodyText = EnsureScrollableBody(
+            rootObject.transform,
+            TmpUiStyle.Role.Body,
+            preferredHeight: 120f);
+        detailBodyText.alignment = TextAlignmentOptions.TopLeft;
+        detailBodyText.textWrappingMode = TextWrappingModes.Normal;
+        detailBodyText.overflowMode = TextOverflowModes.Overflow;
+
+        Transform scroll = rootObject.transform.Find("Scroll");
+        if (scroll != null)
+        {
+            LayoutElement scrollLayout = scroll.GetComponent<LayoutElement>();
+            if (scrollLayout != null)
+            {
+                scrollLayout.flexibleHeight = 1f;
+                scrollLayout.minHeight = 100f;
+                scrollLayout.preferredHeight = 150f;
+            }
+        }
+
+        // 요구·보상은 내용 프레임 안쪽 얇은 테두리 + 아이콘 슬롯.
+        detailRequireText = EnsureInlineBlock(
+            rootObject.transform,
+            "RequireBlock",
+            "요구",
+            preferredHeight: 110f,
+            thinFrame: true,
+            showItemSlots: true,
+            includeDeadlineLine: true,
+            out detailRequireSlotsRoot);
+        detailRewardsText = EnsureInlineBlock(
+            rootObject.transform,
+            "RewardsBlock",
+            "보상",
+            preferredHeight: 96f,
+            thinFrame: true,
+            showItemSlots: true,
+            includeDeadlineLine: false,
+            out detailRewardSlotsRoot);
+        if (detailRewardsText != null)
+        {
+            // 보상은 납기 텍스트가 필요 없어 숨긴다.
+            detailRewardsText.gameObject.SetActive(false);
+        }
+
+        // 블록 순서: 스크롤 → 요구 → 보상
+        if (scroll != null)
+        {
+            scroll.SetSiblingIndex(0);
+        }
+
+        Transform requireBlock = rootObject.transform.Find("RequireBlock");
+        Transform rewardsBlock = rootObject.transform.Find("RewardsBlock");
+        if (requireBlock != null)
+        {
+            requireBlock.SetSiblingIndex(1);
+        }
+
+        if (rewardsBlock != null)
+        {
+            rewardsBlock.SetSiblingIndex(2);
+        }
+    }
+
+    private static float ComputeInlineBlockHeight(bool thinFrame, bool includeDeadlineLine)
+    {
+        int margin = thinFrame ? 20 : 8;
+        const float headerHeight = 20f;
+        const float deadlineHeight = 18f;
+        const float rowSpacing = 6f;
+
+        float height = margin * 2f + headerHeight + rowSpacing + QuestItemIconSlot.SlotSize;
+        if (includeDeadlineLine)
+        {
+            height += deadlineHeight + rowSpacing;
+        }
+
+        return height;
+    }
+
+    private static TMP_Text EnsureInlineBlock(
+        Transform parent,
+        string rootName,
+        string headerLabel,
+        float preferredHeight,
+        bool thinFrame,
+        bool showItemSlots,
+        bool includeDeadlineLine,
+        out Transform slotsRoot)
+    {
+        if (showItemSlots)
+        {
+            preferredHeight = ComputeInlineBlockHeight(thinFrame, includeDeadlineLine);
+        }
+        Transform existing = parent.Find(rootName);
+        GameObject rootObject;
+        if (existing != null)
+        {
+            rootObject = existing.gameObject;
+        }
+        else
+        {
+            rootObject = new GameObject(
+                rootName,
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(LayoutElement),
+                typeof(VerticalLayoutGroup));
+            rootObject.transform.SetParent(parent, false);
+        }
+
+        LayoutElement layoutElement = rootObject.GetComponent<LayoutElement>();
+        if (layoutElement == null)
+        {
+            layoutElement = rootObject.AddComponent<LayoutElement>();
+        }
+
+        layoutElement.minHeight = preferredHeight;
+        layoutElement.preferredHeight = preferredHeight;
+        layoutElement.flexibleHeight = 0f;
+        layoutElement.flexibleWidth = 1f;
+
+        Image frameImage = rootObject.GetComponent<Image>();
+        if (frameImage == null)
+        {
+            frameImage = rootObject.AddComponent<Image>();
+        }
+
+        if (thinFrame)
+        {
+            UiPanelFrame.Apply(frameImage, UiPanelFrame.Kind.Bar, 1.35f);
+            frameImage.raycastTarget = false;
+        }
+
+        VerticalLayoutGroup layout = rootObject.GetComponent<VerticalLayoutGroup>();
+        if (layout == null)
+        {
+            layout = rootObject.AddComponent<VerticalLayoutGroup>();
+        }
+
+        int margin = thinFrame ? 20 : 8;
+        layout.padding = new RectOffset(margin, margin, margin, margin);
+        layout.spacing = 6f;
+        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childControlHeight = true;
+        layout.childControlWidth = true;
+        layout.childForceExpandHeight = false;
+        layout.childForceExpandWidth = true;
+
+        TMP_Text header = EnsureSectionLabel(
+            rootObject.transform,
+            "Header",
+            headerLabel,
+            TmpUiStyle.Role.Caption,
+            preferredHeight: 20f,
+            flexibleHeight: 0f);
+        header.alignment = TextAlignmentOptions.Left;
+        header.overflowMode = TextOverflowModes.Overflow;
+
+        // 기존 Body 텍스트: 요구는 납기 표시용, 보상은 숨김.
+        TMP_Text body = EnsureSectionLabel(
+            rootObject.transform,
+            "Body",
+            "-",
+            TmpUiStyle.Role.Caption,
+            preferredHeight: showItemSlots ? 18f : Mathf.Max(28f, preferredHeight - 24f - (margin * 2)),
+            flexibleHeight: showItemSlots ? 0f : 1f);
+        body.alignment = TextAlignmentOptions.Left;
+        body.textWrappingMode = TextWrappingModes.Normal;
+        body.overflowMode = TextOverflowModes.Overflow;
+
+        slotsRoot = null;
+        if (showItemSlots)
+        {
+            Transform slotsTransform = rootObject.transform.Find("Slots");
+            GameObject slotsObject;
+            if (slotsTransform != null)
+            {
+                slotsObject = slotsTransform.gameObject;
+            }
+            else
+            {
+                slotsObject = new GameObject(
+                    "Slots",
+                    typeof(RectTransform),
+                    typeof(LayoutElement),
+                    typeof(HorizontalLayoutGroup));
+                slotsObject.transform.SetParent(rootObject.transform, false);
+            }
+
+            LayoutElement slotsLayout = slotsObject.GetComponent<LayoutElement>();
+            if (slotsLayout == null)
+            {
+                slotsLayout = slotsObject.AddComponent<LayoutElement>();
+            }
+
+            slotsLayout.minHeight = QuestItemIconSlot.SlotSize;
+            slotsLayout.preferredHeight = QuestItemIconSlot.SlotSize;
+            slotsLayout.flexibleWidth = 1f;
+            slotsLayout.flexibleHeight = 0f;
+
+            HorizontalLayoutGroup hlg = slotsObject.GetComponent<HorizontalLayoutGroup>();
+            if (hlg == null)
+            {
+                hlg = slotsObject.AddComponent<HorizontalLayoutGroup>();
+            }
+
+            hlg.spacing = 8f;
+            hlg.padding = new RectOffset(0, 0, 0, 0);
+            hlg.childAlignment = TextAnchor.MiddleLeft;
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = false;
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = false;
+
+            slotsRoot = slotsObject.transform;
+            header.transform.SetSiblingIndex(0);
+            body.transform.SetSiblingIndex(1);
+            slotsObject.transform.SetSiblingIndex(2);
+        }
+
+        return body;
+    }
+
+    private void SetDetailSibling(string name, int index)
+    {
+        if (detailRoot == null)
+        {
+            return;
+        }
+
+        Transform child = detailRoot.Find(name);
+        if (child != null)
+        {
+            child.SetSiblingIndex(index);
+        }
+    }
+
+    private static TMP_Text EnsureDetailSection(
+        Transform parent,
+        string rootName,
+        string headerLabel,
+        float preferredHeight,
+        TmpUiStyle.Role bodyRole,
+        UiPanelFrame.Kind frameKind,
+        bool lightBackground,
+        TextAlignmentOptions bodyAlignment,
+        bool scrollableBody,
+        out LayoutElement layoutElement)
+    {
+        Transform existing = parent.Find(rootName);
+        GameObject rootObject;
+        if (existing != null)
+        {
+            rootObject = existing.gameObject;
+        }
+        else
+        {
+            rootObject = new GameObject(
+                rootName,
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(LayoutElement),
+                typeof(VerticalLayoutGroup));
+            rootObject.transform.SetParent(parent, false);
+        }
+
+        layoutElement = rootObject.GetComponent<LayoutElement>();
+        if (layoutElement == null)
+        {
+            layoutElement = rootObject.AddComponent<LayoutElement>();
+        }
+
+        layoutElement.minHeight = preferredHeight;
+        layoutElement.preferredHeight = preferredHeight;
+        layoutElement.flexibleWidth = 1f;
+        layoutElement.flexibleHeight = 0f;
+
+        Image panelImage = rootObject.GetComponent<Image>();
+        if (panelImage == null)
+        {
+            panelImage = rootObject.AddComponent<Image>();
+        }
+
+        float ppu = frameKind == UiPanelFrame.Kind.BannerCream
+            || frameKind == UiPanelFrame.Kind.BannerTan
+            || frameKind == UiPanelFrame.Kind.Parchment
+            ? 0.9f
+            : 0.6f;
+        UiPanelFrame.Apply(panelImage, frameKind, ppu);
+        panelImage.raycastTarget = false;
+
+        VerticalLayoutGroup sectionLayout = rootObject.GetComponent<VerticalLayoutGroup>();
+        if (sectionLayout == null)
+        {
+            sectionLayout = rootObject.AddComponent<VerticalLayoutGroup>();
+        }
+
+        bool hasHeader = !string.IsNullOrEmpty(headerLabel);
+        int insetX = frameKind == UiPanelFrame.Kind.Parchment ? 16 : 22;
+        int insetTop = hasHeader ? 16 : 12;
+        int insetBottom = 12;
+        sectionLayout.padding = new RectOffset(insetX, insetX, insetTop, insetBottom);
+        sectionLayout.spacing = hasHeader ? 4f : 0f;
+        sectionLayout.childAlignment = TextAnchor.UpperCenter;
+        sectionLayout.childControlHeight = true;
+        sectionLayout.childControlWidth = true;
+        sectionLayout.childForceExpandHeight = false;
+        sectionLayout.childForceExpandWidth = true;
+
+        Transform headerTransform = rootObject.transform.Find("Header");
+        if (hasHeader)
+        {
+            TMP_Text header = EnsureSectionLabel(
+                rootObject.transform,
+                "Header",
+                headerLabel,
+                TmpUiStyle.Role.Caption,
+                preferredHeight: 22f,
+                flexibleHeight: 0f);
+            header.gameObject.SetActive(true);
+            header.alignment = TextAlignmentOptions.Left;
+            header.overflowMode = TextOverflowModes.Overflow;
+            if (lightBackground)
+            {
+                TmpUiStyle.ApplyOnLightPanel(header, TmpUiStyle.Role.Caption);
+                header.color = new Color(0.28f, 0.22f, 0.16f, 0.95f);
+            }
+        }
+        else if (headerTransform != null)
+        {
+            headerTransform.gameObject.SetActive(false);
+        }
+
+        TMP_Text body;
+        if (scrollableBody)
+        {
+            body = EnsureScrollableBody(
+                rootObject.transform,
+                bodyRole,
+                preferredHeight: Mathf.Max(48f, preferredHeight - (hasHeader ? 48f : 28f)));
+        }
+        else
+        {
+            body = EnsureSectionLabel(
+                rootObject.transform,
+                "Body",
+                "-",
+                bodyRole,
+                preferredHeight: Mathf.Max(28f, preferredHeight - (hasHeader ? 48f : 24f)),
+                flexibleHeight: 1f);
+        }
+
+        body.alignment = bodyAlignment;
+        body.textWrappingMode = TextWrappingModes.Normal;
+        body.overflowMode = TextOverflowModes.Overflow;
+        if (lightBackground)
+        {
+            TmpUiStyle.ApplyOnLightPanel(body, bodyRole);
+        }
+
+        return body;
+    }
+
+    private static TMP_Text EnsureScrollableBody(
+        Transform sectionRoot,
+        TmpUiStyle.Role bodyRole,
+        float preferredHeight)
+    {
+        Transform scrollTransform = sectionRoot.Find("Scroll");
+        GameObject scrollObject;
+        if (scrollTransform != null)
+        {
+            scrollObject = scrollTransform.gameObject;
+        }
+        else
+        {
+            scrollObject = new GameObject(
+                "Scroll",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(ScrollRect),
+                typeof(LayoutElement));
+            scrollObject.transform.SetParent(sectionRoot, false);
+        }
+
+        LayoutElement scrollLayout = scrollObject.GetComponent<LayoutElement>();
+        if (scrollLayout == null)
+        {
+            scrollLayout = scrollObject.AddComponent<LayoutElement>();
+        }
+
+        scrollLayout.minHeight = preferredHeight;
+        scrollLayout.preferredHeight = preferredHeight;
+        scrollLayout.flexibleHeight = 1f;
+        scrollLayout.flexibleWidth = 1f;
+
+        Image scrollImage = scrollObject.GetComponent<Image>();
+        scrollImage.color = new Color(0f, 0f, 0f, 0.01f);
+        scrollImage.raycastTarget = true;
+
+        Transform viewportTransform = scrollObject.transform.Find("Viewport");
+        GameObject viewportObject;
+        if (viewportTransform != null)
+        {
+            viewportObject = viewportTransform.gameObject;
+        }
+        else
+        {
+            viewportObject = new GameObject(
+                "Viewport",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Mask));
+            viewportObject.transform.SetParent(scrollObject.transform, false);
+        }
+
+        RectTransform viewportRect = viewportObject.GetComponent<RectTransform>();
+        viewportRect.anchorMin = Vector2.zero;
+        viewportRect.anchorMax = Vector2.one;
+        // 위쪽 inset으로 테두리와 본문 텍스트가 겹치지 않게 한다.
+        viewportRect.offsetMin = new Vector2(8f, 2f);
+        viewportRect.offsetMax = new Vector2(-8f, -10f);
+
+        Image viewportImage = viewportObject.GetComponent<Image>();
+        viewportImage.color = Color.white;
+        viewportImage.raycastTarget = true;
+        Mask mask = viewportObject.GetComponent<Mask>();
+        mask.showMaskGraphic = false;
+
+        Transform contentTransform = viewportObject.transform.Find("Content");
+        GameObject contentObject;
+        if (contentTransform != null)
+        {
+            contentObject = contentTransform.gameObject;
+        }
+        else
+        {
+            contentObject = new GameObject(
+                "Content",
+                typeof(RectTransform),
+                typeof(ContentSizeFitter));
+            contentObject.transform.SetParent(viewportObject.transform, false);
+        }
+
+        RectTransform contentRect = contentObject.GetComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(1f, 1f);
+        contentRect.pivot = new Vector2(0.5f, 1f);
+        contentRect.anchoredPosition = Vector2.zero;
+        contentRect.sizeDelta = new Vector2(0f, 0f);
+
+        ContentSizeFitter contentFitter = contentObject.GetComponent<ContentSizeFitter>();
+        if (contentFitter == null)
+        {
+            contentFitter = contentObject.AddComponent<ContentSizeFitter>();
+        }
+
+        contentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        Transform legacyBody = sectionRoot.Find("Body");
+        TMP_Text body;
+        if (legacyBody != null && legacyBody.parent != contentObject.transform)
+        {
+            legacyBody.SetParent(contentObject.transform, false);
+            body = legacyBody.GetComponent<TMP_Text>();
+        }
+        else
+        {
+            body = EnsureSectionLabel(
+                contentObject.transform,
+                "Body",
+                "-",
+                bodyRole,
+                preferredHeight: 40f,
+                flexibleHeight: 0f);
+        }
+
+        RectTransform bodyRect = body.rectTransform;
+        bodyRect.anchorMin = new Vector2(0f, 1f);
+        bodyRect.anchorMax = new Vector2(1f, 1f);
+        bodyRect.pivot = new Vector2(0.5f, 1f);
+        bodyRect.anchoredPosition = Vector2.zero;
+        bodyRect.sizeDelta = new Vector2(0f, 40f);
+
+        ContentSizeFitter bodyFitter = body.GetComponent<ContentSizeFitter>();
+        if (bodyFitter == null)
+        {
+            bodyFitter = body.gameObject.AddComponent<ContentSizeFitter>();
+        }
+
+        bodyFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        bodyFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        LayoutElement bodyLayout = body.GetComponent<LayoutElement>();
+        if (bodyLayout != null)
+        {
+            bodyLayout.flexibleHeight = 0f;
+            bodyLayout.minHeight = 40f;
+            bodyLayout.preferredHeight = -1f;
+        }
+
+        ScrollRect scrollRect = scrollObject.GetComponent<ScrollRect>();
+        scrollRect.content = contentRect;
+        scrollRect.viewport = viewportRect;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 24f;
+
+        return body;
+    }
+
+    private static TMP_Text EnsureSectionLabel(
+        Transform parent,
+        string name,
+        string text,
+        TmpUiStyle.Role role,
+        float preferredHeight,
+        float flexibleHeight)
+    {
+        Transform existing = parent.Find(name);
+        TextMeshProUGUI label;
+        GameObject labelObject;
+        if (existing != null)
+        {
+            labelObject = existing.gameObject;
+            label = existing.GetComponent<TextMeshProUGUI>();
+            if (label == null)
+            {
+                label = labelObject.AddComponent<TextMeshProUGUI>();
+            }
+        }
+        else
+        {
+            labelObject = new GameObject(
+                name,
+                typeof(RectTransform),
+                typeof(TextMeshProUGUI),
+                typeof(LayoutElement));
+            labelObject.transform.SetParent(parent, false);
+            label = labelObject.GetComponent<TextMeshProUGUI>();
+        }
+
+        LayoutElement layoutElement = labelObject.GetComponent<LayoutElement>();
+        if (layoutElement == null)
+        {
+            layoutElement = labelObject.AddComponent<LayoutElement>();
+        }
+
+        layoutElement.minHeight = preferredHeight;
+        layoutElement.preferredHeight = preferredHeight;
+        layoutElement.flexibleHeight = flexibleHeight;
+        layoutElement.flexibleWidth = 1f;
+
+        RectTransform rect = label.rectTransform;
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(1f, 1f);
+        rect.pivot = new Vector2(0.5f, 1f);
+        rect.sizeDelta = new Vector2(0f, preferredHeight);
+
+        label.text = text;
+        label.raycastTarget = false;
+        TmpUiStyle.Apply(label, role);
+        return label;
     }
 
     private void CacheCloseButton()
@@ -655,7 +1390,7 @@ public class QuestWindowController : MonoBehaviour
         rect.anchorMin = new Vector2(1f, 1f);
         rect.anchorMax = new Vector2(1f, 1f);
         rect.pivot = new Vector2(1f, 1f);
-        rect.anchoredPosition = new Vector2(-28f, -28f);
+        rect.anchoredPosition = new Vector2(-28f, -14f);
         rect.sizeDelta = new Vector2(120f, 44f);
     }
 
@@ -718,19 +1453,15 @@ public class QuestWindowController : MonoBehaviour
             "QuestAcceptButton",
             typeof(RectTransform),
             typeof(Image),
-            typeof(Button));
+            typeof(Button),
+            typeof(LayoutElement));
         buttonObject.transform.SetParent(parent, false);
 
-        RectTransform rect = buttonObject.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0f);
-        rect.anchorMax = new Vector2(1f, 0.22f);
-        rect.offsetMin = new Vector2(12f, 14f);
-        rect.offsetMax = new Vector2(-28f, -12f);
+        Button button = buttonObject.GetComponent<Button>();
+        ConfigureAcceptButtonLayout(button);
 
         Image image = buttonObject.GetComponent<Image>();
         image.color = new Color(0.25f, 0.55f, 0.35f, 1f);
-
-        Button button = buttonObject.GetComponent<Button>();
         button.targetGraphic = image;
 
         GameObject labelObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -748,5 +1479,30 @@ public class QuestWindowController : MonoBehaviour
 
         UiButtonStyle.Apply(button);
         return button;
+    }
+
+    private static void ConfigureAcceptButtonLayout(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        RectTransform rect = button.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0f, 0f);
+        rect.anchorMax = new Vector2(1f, 0f);
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.sizeDelta = new Vector2(0f, 52f);
+
+        LayoutElement layoutElement = button.GetComponent<LayoutElement>();
+        if (layoutElement == null)
+        {
+            layoutElement = button.gameObject.AddComponent<LayoutElement>();
+        }
+
+        layoutElement.minHeight = 52f;
+        layoutElement.preferredHeight = 52f;
+        layoutElement.flexibleWidth = 1f;
+        layoutElement.flexibleHeight = 0f;
     }
 }

@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: 8e658577c2f311c49beeaf8a8544f318
+guid: e8cb0d87410776843ade33d2da00ec95
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8718731512694761891
-    second: LightFantasy_button_dark_highlight_0
+      213: 5875931887956990453
+    second: UI_NoteBook_Select01a_0
+  - first:
+      213: 666435853588296216
+    second: UI_NoteBook_Select01a_1
+  - first:
+      213: 6043075866022209803
+    second: UI_NoteBook_Select01a_2
+  - first:
+      213: -5299633852973792535
+    second: UI_NoteBook_Select01a_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +61,7 @@ TextureImporter:
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 16, y: 16, z: 16, w: 16}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -100,13 +109,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: LightFantasy_button_dark_highlight_0
+      name: UI_NoteBook_Select01a_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 144
-        height: 144
+        y: 20
+        width: 10
+        height: 10
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +124,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d5613dd02e7d00780800000000000000
-      internalID: -8718731512694761891
+      spriteID: 5f9111a8be08b8150800000000000000
+      internalID: 5875931887956990453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_NoteBook_Select01a_1
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 20
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 812f6beb0e7af3900800000000000000
+      internalID: 666435853588296216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_NoteBook_Select01a_2
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b096df88b715dd350800000000000000
+      internalID: 6043075866022209803
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: UI_NoteBook_Select01a_3
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 0
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e2ccd1e61be376b0800000000000000
+      internalID: -5299633852973792535
       vertices: []
       indices: 
       edges: []
@@ -135,7 +210,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      LightFantasy_button_dark_highlight_0: -8718731512694761891
+      UI_NoteBook_Select01a_0: 5875931887956990453
+      UI_NoteBook_Select01a_1: 666435853588296216
+      UI_NoteBook_Select01a_2: 6043075866022209803
+      UI_NoteBook_Select01a_3: -5299633852973792535
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
