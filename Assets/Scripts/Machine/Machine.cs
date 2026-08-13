@@ -364,18 +364,14 @@ public abstract class Machine : MonoBehaviour
         return outputPort != null ? outputPort.CopyAllEntries() : new System.Collections.Generic.List<ItemEntry>();
     }
 
-    // 생산 종료: 완성품(outputPort)을 인벤으로 옮기고 포트를 비운다.
+    // 회수 시에만 쓴다. 결산은 필드 아이템을 인벤으로 넣지 않는다.
     public virtual void TransferFinishedGoodsToPlayerInventory()
     {
-        ReturnPortContentsToPlayerInventory(outputPort);
     }
 
-    // 생산 종료: WIP 재료 환원·입력 포트 잔여 반환·WIP 초기화. 완성품은 별도 처리.
+    // 회수 시에만 쓴다. 결산은 필드 아이템을 인벤으로 넣지 않는다.
     public virtual void RefundNonFinishedContentsToPlayerInventory()
     {
-        RefundActiveWipToPlayerInventory();
-        ReturnPortContentsToPlayerInventory(inputPort);
-        ResetProductionWip();
     }
 
     // WIP 시작 시 inputPort에서 소비된 레시피 입력을 환원한다.

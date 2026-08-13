@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,18 +6,31 @@ public class UnlockManager : MonoBehaviour
 {
     public static UnlockManager Instance { get; private set; }
 
-    // 해금된 노드 ID들을 저장하는 집합 (HashSet으로 빠른 검색 지원)
-    private HashSet<string> unlockedNodeIds = new HashSet<string>();
+    public event Action OnUnlocksChanged;
+
+    private readonly HashSet<string> unlockedNodeIds = new HashSet<string>();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Bootstrap()
+    {
+        if (FindAnyObjectByType<UnlockManager>() != null)
+        {
+            return;
+        }
+
+        var managerObject = new GameObject("UnlockManager");
+        managerObject.AddComponent<UnlockManager>();
+    }
 
     private void Awake()
     {
-        // 싱글톤(Singleton) 세팅
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            ResetUnlockedNodes();
         }
-        else
+        else if (Instance != this)
         {
             Destroy(gameObject);
         }
@@ -24,96 +38,260 @@ public class UnlockManager : MonoBehaviour
 
     private void Start()
     {
-        // GameSessionState의 OnNewGame 이벤트 구독 (새 게임 시작 시 해금 초기화)
         if (GameSessionState.Instance != null)
         {
+            GameSessionState.Instance.OnNewGame -= ResetUnlockedNodes;
             GameSessionState.Instance.OnNewGame += ResetUnlockedNodes;
         }
-
-        // 게임 시작 시 해금 목록 리셋
-        ResetUnlockedNodes();
     }
 
     private void OnDestroy()
     {
-        // 이벤트 구독 해제
         if (GameSessionState.Instance != null)
         {
             GameSessionState.Instance.OnNewGame -= ResetUnlockedNodes;
         }
+
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
-    /// <summary>
-    /// 저장되어 있던 모든 테크 해금 내역을 초기화합니다.
-    /// </summary>
     public void ResetUnlockedNodes()
     {
         unlockedNodeIds.Clear();
-        Debug.Log("[UnlockManager] 테크 해금 목록이 초기화되었습니다.");
+        for (int i = 0; i < TechTreeCatalog.All.Length; i++)
+        {
+            TechTreeCatalog.Node node = TechTreeCatalog.All[i];
+            if (node.startUnlocked)
+            {
+                unlockedNodeIds.Add(node.id);
+            }
+        }
+
+        OnUnlocksChanged?.Invoke();
     }
 
-    /// <summary>
-    /// 해당 노드가 해금되었는지 여부를 확인합니다.
-    /// </summary>
+    public void GrantUnlocked(string nodeId)
+    {
+        if (string.IsNullOrEmpty(nodeId) || !unlockedNodeIds.Add(nodeId))
+        {
+            return;
+        }
+
+        OnUnlocksChanged?.Invoke();
+    }
+
     public bool IsUnlocked(string nodeId)
     {
-        if (string.IsNullOrEmpty(nodeId)) return false;
-        return unlockedNodeIds.Contains(nodeId);
+        return !string.IsNullOrEmpty(nodeId) && unlockedNodeIds.Contains(nodeId);
     }
 
-    /// <summary>
-    /// 해당 노드가 해금 가능한 상태인지(선행 노드 해금 여부) 확인합니다.
-    /// </summary>
-    public bool CanUnlock(TechNodeSO node)
+    public bool CanUnlock(string techId)
     {
-        if (node == null) return false;
+        return CanUnlock(TechTreeCatalog.Get(techId));
+    }
 
-        // 이미 해금된 노드라면 해금 불가
-        if (IsUnlocked(node.techId)) return false;
-
-        // 선행 노드가 있고, 선행 노드가 아직 해금되지 않았다면 해금 불가
-        if (node.parentNode != null && !IsUnlocked(node.parentNode.techId))
+    public bool CanUnlock(TechTreeCatalog.Node node)
+    {
+        if (node == null || IsUnlocked(node.id))
         {
             return false;
+        }
+
+        if (node.parentIds == null)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < node.parentIds.Length; i++)
+        {
+            if (!IsUnlocked(node.parentIds[i]))
+            {
+                return false;
+            }
         }
 
         return true;
     }
 
-    /// <summary>
-    /// 기술 해금을 시도합니다. (선행 조건 및 재화 검사 후 차감)
-    /// </summary>
-    public bool TryUnlock(TechNodeSO node, ref int currentGold, ref int currentReputation)
+    public bool CanUnlock(TechNodeSO node)
     {
-        if (node == null) return false;
+        if (node == null)
+        {
+            return false;
+        }
 
-        // 1. 이미 해금된 기술인지 검사
+        TechTreeCatalog.Node catalogNode = TechTreeCatalog.Get(node.techId);
+        if (catalogNode != null)
+        {
+            return CanUnlock(catalogNode);
+        }
+
         if (IsUnlocked(node.techId))
         {
-            Debug.LogWarning($"[UnlockManager] 이미 해금된 기술입니다: {node.techName}");
             return false;
         }
 
-        // 2. 선행 조건(부모 노드) 검사
+        return node.parentNode == null || IsUnlocked(node.parentNode.techId);
+    }
+
+    public bool TryUnlock(string techId, out string error)
+    {
+        error = null;
+        TechTreeCatalog.Node node = TechTreeCatalog.Get(techId);
+        if (node == null)
+        {
+            error = "없는 기술입니다.";
+            return false;
+        }
+
+        if (IsUnlocked(node.id))
+        {
+            error = "이미 해금된 기술입니다.";
+            return false;
+        }
+
         if (!CanUnlock(node))
         {
-            Debug.LogWarning($"[UnlockManager] 선행 기술이 해금되지 않았습니다: {node.parentNode?.techName}");
+            error = FormatMissingParents(node);
             return false;
         }
 
-        // 3. 재화(골드, 명성) 부족 여부 검사
+        if (!TrySpendHonor(node.honor))
+        {
+            error = $"명예가 부족합니다. (필요 {node.honor})";
+            return false;
+        }
+
+        unlockedNodeIds.Add(node.id);
+        OnUnlocksChanged?.Invoke();
+        return true;
+    }
+
+    public bool TryUnlock(TechNodeSO node, ref int currentGold, ref int currentReputation)
+    {
+        if (node == null)
+        {
+            return false;
+        }
+
+        TechTreeCatalog.Node catalogNode = TechTreeCatalog.Get(node.techId);
+        if (catalogNode != null)
+        {
+            bool unlocked = TryUnlock(catalogNode.id, out _);
+            if (unlocked)
+            {
+                currentReputation = GetHonor();
+            }
+
+            return unlocked;
+        }
+
+        if (IsUnlocked(node.techId) || !CanUnlock(node))
+        {
+            return false;
+        }
+
         if (currentGold < node.requiredGold || currentReputation < node.requiredReputation)
         {
-            Debug.LogWarning($"[UnlockManager] 재화가 부족합니다. (필요 Gold: {node.requiredGold}, Rep: {node.requiredReputation})");
             return false;
         }
 
-        // 4. 차감 및 해금 처리
         currentGold -= node.requiredGold;
         currentReputation -= node.requiredReputation;
         unlockedNodeIds.Add(node.techId);
-
-        Debug.Log($"<color=green>[UnlockManager] {node.techName} 기술 해금 성공!</color>");
+        OnUnlocksChanged?.Invoke();
         return true;
+    }
+
+    public int GetProductionMinutes()
+    {
+        if (IsUnlocked("fuel_2"))
+        {
+            return 5;
+        }
+
+        if (IsUnlocked("fuel_1"))
+        {
+            return 4;
+        }
+
+        return 3;
+    }
+
+    public int GetProductionTicks()
+    {
+        return GetProductionMinutes() * 600;
+    }
+
+    public float GetProductionSeconds()
+    {
+        return GetProductionMinutes() * 60f;
+    }
+
+    private static string FormatMissingParents(TechTreeCatalog.Node node)
+    {
+        if (node.parentIds == null || node.parentIds.Length == 0)
+        {
+            return "선행 기술을 먼저 해금해야 합니다.";
+        }
+
+        var names = new List<string>();
+        for (int i = 0; i < node.parentIds.Length; i++)
+        {
+            string parentId = node.parentIds[i];
+            if (Instance != null && Instance.IsUnlocked(parentId))
+            {
+                continue;
+            }
+
+            TechTreeCatalog.Node parent = TechTreeCatalog.Get(parentId);
+            if (parent != null && parent.visibleInGame)
+            {
+                names.Add(parent.name);
+            }
+        }
+
+        if (names.Count == 0)
+        {
+            return "선행 기술을 먼저 해금해야 합니다.";
+        }
+
+        return $"{string.Join(", ", names)}을(를) 먼저 해금해야 합니다.";
+    }
+
+    private static bool TrySpendHonor(int amount)
+    {
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        Week3EconomyService economy = FindAnyObjectByType<Week3EconomyService>();
+        if (economy != null)
+        {
+            return economy.TrySpendReputation(amount);
+        }
+
+        if (GameSessionState.Instance == null || GameSessionState.Instance.reputation < amount)
+        {
+            return false;
+        }
+
+        GameSessionState.Instance.AddReputation(-amount);
+        return true;
+    }
+
+    private static int GetHonor()
+    {
+        Week3EconomyService economy = FindAnyObjectByType<Week3EconomyService>();
+        if (economy != null)
+        {
+            return economy.Reputation;
+        }
+
+        return GameSessionState.Instance != null ? GameSessionState.Instance.reputation : 0;
     }
 }

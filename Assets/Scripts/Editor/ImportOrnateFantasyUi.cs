@@ -121,6 +121,8 @@ public static class ImportOrnateFantasyUi
         string[] files =
         {
             "UI_NoteBook_Slot02a.png",
+            "UI_NoteBook_Slot03a.png",
+            "UI_NoteBook_Slot04a.png",
             "UI_NoteBook_Select01a.png",
         };
 
@@ -164,8 +166,12 @@ public static class ImportOrnateFantasyUi
         string[] assetPaths =
         {
             "Assets/Art/UI/NoteBook/UI_NoteBook_Slot02a.png",
+            "Assets/Art/UI/NoteBook/UI_NoteBook_Slot03a.png",
+            "Assets/Art/UI/NoteBook/UI_NoteBook_Slot04a.png",
             "Assets/Art/UI/NoteBook/UI_NoteBook_Select01a.png",
             "Assets/Resources/UI/UI_NoteBook_Slot02a.png",
+            "Assets/Resources/UI/UI_NoteBook_Slot03a.png",
+            "Assets/Resources/UI/UI_NoteBook_Slot04a.png",
             "Assets/Resources/UI/UI_NoteBook_Select01a.png",
         };
 
@@ -298,8 +304,14 @@ public sealed class NoteBookSpritePostprocessor : AssetPostprocessor
 {
     private void OnPreprocessTexture()
     {
-        if (!assetPath.Contains("UI_NoteBook_Slot02a")
-            && !assetPath.Contains("UI_NoteBook_Select01a"))
+        bool noteBook = assetPath.Contains("UI_NoteBook_Slot02a")
+            || assetPath.Contains("UI_NoteBook_Slot03a")
+            || assetPath.Contains("UI_NoteBook_Slot04a")
+            || assetPath.Contains("UI_NoteBook_Select01a");
+        bool techIcon = assetPath.Replace('\\', '/').Contains("/UI/TechTree/")
+            && assetPath.EndsWith(".png", System.StringComparison.OrdinalIgnoreCase)
+            && !assetPath.Replace('\\', '/').Contains("/_preview/");
+        if (!noteBook && !techIcon)
         {
             return;
         }

@@ -73,7 +73,11 @@ public class GameSessionState : MonoBehaviour
     private float productionEndTime = 0f;
     // 생산 종료 요약 모달이 열린 동안 중복 EndProduction 호출을 막는다.
     private bool isEndingProduction;
-    private float TargetProductionTime => isTestMode ? 10f : 300f;
+    private float TargetProductionTime => isTestMode
+        ? 10f
+        : UnlockManager.Instance != null
+            ? UnlockManager.Instance.GetProductionSeconds()
+            : 180f;
     private string lastTimerText;
 
     public GamePhase Phase => phase;

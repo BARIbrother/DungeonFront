@@ -14,8 +14,10 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private Animator animator;
 
-    // 1키 기계 지급 UI에 쓰는 MachineDatabase.
+    // 1키 기계 구매 UI에 쓰는 MachineDatabase.
     [SerializeField] private MachineDatabase machineDatabase;
+
+    public MachineDatabase MachineDatabase => machineDatabase;
 
     // 0키로 철광석 노드 배치 모드를 토글한다.
     private bool isResourceNodePlacementMode;
@@ -70,21 +72,35 @@ public class PlayerMovement : MonoBehaviour
             ZoneExpansionUI.Toggle();
         }
 
+        // T: 테크 트리
+        if (keyboard != null && keyboard.tKey.wasPressedThisFrame)
+        {
+            TechTreeUI.Toggle();
+        }
+
         // E: 인벤토리 토글 (다른 모달이 열려 있어도 가능)
         if (keyboard != null && keyboard.eKey.wasPressedThisFrame)
         {
             InventoryUI.Toggle();
         }
 
-        // 1: 기계 지급 UI 토글 (열린 상태에서도 1로 닫을 수 있다)
+        // 1: 기계 제작 UI 토글. Shift+1은 기존 지급 치트.
         if (keyboard != null
             && (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame))
         {
-            TryToggleMachineGrantUi();
+            if (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed)
+            {
+                TryToggleMachineGrantUi();
+            }
+            else
+            {
+                TryToggleMachineCraftUi();
+            }
         }
 
         // 모달이 열려 있으면 이동·상호작용을 잠근다.
-        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen || ZoneExpansionUI.IsOpen || InventoryUI.IsOpen
+        if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen || MachineCraftUI.IsOpen
+            || ZoneExpansionUI.IsOpen || InventoryUI.IsOpen || TechTreeUI.IsOpen
             || (QuestWindowController.Instance != null && QuestWindowController.Instance.IsOpen))
         {
             UpdateAnimator(Vector2.zero);
@@ -475,6 +491,25 @@ public class PlayerMovement : MonoBehaviour
         // ProductionScene만 단독 플레이할 때: 세션 없이 요약 모달만 연다.
         Debug.Log("[PlayerMovement] GameSessionState 없음 — 요약 UI만 표시합니다.");
         ProductionEndHandler.EndProduction();
+    }
+
+    // 해금된 기계를 골드+재료로 사는 UI를 토글한다.
+    private void TryToggleMachineCraftUi()
+    {
+        if (machineDatabase == null)
+        {
+            Debug.LogWarning("[PlayerMovement] MachineDatabase가 할당되지 않아 제작 UI를 열 수 없습니다.");
+            return;
+        }
+
+        PlayerInventory inventory = GetPlayerInventory();
+        if (inventory == null)
+        {
+            Debug.LogWarning("[PlayerMovement] PlayerInventory가 없어 제작 UI를 열 수 없습니다.");
+            return;
+        }
+
+        MachineCraftUI.Toggle(machineDatabase, inventory);
     }
 
     // MachineDatabase 목록으로 기계 지급 UI를 토글한다.

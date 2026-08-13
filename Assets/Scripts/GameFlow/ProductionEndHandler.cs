@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// 생산 종료 시 맵 완성품 수집·인벤 이동·WIP 환원 후 요약 UI를 띄운다.
+// 생산 종료 시 맵에 남은 완성품 스냅샷만 보여 준다. 인벤 이관은 창고만 한다.
 public static class ProductionEndHandler
 {
     // GameSessionState 없이 ProductionScene만 테스트할 때 중복 종료를 막는다.
     private static bool isEnding;
 
-    // 틱 정지 → 완성품 스냅샷·이동 → WIP/입력 환원 → 요약 모달.
+    // 틱 정지 → 맵 잔여 스냅샷 → 요약 모달. 포트·벨트 내용은 그대로 둔다.
     public static void EndProduction()
     {
         if (isEnding || ProductionSummaryUI.IsOpen)
@@ -23,7 +23,6 @@ public static class ProductionEndHandler
         }
 
         List<ProductionSummaryLine> lines = CollectFinishedGoodsFromMap();
-        TransferFinishedGoodsAndRefundNonFinished();
         ProductionSummaryUI.Show(lines);
     }
 
@@ -89,24 +88,6 @@ public static class ProductionEndHandler
         }
 
         return new List<ProductionSummaryLine>(totals.Values);
-    }
-
-    // 완성품 인벤 이동 후 WIP·입력 포트 잔여를 환원한다.
-    private static void TransferFinishedGoodsAndRefundNonFinished()
-    {
-        IReadOnlyList<Machine> machines = GetMachinesOnGrid();
-
-        for (int i = 0; i < machines.Count; i++)
-        {
-            Machine machine = machines[i];
-            if (machine == null)
-            {
-                continue;
-            }
-
-            machine.TransferFinishedGoodsToPlayerInventory();
-            machine.RefundNonFinishedContentsToPlayerInventory();
-        }
     }
 
     private static IReadOnlyList<Machine> GetMachinesOnGrid()

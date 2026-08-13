@@ -5,14 +5,23 @@ using UnityEngine.UI;
 public static class UiNoteBookSlot
 {
     public const string SlotResourcesPath = "UI/UI_NoteBook_Slot02a";
+    public const string SlotUnlockedResourcesPath = "UI/UI_NoteBook_Slot03a";
+    public const string SlotLockedResourcesPath = "UI/UI_NoteBook_Slot04a";
     public const string SelectResourcesPath = "UI/UI_NoteBook_Select01a";
+    public const string TechIconResourcesRoot = "UI/TechTree";
 
     public const float SlotPixelSize = 28f;
     public const float SelectPixelSize = 30f;
 
     private static Sprite cachedSlot;
+    private static Sprite cachedUnlocked;
+    private static Sprite cachedLocked;
     private static Sprite cachedSelect;
+    private static readonly System.Collections.Generic.Dictionary<string, Sprite> cachedTechIcons =
+        new System.Collections.Generic.Dictionary<string, Sprite>();
     private static bool loggedMissingSlot;
+    private static bool loggedMissingUnlocked;
+    private static bool loggedMissingLocked;
     private static bool loggedMissingSelect;
     private static bool loggedSelectSliced;
 
@@ -21,16 +30,66 @@ public static class UiNoteBookSlot
         return LoadFullSprite(ref cachedSlot, SlotResourcesPath, SlotPixelSize, ref loggedMissingSlot);
     }
 
+    public static Sprite GetUnlockedSlotSprite()
+    {
+        return LoadFullSprite(
+            ref cachedUnlocked,
+            SlotUnlockedResourcesPath,
+            SlotPixelSize,
+            ref loggedMissingUnlocked);
+    }
+
+    public static Sprite GetLockedSlotSprite()
+    {
+        return LoadFullSprite(
+            ref cachedLocked,
+            SlotLockedResourcesPath,
+            SlotPixelSize,
+            ref loggedMissingLocked);
+    }
+
     public static Sprite GetSelectSprite()
     {
         return LoadFullSprite(ref cachedSelect, SelectResourcesPath, SelectPixelSize, ref loggedMissingSelect);
     }
 
+    public static Sprite GetTechIcon(string techId)
+    {
+        if (string.IsNullOrEmpty(techId))
+        {
+            return null;
+        }
+
+        if (cachedTechIcons.TryGetValue(techId, out Sprite cached) && cached != null)
+        {
+            return cached;
+        }
+
+        Sprite loaded = null;
+        bool logged = false;
+        Sprite sprite = LoadFullSprite(
+            ref loaded,
+            $"{TechIconResourcesRoot}/{techId}",
+            16f,
+            ref logged);
+        if (sprite != null)
+        {
+            cachedTechIcons[techId] = sprite;
+        }
+
+        return sprite;
+    }
+
     public static void ClearCache()
     {
         cachedSlot = null;
+        cachedUnlocked = null;
+        cachedLocked = null;
         cachedSelect = null;
+        cachedTechIcons.Clear();
         loggedMissingSlot = false;
+        loggedMissingUnlocked = false;
+        loggedMissingLocked = false;
         loggedMissingSelect = false;
         loggedSelectSliced = false;
     }
@@ -38,6 +97,16 @@ public static class UiNoteBookSlot
     public static void ApplySlot(Image image)
     {
         Apply(image, GetSlotSprite());
+    }
+
+    public static void ApplyUnlockedSlot(Image image)
+    {
+        Apply(image, GetUnlockedSlotSprite());
+    }
+
+    public static void ApplyLockedSlot(Image image)
+    {
+        Apply(image, GetLockedSlotSprite());
     }
 
     public static void ApplySelect(Image image)

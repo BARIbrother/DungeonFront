@@ -159,17 +159,9 @@ public class ConveyerBelt : Machine
         return result;
     }
 
-    // 생산 종료: heldItem을 인벤으로 옮기고 벨트를 비운다.
+    // 결산 때 벨트 아이템은 필드에 남긴다. 인벤 이관은 창고만 한다.
     public override void TransferFinishedGoodsToPlayerInventory()
     {
-        if (!HasHeldItem)
-        {
-            return;
-        }
-
-        AddToPlayerInventory(heldItem);
-        heldItem = null;
-        cellProgressTicks = 0;
     }
 
     // 벨트는 WIP·입력 포트가 없으므로 생산 종료 시 추가 환원할 내용이 없다.

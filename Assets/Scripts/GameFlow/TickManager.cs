@@ -5,7 +5,9 @@ using UnityEngine.InputSystem;
 // Production 틱 진행. 그리드에 배치된 기계 목록을 유지하고 페이즈별로 틱을 호출한다.
 public class TickManager : MonoBehaviour
 {
-    public const int ProductionPhaseTicks = 3000;
+    public static int ProductionPhaseTicks => UnlockManager.Instance != null
+        ? UnlockManager.Instance.GetProductionTicks()
+        : 1800;
 
     public static TickManager Instance { get; private set; }
 

@@ -38,7 +38,7 @@ public abstract class StorageMachine : Machine
         return TransferBufferToPlayerInventory();
     }
 
-    // 생산 종료 요약: 창고 버퍼(inputPort)를 완성품으로 취급한다.
+    // 생산 종료 요약: 버퍼(inputPort)를 맵 잔여로 보여 준다. 인벤으로는 옮기지 않는다.
     public override List<ItemEntry> CollectFinishedGoodsSnapshot()
     {
         return inputPort != null ? inputPort.CopyAllEntries() : new List<ItemEntry>();
@@ -46,7 +46,6 @@ public abstract class StorageMachine : Machine
 
     public override void TransferFinishedGoodsToPlayerInventory()
     {
-        TransferBufferToPlayerInventory();
     }
 
     private void EnsureBufferPorts()

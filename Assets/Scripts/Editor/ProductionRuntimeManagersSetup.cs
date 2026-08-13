@@ -17,6 +17,7 @@ public static class ProductionRuntimeManagersSetup
         ("ProductionEventManager", typeof(ProductionEventManager)),
         ("MachineRecipeUISystem", typeof(MachineRecipeUI)),
         ("MachineGrantUISystem", typeof(MachineGrantUI)),
+        ("MachineCraftUISystem", typeof(MachineCraftUI)),
         ("ProductionSummaryUISystem", typeof(ProductionSummaryUI)),
         ("FactoryStoryHooks", typeof(FactoryStoryHooks)),
         ("UIManager", typeof(UIManager)),

@@ -48,7 +48,7 @@ public class ShopUI : MonoBehaviour
     public bool TryPurchase(string entryId)
     {
         ShopEntry entry = catalog != null ? catalog.Get(entryId) : null;
-        if (entry == null || economy == null)
+        if (entry == null)
         {
             SetFeedback("구매 정보를 찾을 수 없습니다.");
             return false;
@@ -61,29 +61,26 @@ public class ShopUI : MonoBehaviour
             return false;
         }
 
-        if (entry.IsMachine
-            && (unlockManager == null || !unlockManager.IsUnlocked(entry.machineDefId)))
+        if (entry.IsMachine)
         {
-            SetFeedback("아직 해금되지 않은 기계입니다.");
-            return false;
+            if (!MachineCraftService.TryCraft(entry.machineDefId, out string error, entry.machineDefinition))
+            {
+                SetFeedback(string.IsNullOrEmpty(error) ? "구매에 실패했습니다." : error);
+                return false;
+            }
+
+            SetFeedback($"{entry.displayName} 구매 완료");
+            Refresh();
+            return true;
         }
 
-        if (!economy.TrySpendGold(entry.price))
+        if (economy == null || !economy.TrySpendGold(entry.price))
         {
             SetFeedback("골드가 부족합니다.");
             return false;
         }
 
-        if (entry.IsMachine)
-        {
-            if (!TryAddMachine(entry))
-            {
-                economy.AddGold(entry.price);
-                SetFeedback("기계를 지급할 수 없습니다.");
-                return false;
-            }
-        }
-        else if (entry.item != null && playerInventory != null)
+        if (entry.item != null && playerInventory != null)
         {
             playerInventory.Add(new ItemEntry
             {
@@ -121,10 +118,18 @@ public class ShopUI : MonoBehaviour
 
         foreach (ShopEntry entry in catalog.entries)
         {
-            if (entry == null || (entry.IsMachine
-                && (unlockManager == null || !unlockManager.IsUnlocked(entry.machineDefId))))
+            if (entry == null)
             {
                 continue;
+            }
+
+            if (entry.IsMachine)
+            {
+                MachineCraftCatalog.Recipe unlockRecipe = MachineCraftCatalog.Get(entry.machineDefId);
+                if (unlockRecipe == null || !MachineCraftService.IsTechUnlocked(unlockRecipe))
+                {
+                    continue;
+                }
             }
 
             Button row = Instantiate(rowPrefab, listRoot);
@@ -132,25 +137,31 @@ public class ShopUI : MonoBehaviour
             TMP_Text label = row.GetComponentInChildren<TMP_Text>();
             if (label != null)
             {
-                label.text = $"{entry.displayName}  {entry.price}G";
+                MachineCraftCatalog.Recipe recipe = entry.IsMachine
+                    ? MachineCraftCatalog.Get(entry.machineDefId)
+                    : null;
+                label.text = recipe != null
+                    ? $"{entry.displayName}  {MachineCraftService.FormatCost(recipe)}"
+                    : $"{entry.displayName}  {entry.price}G";
             }
 
             string id = entry.entryId;
             row.onClick.RemoveAllListeners();
             row.onClick.AddListener(() => TryPurchase(id));
-            row.interactable = economy != null && economy.Gold >= entry.price;
-        }
-    }
+            bool canBuy = economy != null && economy.Gold >= entry.price;
+            if (entry.IsMachine)
+            {
+                MachineCraftCatalog.Recipe recipe = MachineCraftCatalog.Get(entry.machineDefId);
+                canBuy = recipe != null
+                    && MachineCraftService.IsTechUnlocked(recipe)
+                    && MachineCraftService.CanAfford(
+                        recipe,
+                        playerInventory,
+                        economy != null ? economy.Gold : 0);
+            }
 
-    private bool TryAddMachine(ShopEntry entry)
-    {
-        if (playerInventory == null || entry.machineDefinition == null)
-        {
-            return false;
+            row.interactable = canBuy;
         }
-
-        playerInventory.AddMachine(entry.machineDefinition);
-        return true;
     }
 
     private void SetFeedback(string message)

@@ -39,6 +39,17 @@ public class Week3EconomyService : MonoBehaviour
         return true;
     }
 
+    public bool TrySpendReputation(int amount)
+    {
+        if (amount < 0 || Reputation < amount)
+        {
+            return false;
+        }
+
+        AddReputation(-amount);
+        return true;
+    }
+
     public void AddGold(int amount)
     {
         if (GameSessionState.Instance != null)
