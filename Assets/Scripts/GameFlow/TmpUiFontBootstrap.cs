@@ -4,61 +4,44 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-// Factory 씬 TMP UI가 폰트 에셋을 못 찾을 때 기본 폰트를 다시 연결한다.
+// 씬이 열린 직후 기존 TMP UI에도 한글 폰트를 즉시 연결합니다.
 public static class TmpUiFontBootstrap
 {
     private const string FontAssetPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
     private const string SourceFontPath = "Assets/TextMesh Pro/Fonts/LiberationSans.ttf";
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void AssignMissingUIFonts()
+    private static void AssignUiFonts()
     {
-        TMP_FontAsset font = ResolveDefaultFont();
+        TMP_FontAsset font = KoreanTmpFontRuntimeFix.EnsureFont() ?? ResolveDefaultFont();
         if (font == null)
         {
-            Debug.LogWarning("[TmpUiFontBootstrap] LiberationSans SDF를 찾지 못했습니다.");
+            Debug.LogWarning("[TmpUiFontBootstrap] 사용할 TMP 폰트를 찾지 못했습니다.");
             return;
         }
 
-        TextMeshProUGUI[] texts = Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include);
-
-        foreach (TextMeshProUGUI text in texts)
+        foreach (TextMeshProUGUI text in Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (text == null || text.font != null)
-            {
-                continue;
-            }
-
+            if (text == null) continue;
             text.font = font;
+            text.SetAllDirty();
         }
     }
 
     private static TMP_FontAsset ResolveDefaultFont()
     {
         TMP_FontAsset font = TMP_Settings.defaultFontAsset;
-        if (font != null)
-        {
-            return font;
-        }
+        if (font != null) return font;
 
         font = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
-        if (font != null)
-        {
-            return font;
-        }
+        if (font != null) return font;
 
 #if UNITY_EDITOR
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontAssetPath);
-        if (font != null)
-        {
-            return font;
-        }
+        if (font != null) return font;
 
         Font sourceFont = AssetDatabase.LoadAssetAtPath<Font>(SourceFontPath);
-        if (sourceFont != null)
-        {
-            return TMP_FontAsset.CreateFontAsset(sourceFont);
-        }
+        if (sourceFont != null) return TMP_FontAsset.CreateFontAsset(sourceFont);
 #endif
 
         return null;

@@ -10,9 +10,11 @@ public class SettlementQuestListUI : MonoBehaviour
     [SerializeField] private GameObject panel;
 
     private GameSessionState session;
+    private PlayerInventory playerInventory;
 
     private void OnEnable()
     {
+        QuestListLayoutFinalizer.Apply(content, panel, "진행 중인 의뢰");
         questManager ??= QuestManager.Instance;
         questManager ??= FindAnyObjectByType<QuestManager>();
 
@@ -28,6 +30,12 @@ public class SettlementQuestListUI : MonoBehaviour
             HandlePhaseChanged(session.Phase);
         }
 
+        playerInventory = PlayerInventory.Instance ?? FindAnyObjectByType<PlayerInventory>();
+        if (playerInventory != null)
+        {
+            playerInventory.OnItemsChanged += Refresh;
+        }
+
         Refresh();
     }
 
@@ -41,6 +49,11 @@ public class SettlementQuestListUI : MonoBehaviour
         if (session != null)
         {
             session.OnPhaseChanged -= HandlePhaseChanged;
+        }
+
+        if (playerInventory != null)
+        {
+            playerInventory.OnItemsChanged -= Refresh;
         }
     }
 
@@ -59,6 +72,7 @@ public class SettlementQuestListUI : MonoBehaviour
 
     public void Refresh()
     {
+        QuestListLayoutFinalizer.Apply(content, panel, "진행 중인 의뢰");
         if (questManager == null || questCardPrefab == null || content == null)
         {
             return;
@@ -75,7 +89,7 @@ public class SettlementQuestListUI : MonoBehaviour
             QuestCard card = Instantiate(questCardPrefab, content);
             card.gameObject.AddComponent<GeneratedQuestCard>();
             card.SetQuest(quest);
-            card.SetButtonLabel("납품");
+            card.SetButtonLabel("제출");
             card.SetAcceptAction(() => TryDeliver(quest));
             card.SetAcceptButtonInteractable(questManager.CanCompleteQuest(quest));
         }

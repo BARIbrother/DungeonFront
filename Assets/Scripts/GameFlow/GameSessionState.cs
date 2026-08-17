@@ -335,6 +335,22 @@ public class GameSessionState : MonoBehaviour
     public void AddGold(int amount) { gold += amount; UpdateGoodsUI(); }
     public void AddReputation(int amount) { reputation += amount; UpdateGoodsUI(); }
 
+    public void RestoreSession(int savedDay, GamePhase savedPhase, int savedGold, int savedReputation)
+    {
+        day = Mathf.Max(1, savedDay);
+        gold = Mathf.Max(0, savedGold);
+        reputation = Mathf.Max(0, savedReputation);
+        phase = savedPhase;
+        productionEndTime = 0f;
+        isEndingProduction = false;
+        FindUIObjectsAutomatically();
+        UpdateDayText();
+        UpdateTimerUI();
+        UpdateGoodsUI();
+        ApplyUIState(phase);
+        OnPhaseChanged?.Invoke(phase);
+    }
+
     // 타이머 만료·조기 종료 공통 진입점. 요약 확인 전까지 Settlement로 가지 않는다.
     public void EndProduction()
     {

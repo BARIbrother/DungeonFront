@@ -27,6 +27,7 @@ public class QuestAcceptUI : MonoBehaviour
 
     private void OnEnable()
     {
+        QuestListLayoutFinalizer.Apply(content, panel, "수락 가능한 의뢰");
         ResolveReferences();
         if (questManager != null)
         {
@@ -105,15 +106,25 @@ public class QuestAcceptUI : MonoBehaviour
             return;
         }
 
+        bool hasAvailableQuest = questManager.availableQuestsToday.Count > 0;
+        QuestListLayoutFinalizer.Apply(content, panel, "수락 가능한 의뢰");
+
         ClearGeneratedCards();
-        foreach (Quest quest in questManager.availableQuestsToday)
+        if (hasAvailableQuest)
         {
-            QuestCard card = Instantiate(questCardPrefab, content);
-            card.gameObject.AddComponent<GeneratedQuestCard>();
-            card.SetQuest(quest);
-            card.SetButtonLabel("수락");
-            card.SetAcceptAction(() => TryAccept(quest));
-            card.SetAcceptButtonInteractable(questManager.CanAcceptQuest(quest));
+            foreach (Quest quest in questManager.availableQuestsToday)
+            {
+                QuestCard card = Instantiate(questCardPrefab, content);
+                card.gameObject.AddComponent<GeneratedQuestCard>();
+                card.SetQuest(quest);
+                card.SetButtonLabel("수락");
+                card.SetAcceptAction(() => TryAccept(quest));
+                card.SetAcceptButtonInteractable(questManager.CanAcceptQuest(quest));
+            }
+        }
+        else
+        {
+            QuestListLayoutFinalizer.ShowEmptyState(content, "현재 수락 가능한 새 의뢰가 없습니다.\n진행 중인 의뢰는 왼쪽 상단 패널에서 확인하세요.");
         }
     }
 
@@ -130,6 +141,7 @@ public class QuestAcceptUI : MonoBehaviour
         foreach (GeneratedQuestCard card
             in content.GetComponentsInChildren<GeneratedQuestCard>(true))
         {
+            card.gameObject.SetActive(false);
             Destroy(card.gameObject);
         }
     }

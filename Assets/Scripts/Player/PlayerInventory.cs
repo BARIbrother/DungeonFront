@@ -134,4 +134,40 @@ public class PlayerInventory : MonoBehaviour
     {
     return new List<MachineInventoryEntry>(machines);
     }
+
+    public List<ItemStackSave> ExportItemStacks()
+    {
+        var result = new List<ItemStackSave>(items.Count);
+        foreach (KeyValuePair<string, int> pair in items)
+        {
+            if (!string.IsNullOrWhiteSpace(pair.Key) && pair.Value > 0)
+            {
+                result.Add(new ItemStackSave { itemId = pair.Key, count = pair.Value });
+            }
+        }
+        return result;
+    }
+
+    public void RestoreItemStacks(IEnumerable<ItemStackSave> savedStacks)
+    {
+        items.Clear();
+        if (savedStacks != null)
+        {
+            foreach (ItemStackSave stack in savedStacks)
+            {
+                if (stack != null && !string.IsNullOrWhiteSpace(stack.itemId) && stack.count > 0)
+                {
+                    items[stack.itemId] = stack.count;
+                }
+            }
+        }
+        OnItemsChanged?.Invoke();
+    }
+}
+
+[Serializable]
+public class ItemStackSave
+{
+    public string itemId;
+    public int count;
 }
