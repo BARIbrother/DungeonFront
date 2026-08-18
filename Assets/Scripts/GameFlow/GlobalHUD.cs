@@ -9,8 +9,7 @@ public class GlobalHUD : MonoBehaviour
     [SerializeField] private TMP_Text questCountText;     // 의뢰: {ActiveQuests.Count}/3 표시용 Text
     [SerializeField] private TMP_Text machineCountText;   // 기계: {InInventoryCount} 표시용 Text
 
-    [Header("Mock Debug Settings")]
-    private bool isDebugQuestActive = false; // 디버그 키 토글용 변수
+    private QuestManager questManager;
 
     private void OnEnable()
     {
@@ -20,14 +19,7 @@ public class GlobalHUD : MonoBehaviour
             PlayerInventory.Instance.OnMachinesChanged += RefreshMachineSummary;
         }
 
-        // TODO: Dev2 연동 완료 시 아래 퀘스트 이벤트 구독 해제 주석 제거
-        /*
-        if (QuestManager.Instance != null)
-        {
-            QuestManager.Instance.OnQuestAccepted += RefreshQuestSummary;
-            QuestManager.Instance.OnQuestsChanged += RefreshQuestSummary;
-        }
-        */
+        BindQuestManager();
 
         RefreshAll();
     }
@@ -38,16 +30,15 @@ public class GlobalHUD : MonoBehaviour
         {
             PlayerInventory.Instance.OnMachinesChanged -= RefreshMachineSummary;
         }
+        if (questManager != null)
+        {
+            questManager.OnQuestsChanged -= RefreshQuestSummary;
+        }
     }
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.kKey.wasPressedThisFrame)
-        {
-            isDebugQuestActive = !isDebugQuestActive;
-            Debug.Log($"[Mock] 퀘스트 디버그 토글 활성화: {isDebugQuestActive}");
-            RefreshQuestSummary();
-        }
+        BindQuestManager();
     }
 
     private void RefreshAll()
@@ -63,18 +54,8 @@ public class GlobalHUD : MonoBehaviour
     {
         if (questCountText == null) return;
 
-        // 실제 Dev2 매니저가 연결되었는지 확인
-        // if (QuestManager.Instance != null) { ... 실제 데이터 반영 ... }
-
-        // [Mock 단계] 디버그 키 토글에 따라 완료 기준(1/3) 검증용 하드코딩 출력
-        if (isDebugQuestActive)
-        {
-            questCountText.text = "의뢰: 1/3";
-        }
-        else
-        {
-            questCountText.text = "의뢰: 0/3";
-        }
+        int count = questManager != null ? questManager.currentQuests.Count : 0;
+        questCountText.text = $"의뢰: {count}/{QuestManager.MaxActiveQuestCount}";
     }
 
     /// <summary>
@@ -93,6 +74,19 @@ public class GlobalHUD : MonoBehaviour
         else
         {
             machineCountText.text = "기계: 0";
+        }
+    }
+
+    private void BindQuestManager()
+    {
+        QuestManager candidate = QuestManager.Instance ?? FindAnyObjectByType<QuestManager>();
+        if (candidate == questManager) return;
+        if (questManager != null) questManager.OnQuestsChanged -= RefreshQuestSummary;
+        questManager = candidate;
+        if (questManager != null)
+        {
+            questManager.OnQuestsChanged += RefreshQuestSummary;
+            RefreshQuestSummary();
         }
     }
 }

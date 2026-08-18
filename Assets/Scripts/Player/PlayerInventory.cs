@@ -395,4 +395,58 @@ public class PlayerInventory : MonoBehaviour
     {
         return new List<MachineInventoryEntry>(machines);
     }
+
+    public List<ItemStackSave> ExportItemStacks()
+    {
+        var result = new List<ItemStackSave>();
+        foreach (KeyValuePair<string, int> pair in GetOwnedItemCounts())
+        {
+            if (string.IsNullOrWhiteSpace(pair.Key) || pair.Value <= 0)
+            {
+                continue;
+            }
+
+            result.Add(new ItemStackSave { itemId = pair.Key, count = pair.Value });
+        }
+
+        return result;
+    }
+
+    public void RestoreItemStacks(IEnumerable<ItemStackSave> savedStacks)
+    {
+        ClearItems();
+        if (savedStacks == null)
+        {
+            return;
+        }
+
+        ItemManager itemManager = FindAnyObjectByType<ItemManager>();
+        foreach (ItemStackSave stack in savedStacks)
+        {
+            if (stack == null || string.IsNullOrWhiteSpace(stack.itemId) || stack.count <= 0)
+            {
+                continue;
+            }
+
+            Item item = itemManager != null ? itemManager.CreateItem(stack.itemId) : null;
+            if (item == null)
+            {
+                Debug.LogWarning($"[PlayerInventory] 저장 아이템을 복원하지 못했습니다: {stack.itemId}");
+                continue;
+            }
+
+            Add(new ItemEntry
+            {
+                item = item,
+                count = stack.count,
+            });
+        }
+    }
+}
+
+[Serializable]
+public class ItemStackSave
+{
+    public string itemId;
+    public int count;
 }

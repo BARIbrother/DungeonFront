@@ -227,7 +227,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fa1d5eba44041059a880425a5e9da31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuestSystemDebugPanel
-  enableDebugPanel: 1
+  enableDebugPanel: 0
   questManager: {fileID: 4663977622768855279}
   questPool: {fileID: 6249696299457802317}
   economy: {fileID: 4895095430265612694}
