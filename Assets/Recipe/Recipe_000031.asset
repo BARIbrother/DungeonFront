@@ -22,10 +22,10 @@ MonoBehaviour:
         enchantmentIds: []
       count: 1
     - _item:
-        definition: {fileID: 11400000, guid: 6a763d74217e499bacafd06d27848d48, type: 2}
+        definition: {fileID: 11400000, guid: 47b15e1458bb4feb82ff3e297bae513c, type: 2}
         level: 1
         enchantmentIds: []
-      count: 1000
+      count: 2
   outputEntryList:
     length: 1
     entries:

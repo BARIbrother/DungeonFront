@@ -12,7 +12,7 @@ public sealed class GameStartRuntimeBridge : MonoBehaviour
 
     private static readonly string[] StartingMachineIds =
     {
-        "Miner_1", "Smelter_1", "HandmadeAssembler_1", "Warehouse_1"
+        "Miner_1", "Smelter_1", "Assembler_1", "Warehouse_1"
     };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -55,10 +55,6 @@ public sealed class GameStartRuntimeBridge : MonoBehaviour
 
     private void HandleNewGame()
     {
-        // 문서 정본: 새 게임은 0 Gold / 0 Reputation.
-        session.AddGold(-session.gold);
-        session.AddReputation(-session.reputation);
-
         PlayerInventory inventory = PlayerInventory.Instance ?? FindAnyObjectByType<PlayerInventory>();
         if (inventory == null || inventory.Machines.Count > 0)
         {

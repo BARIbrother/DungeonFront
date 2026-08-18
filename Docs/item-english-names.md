@@ -46,7 +46,7 @@ English names are stored here for art / localization / tooling.
 | 진강 막대기 | Greysteel Rod | `greysteel_rod` |
 | 진강 검 | Greysteel Sword | `greysteel_sword` |
 | 진강 전투 망치 | Greysteel Warhammer | `greysteel_warhammer` |
-| 상급 몬스터 마나 정수 | High Monster Mana Essence | `high_monster_mana_essence` |
+| 상급 마나 정수 | High Mana Essence | `high_monster_mana_essence` |
 | 철 주괴 | Iron Bar | `iron_bar` |
 | 철제 대들보 뼈대 | Iron Beam Frame | `iron_beam_frame` |
 | 철 부츠 | Iron Boots | `iron_boots` |
@@ -63,7 +63,7 @@ English names are stored here for art / localization / tooling.
 | 백마술사의 로브 | Light Mage's Robe | `light_mage_robe` |
 | 백마법 코어 | Light Magic Core | `light_magic_core` |
 | 백마술 지팡이 | Light Magic Staff | `light_magic_staff` |
-| 하급 몬스터 마나 정수 | Low Monster Mana Essence | `low_monster_mana_essence` |
+| 하급 마나 정수 | Low Mana Essence | `low_monster_mana_essence` |
 | 마술사의 로브 | Mage's Robe | `mage_robe` |
 | 마나 | Mana | `mana` |
 | 마력 코어 | Mana Core | `mana_core` |
@@ -75,7 +75,7 @@ English names are stored here for art / localization / tooling.
 | 마나강 투구 | Manasteel Helmet | `manasteel_helmet` |
 | 마나강 각반 | Manasteel Leggings | `manasteel_leggings` |
 | 마나강 검 | Manasteel Sword | `manasteel_sword` |
-| 중급 몬스터 마나 정수 | Mid Monster Mana Essence | `mid_monster_mana_essence` |
+| 중급 마나 정수 | Mid Mana Essence | `mid_monster_mana_essence` |
 | 종이 | Paper | `paper` |
 | 의식용 철제 대검 | Ritual Iron Greatsword | `ritual_iron_greatsword` |
 | 의식 스크롤 | Ritual Scroll | `ritual_scroll` |
@@ -97,7 +97,8 @@ English names are stored here for art / localization / tooling.
 
 - `철 주괴` / `철주괴` and similar spacing variants are the same item (`iron_bar`).
 - Icon map historically used `iron` for 철 주괴; runtime SO id is `iron_bar` (existing assets).
-- `상급 몬스터 마나 점수` in the recipe draft is treated as `상급 몬스터 마나 정수`.
+- `상급 몬스터 마나 점수` / `하급·중급 몬스터 마나 정수`는 표시명을 하급·중급·상급 마나 정수로 바꾼다. itemId는 그대로다.
+- 마나 함량: 하급 10, 중급 50, 상급 100, 던전의 주인의 정수 500. 레시피는 느슨한 `mana` 대신 이 정수를 쓴다.
 - `xN` / `x N` means quantity N of that item (not a distinct item).
 
 ## Enchantment types

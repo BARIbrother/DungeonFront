@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: tier2_element_scroll
   displayName: 2단계 원소 스크롤
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 03d5ed95a4514feb9ceb1d6a37275aa3, type: 3}
   category: 0
   enchantmentSlotCount: 2

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// 마나 추출기. 틱 생산 스텁 (레시피는 RecipePool에서 연결).
+// 마나 포집기. 틱 생산 스텁 (레시피는 RecipePool에서 연결).
 public class ManaExtractorMachine : Machine, IFactoryProduction
 {
     public override Vector2Int GetFootprintSize() => new Vector2Int(2, 2);

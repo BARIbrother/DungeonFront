@@ -7,8 +7,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 /// <summary>
-/// 기존 ShopUI/UnlockManager의 로직을 호출만 하는 정식 상점·해금 화면이다.
-/// 기존 서비스와 프리팹의 직렬화 필드는 수정하지 않는다.
+/// 상점 카탈로그 구매와 테크트리 기계 해금을 B키 허브에서 호출한다.
 /// </summary>
 public sealed class EconomyHubUI : MonoBehaviour
 {
@@ -97,7 +96,7 @@ public sealed class EconomyHubUI : MonoBehaviour
     private void ResolveServices()
     {
         shop ??= FindAnyObjectByType<ShopUI>();
-        unlocks ??= FindAnyObjectByType<UnlockManager>();
+        unlocks ??= UnlockManager.Instance ?? FindAnyObjectByType<UnlockManager>();
         economy ??= FindAnyObjectByType<Week3EconomyService>();
         if (catalog == null)
         {
@@ -122,8 +121,13 @@ public sealed class EconomyHubUI : MonoBehaviour
 
         if (shop == null || catalog == null)
         {
-            feedbackText.text = "상점 카탈로그를 찾지 못했습니다. QuestSystemRoot의 ShopUI 연결을 확인하세요.";
-            return;
+            feedbackText.text = catalog == null
+                ? "상점 카탈로그를 찾지 못했습니다. QuestSystemRoot의 ShopUI 연결을 확인하세요."
+                : "ShopUI가 없어도 카탈로그로 구매·해금을 진행합니다.";
+            if (catalog == null)
+            {
+                return;
+            }
         }
 
         foreach (ShopEntry entry in catalog.entries)
@@ -143,33 +147,102 @@ public sealed class EconomyHubUI : MonoBehaviour
         layout.minHeight = 76f;
 
         string itemName = string.IsNullOrWhiteSpace(entry.displayName) ? entry.entryId : entry.displayName;
+        MachineCraftCatalog.Recipe recipe = entry.IsMachine
+            ? MachineCraftCatalog.Get(entry.machineDefId)
+            : null;
+        bool isLockedMachine = recipe != null && !MachineCraftService.IsTechUnlocked(recipe);
+        TechTreeCatalog.Node techNode = isLockedMachine
+            ? TechTreeCatalog.Get(recipe.requiredTechId)
+            : null;
+
         TMP_Text label = Text("Label", row.transform, 20, TextAlignmentOptions.Left, Color.white);
-        label.text = $"{itemName}\n{entry.price} G";
+        label.text = isLockedMachine
+            ? $"{itemName}\n{TechTreeCatalog.DisplayName(recipe.requiredTechId)} 해금 필요"
+            : recipe != null
+                ? $"{itemName}\n{MachineCraftService.FormatCost(recipe)}"
+                : $"{itemName}\n{entry.price} G";
         Stretch(label.rectTransform, new Vector2(0.04f, 0.1f), new Vector2(0.62f, 0.9f));
 
-        bool isLockedMachine = entry.IsMachine && (unlocks == null || !unlocks.IsUnlocked(entry.machineDefId));
-        string buttonText = isLockedMachine
-            ? $"명성 {unlocks?.GetRequiredReputation(entry.machineDefId) ?? 0} 해금"
-            : "구매";
+        string buttonText;
+        bool interactable;
+        if (isLockedMachine)
+        {
+            int honor = techNode != null ? techNode.honor : 0;
+            buttonText = honor > 0 ? $"명예 {honor} 해금" : "해금";
+            interactable = unlocks != null
+                && unlocks.CanUnlock(recipe.requiredTechId)
+                && (honor <= 0 || (economy != null && economy.Reputation >= honor));
+        }
+        else
+        {
+            buttonText = "구매";
+            if (recipe != null)
+            {
+                interactable = MachineCraftService.CanAfford(
+                    recipe,
+                    PlayerInventory.GetOrFind(),
+                    economy != null ? economy.Gold : 0);
+            }
+            else
+            {
+                interactable = economy != null && economy.Gold >= entry.price;
+            }
+        }
+
         Button button = Button("Action", row.transform, buttonText);
         Stretch(button.GetComponent<RectTransform>(), new Vector2(0.66f, 0.18f), new Vector2(0.96f, 0.82f));
-        button.interactable = isLockedMachine
-            ? unlocks != null && economy != null && economy.Reputation >= unlocks.GetRequiredReputation(entry.machineDefId)
-            : economy != null && economy.Gold >= entry.price;
+        button.interactable = interactable;
         button.onClick.AddListener(() =>
         {
             if (isLockedMachine)
             {
-                bool unlocked = unlocks != null && unlocks.TryUnlock(entry.machineDefId);
-                feedbackText.text = unlocked ? $"{itemName} 해금 완료" : "해금 조건을 만족하지 못했습니다.";
+                string error = "해금 시스템을 찾지 못했습니다.";
+                bool unlocked = unlocks != null && unlocks.TryUnlock(recipe.requiredTechId, out error);
+                feedbackText.text = unlocked
+                    ? $"{itemName} 해금 완료"
+                    : string.IsNullOrEmpty(error) ? "해금 조건을 만족하지 못했습니다." : error;
             }
             else
             {
-                bool purchased = shop.TryPurchase(entry.entryId);
-                feedbackText.text = purchased ? $"{itemName} 구매 완료" : "구매하지 못했습니다.";
+                feedbackText.text = TryBuy(entry, itemName);
             }
             Rebuild();
         });
+    }
+
+    private string TryBuy(ShopEntry entry, string itemName)
+    {
+        if (shop != null)
+        {
+            return shop.TryPurchase(entry.entryId)
+                ? $"{itemName} 구매 완료"
+                : "구매하지 못했습니다.";
+        }
+
+        if (entry.IsMachine)
+        {
+            bool crafted = MachineCraftService.TryCraft(entry.machineDefId, out string error, entry.machineDefinition);
+            return crafted ? $"{itemName} 구매 완료" : error;
+        }
+
+        if (economy == null || !economy.TrySpendGold(entry.price))
+        {
+            return "골드가 부족합니다.";
+        }
+
+        PlayerInventory inventory = PlayerInventory.GetOrFind();
+        if (entry.item == null || inventory == null)
+        {
+            economy.AddGold(entry.price);
+            return "구매 대상을 지급할 수 없습니다.";
+        }
+
+        inventory.Add(new ItemEntry
+        {
+            item = Item.FromDefinition(entry.item),
+            count = entry.count
+        });
+        return $"{itemName} 구매 완료";
     }
 
     private void CreateUi()

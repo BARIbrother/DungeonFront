@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: blank_magic_scroll
   displayName: 빈 마법 스크롤
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 68a0e2c6f233485aa918b34a3c97e0a4, type: 3}
   category: 0

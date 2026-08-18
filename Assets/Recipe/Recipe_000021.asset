@@ -14,6 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Recipe
   id: extract_mana_low
   inputEntryList:
+    length: 0
+    entries: []
+  outputEntryList:
     length: 1
     entries:
     - _item:
@@ -21,12 +24,4 @@ MonoBehaviour:
         level: 1
         enchantmentIds: []
       count: 1
-  outputEntryList:
-    length: 1
-    entries:
-    - _item:
-        definition: {fileID: 11400000, guid: 6a763d74217e499bacafd06d27848d48, type: 2}
-        level: 1
-        enchantmentIds: []
-      count: 10
   recipeTime: 10

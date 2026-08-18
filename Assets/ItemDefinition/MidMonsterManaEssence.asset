@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: MidMonsterManaEssence
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: mid_monster_mana_essence
-  displayName: 중급 몬스터 마나 정수
+  displayName: 중급 마나 정수
   icon: {fileID: 0}
   category: 0

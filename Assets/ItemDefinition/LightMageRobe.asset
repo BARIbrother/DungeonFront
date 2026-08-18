@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: light_mage_robe
   displayName: 백마술사의 로브
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a9cbd709feba4c37bf006bfda2aff44e, type: 3}
   category: 0
   enchantmentSlotCount: 2

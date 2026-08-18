@@ -33,9 +33,17 @@ public class PlayerMovement : MonoBehaviour
     // 전진(P_MoveForth) 기준 스프라이트라, 오른쪽을 볼 때 flipX로 반전한다.
     private bool flipSpriteX;
     private SpriteRenderer spriteRenderer;
+    private bool repairAnimPending;
+    private float repairAnimUntil;
+    private const float RepairAnimTimeout = 1.35f;
 
     void Start()
     {
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer == null)
         {
@@ -136,7 +144,19 @@ public class PlayerMovement : MonoBehaviour
             TryPlaceResourceNodeAtMouse();
         }
 
+        // TEMP: 모션 검수용. 기계 없이 스페이스만 눌러도 수리 모션을 재생한다.
+        if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame)
+        {
+            PlayRepairMotion();
+        }
+
         TryInteractNearbyMachine(keyboard);
+
+        if (IsPlayingRepair())
+        {
+            UpdateAnimator(Vector2.zero);
+            return;
+        }
 
         if (input.sqrMagnitude > 1f)
         {
@@ -241,26 +261,54 @@ public class PlayerMovement : MonoBehaviour
         Machine brokenTarget = FindNearestMachineWithinOneCell(machine => machine.IsBroken);
         if (brokenTarget != null)
         {
-            if (TryRepairNearbyMachine(brokenTarget))
+            TryRepairNearbyMachine(brokenTarget);
+            PlayRepairMotion();
+            return;
+        }
+
+        Machine handmadeTarget = FindNearestMachineWithinOneCell(
+            machine => machine is HandmadeMachine);
+        if (handmadeTarget != null)
+        {
+            handmadeTarget.TryAdvanceManualClick();
+            PlayRepairMotion();
+            return;
+        }
+
+        Machine manualTarget = FindNearestMachineWithinOneCell(machine => machine.SupportsManualWorkClick());
+        if (manualTarget != null)
+        {
+            if (manualTarget.TryAdvanceManualClick())
             {
-                TrySetAnimatorTrigger(RepairHash);
+                TrySetAnimatorTrigger(WorkHash);
             }
 
             return;
         }
 
-        Machine manualTarget = FindNearestMachineWithinOneCell(machine => machine.SupportsManualWorkClick());
-        if (manualTarget == null)
+        Machine nearbyMachine = FindNearestMachineWithinOneCell(machine => machine != null);
+        if (nearbyMachine != null)
+        {
+            PlayRepairMotion();
+        }
+    }
+
+    private void PlayRepairMotion()
+    {
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
+
+        if (animator == null || !animator.isActiveAndEnabled)
         {
             return;
         }
 
-        if (!manualTarget.TryAdvanceManualClick())
-        {
-            return;
-        }
-
-        TrySetAnimatorTrigger(WorkHash);
+        animator.Play(RepairHash, 0, 0f);
+        animator.Update(0f);
+        repairAnimPending = true;
+        repairAnimUntil = Time.time + RepairAnimTimeout;
     }
 
     private static bool TryRepairNearbyMachine(Machine machine)
@@ -280,11 +328,11 @@ public class PlayerMovement : MonoBehaviour
     }
 
     // Animator에 해당 Trigger 파라미터가 있을 때만 설정한다.
-    private void TrySetAnimatorTrigger(int triggerHash)
+    private bool TrySetAnimatorTrigger(int triggerHash)
     {
         if (animator == null)
         {
-            return;
+            return false;
         }
 
         foreach (AnimatorControllerParameter parameter in animator.parameters)
@@ -293,9 +341,39 @@ public class PlayerMovement : MonoBehaviour
                 && parameter.nameHash == triggerHash)
             {
                 animator.SetTrigger(triggerHash);
-                return;
+                return true;
             }
         }
+
+        return false;
+    }
+
+    private bool IsPlayingRepair()
+    {
+        if (animator == null)
+        {
+            return false;
+        }
+
+        AnimatorStateInfo current = animator.GetCurrentAnimatorStateInfo(0);
+        if (current.shortNameHash == RepairHash)
+        {
+            repairAnimPending = false;
+            return true;
+        }
+
+        if (animator.IsInTransition(0)
+            && animator.GetNextAnimatorStateInfo(0).shortNameHash == RepairHash)
+        {
+            return true;
+        }
+
+        if (repairAnimPending && Time.time > repairAnimUntil)
+        {
+            repairAnimPending = false;
+        }
+
+        return repairAnimPending;
     }
 
     // 플레이어 셀 기준 Chebyshev 거리 1 이내이며 predicate를 만족하는 가장 가까운 기계.

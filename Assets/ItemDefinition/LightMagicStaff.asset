@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: light_magic_staff
   displayName: 백마술 지팡이
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 57b90ee1aac64937b4c71e98cc13fff2, type: 3}
   category: 0
   enchantmentSlotCount: 2

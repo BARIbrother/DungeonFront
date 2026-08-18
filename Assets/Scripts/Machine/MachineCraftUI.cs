@@ -16,10 +16,9 @@ public class MachineCraftUI : MonoBehaviour
     private Canvas canvas;
     private GameObject modalRoot;
     private RectTransform listRect;
-    private Text titleText;
-    private Text feedbackText;
+    private TMP_Text titleText;
+    private TMP_Text feedbackText;
     private readonly List<GameObject> rows = new();
-    private Font uiFont;
 
     private MachineDatabase machineDatabase;
     private PlayerInventory playerInventory;
@@ -90,7 +89,6 @@ public class MachineCraftUI : MonoBehaviour
         }
 
         instance = this;
-        uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         EnsureUiHierarchy();
         Hide();
     }
@@ -170,15 +168,18 @@ public class MachineCraftUI : MonoBehaviour
         TMP_Text tmp = craftOpen.GetComponentInChildren<TMP_Text>(true);
         if (tmp != null)
         {
-            tmp.text = "craft";
+            tmp.text = "기계제작";
+            TmpUiStyle.Apply(tmp, TmpUiStyle.Role.Button);
+            tmp.fontSize = 22f;
         }
         else
         {
-            Text label = craftOpen.GetComponentInChildren<Text>(true);
-            if (label != null)
-            {
-                label.text = "craft";
-            }
+            TextMeshProUGUI label = TmpUiStyle.Create(
+                craftOpen,
+                TmpUiStyle.Role.Button,
+                TextAlignmentOptions.Center);
+            label.text = "기계제작";
+            label.fontSize = 22f;
         }
 
         Button button = craftOpen.GetComponent<Button>();
@@ -190,6 +191,7 @@ public class MachineCraftUI : MonoBehaviour
         button.onClick = new Button.ButtonClickedEvent();
         button.onClick.AddListener(OnHudClicked);
         UiButtonStyle.Apply(button);
+        TechTreeUI.NudgeHudOpenButtons();
     }
 
     private void OnHudClicked()
@@ -290,11 +292,11 @@ public class MachineCraftUI : MonoBehaviour
         labelRect.offsetMin = new Vector2(12f, 4f);
         labelRect.offsetMax = new Vector2(-12f, -4f);
 
-        var label = labelObject.AddComponent<Text>();
-        label.font = uiFont;
-        label.fontSize = 15;
-        label.alignment = TextAnchor.MiddleLeft;
+        var label = TmpUiStyle.Create(labelObject, TmpUiStyle.Role.Button, TextAlignmentOptions.MidlineLeft);
+        label.fontSize = 16f;
         label.color = Color.white;
+        label.textWrappingMode = TextWrappingModes.Normal;
+        label.overflowMode = TextOverflowModes.Truncate;
         string cost = MachineCraftService.FormatCost(recipe);
         if (!unlocked)
         {
@@ -356,10 +358,8 @@ public class MachineCraftUI : MonoBehaviour
         labelObject.transform.SetParent(listRect, false);
         var layoutElement = labelObject.AddComponent<LayoutElement>();
         layoutElement.minHeight = 48f;
-        var label = labelObject.AddComponent<Text>();
-        label.font = uiFont;
-        label.fontSize = 16;
-        label.alignment = TextAnchor.MiddleCenter;
+        var label = TmpUiStyle.Create(labelObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.Center, true);
+        label.fontSize = 16f;
         label.color = new Color(0.85f, 0.85f, 0.85f, 1f);
         label.text = message;
         rows.Add(labelObject);
@@ -447,10 +447,8 @@ public class MachineCraftUI : MonoBehaviour
         feedbackRect.pivot = new Vector2(0.5f, 0f);
         feedbackRect.sizeDelta = new Vector2(0f, 40f);
         feedbackRect.anchoredPosition = Vector2.zero;
-        feedbackText = feedbackObject.AddComponent<Text>();
-        feedbackText.font = uiFont;
-        feedbackText.fontSize = 14;
-        feedbackText.alignment = TextAnchor.MiddleLeft;
+        feedbackText = TmpUiStyle.Create(feedbackObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.MidlineLeft);
+        feedbackText.fontSize = 14f;
         feedbackText.color = new Color(0.9f, 0.85f, 0.7f, 1f);
         var feedbackTextRect = feedbackText.rectTransform;
         feedbackTextRect.anchorMin = Vector2.zero;
@@ -526,13 +524,10 @@ public class MachineCraftUI : MonoBehaviour
         labelRect.anchorMax = Vector2.one;
         labelRect.offsetMin = new Vector2(22f, 4f);
         labelRect.offsetMax = new Vector2(-22f, -4f);
-        titleText = labelObject.AddComponent<Text>();
-        titleText.font = uiFont;
-        titleText.fontSize = 20;
-        titleText.alignment = TextAnchor.MiddleCenter;
+        titleText = TmpUiStyle.Create(labelObject, TmpUiStyle.Role.Title, TextAlignmentOptions.Center, true);
+        titleText.fontSize = 20f;
         titleText.color = new Color(0.28f, 0.22f, 0.16f, 0.95f);
         titleText.text = "기계 제작";
-        titleText.raycastTarget = false;
     }
 
     private void CreateCloseButton(Transform parent)
@@ -558,13 +553,10 @@ public class MachineCraftUI : MonoBehaviour
         labelRect.anchorMax = Vector2.one;
         labelRect.offsetMin = Vector2.zero;
         labelRect.offsetMax = Vector2.zero;
-        var label = labelObject.AddComponent<Text>();
-        label.font = uiFont;
-        label.fontSize = 22;
-        label.alignment = TextAnchor.MiddleCenter;
+        var label = TmpUiStyle.Create(labelObject, TmpUiStyle.Role.Button, TextAlignmentOptions.Center);
+        label.fontSize = 22f;
         label.color = Color.white;
         label.text = "×";
-        label.raycastTarget = false;
     }
 
     private static void EnsureEventSystem()

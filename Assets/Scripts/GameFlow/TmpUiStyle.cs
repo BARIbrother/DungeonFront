@@ -56,6 +56,32 @@ public static class TmpUiStyle
         return cachedFont;
     }
 
+    public static TextMeshProUGUI Create(
+        GameObject go,
+        Role role,
+        TextAlignmentOptions alignment,
+        bool lightPanel = false)
+    {
+        TextMeshProUGUI tmp = go.GetComponent<TextMeshProUGUI>();
+        if (tmp == null)
+        {
+            tmp = go.AddComponent<TextMeshProUGUI>();
+        }
+
+        if (lightPanel)
+        {
+            ApplyOnLightPanel(tmp, role);
+        }
+        else
+        {
+            Apply(tmp, role);
+        }
+
+        tmp.alignment = alignment;
+        tmp.raycastTarget = false;
+        return tmp;
+    }
+
     public static void Apply(TMP_Text text, Role role = Role.Body)
     {
         if (text == null)

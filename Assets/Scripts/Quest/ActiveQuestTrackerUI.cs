@@ -97,10 +97,13 @@ public sealed class ActiveQuestTrackerUI : MonoBehaviour
             foreach (ItemEntry entry in quest.requiredItems?.entries ?? System.Array.Empty<ItemEntry>())
             {
                 if (entry?.item == null) continue;
-                int owned = inventory != null ? inventory.GetCount(entry.item.id) : 0;
+                int owned = inventory != null ? inventory.GetCount(entry.item.Id) : 0;
                 bool enough = owned >= entry.count;
+                string itemName = string.IsNullOrWhiteSpace(entry.item.DisplayName)
+                    ? entry.item.Id
+                    : entry.item.DisplayName;
                 builder.Append(enough ? "<color=#78DA91>" : "<color=#FF9AA4>");
-                builder.Append("• ").Append(entry.item.displayName ?? entry.item.id).Append(' ')
+                builder.Append("• ").Append(itemName).Append(' ')
                     .Append(owned).Append('/').Append(entry.count).Append("</color>\n");
             }
         }

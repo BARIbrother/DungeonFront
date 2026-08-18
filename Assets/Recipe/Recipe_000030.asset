@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Recipe
   id: craft_tier2_element_form_scroll
   inputEntryList:
-    length: 2
+    length: 3
     entries:
     - _item:
         definition: {fileID: 11400000, guid: 230bf421ba414af6bef113de14689149, type: 2}
@@ -22,10 +22,15 @@ MonoBehaviour:
         enchantmentIds: []
       count: 1
     - _item:
-        definition: {fileID: 11400000, guid: 6a763d74217e499bacafd06d27848d48, type: 2}
+        definition: {fileID: 11400000, guid: ff0224908c98477e98e360e8f1b9c3a9, type: 2}
         level: 1
         enchantmentIds: []
-      count: 250
+      count: 2
+    - _item:
+        definition: {fileID: 11400000, guid: 36238bd50d6042c18499cbcb69b1ab08, type: 2}
+        level: 1
+        enchantmentIds: []
+      count: 1
   outputEntryList:
     length: 1
     entries:

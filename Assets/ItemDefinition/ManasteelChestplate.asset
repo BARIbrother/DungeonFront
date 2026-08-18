@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: manasteel_chestplate
   displayName: 마나강 흉갑
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 840ef77dffb54f13a2ab95535348e593, type: 3}
   category: 0
   enchantmentSlotCount: 1

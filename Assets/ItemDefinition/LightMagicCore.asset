@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: light_magic_core
   displayName: 백마법 코어
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 88bf8c13190a4a5a8b0bca22e23fdf96, type: 3}
   category: 0

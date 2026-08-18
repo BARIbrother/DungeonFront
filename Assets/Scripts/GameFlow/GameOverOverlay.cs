@@ -25,16 +25,23 @@ public sealed class GameOverOverlay : MonoBehaviour
 
     private void Update()
     {
-        GameOverController controller = FindAnyObjectByType<GameOverController>();
-        bool shouldShow = controller != null && controller.IsGameOver;
-        if (panel != null && panel.activeSelf != shouldShow) panel.SetActive(shouldShow);
+        GameOverController controller = GameOverController.Instance ?? FindAnyObjectByType<GameOverController>();
+        bool shouldShow = controller != null && controller.IsGameOver && !controller.HasAssignedUi;
+        if (panel != null && panel.activeSelf != shouldShow)
+        {
+            panel.SetActive(shouldShow);
+        }
     }
 
     private void Restart()
     {
+        GameOverController controller = GameOverController.Instance ?? FindAnyObjectByType<GameOverController>();
+        controller?.ResetGameOver();
         GameSessionState.Instance?.NewGame();
-        FindAnyObjectByType<GameOverController>()?.ResetGameOver();
-        panel.SetActive(false);
+        if (panel != null)
+        {
+            panel.SetActive(false);
+        }
     }
 
     private void Build()

@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: element_form_scroll
   displayName: 원소 형태 스크롤
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: c3dc73ecf9cb417e897496a8e89cf20a, type: 3}
   category: 0
   enchantmentSlotCount: 1

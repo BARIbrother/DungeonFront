@@ -25,7 +25,15 @@ public sealed class PerpetualDeliveryRuntimeUI : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
-        if (instance == null) new GameObject("PerpetualDeliveryRuntimeUI").AddComponent<PerpetualDeliveryRuntimeUI>();
+        if (FindAnyObjectByType<PerpetualQuestPanel>() != null)
+        {
+            return;
+        }
+
+        if (instance == null)
+        {
+            new GameObject("PerpetualDeliveryRuntimeUI").AddComponent<PerpetualDeliveryRuntimeUI>();
+        }
     }
 
     private void Awake()
@@ -106,8 +114,9 @@ public sealed class PerpetualDeliveryRuntimeUI : MonoBehaviour
         foreach (ItemEntry entry in quest.requiredItems?.entries ?? System.Array.Empty<ItemEntry>())
         {
             if (entry?.item == null) continue;
-            int owned = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetCount(entry.item.id) : 0;
-            lines.Add($"{entry.item.displayName}  보유 {owned} / 제출 {entry.count * amount}");
+            int owned = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetCount(entry.item.Id) : 0;
+            string itemName = string.IsNullOrWhiteSpace(entry.item.DisplayName) ? entry.item.Id : entry.item.DisplayName;
+            lines.Add($"{itemName}  보유 {owned} / 제출 {entry.count * amount}");
         }
         return string.Join("\n", lines);
     }

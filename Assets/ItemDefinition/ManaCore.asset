@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: mana_core
   displayName: 마력 코어
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: ceb8f92e9b684825bac6c26c2c2c12f7, type: 3}
   category: 0

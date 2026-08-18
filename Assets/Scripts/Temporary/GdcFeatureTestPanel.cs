@@ -75,7 +75,7 @@ public sealed class GdcFeatureTestPanel : MonoBehaviour
         if(GUILayout.Button("슬롯 0 불러오기")) GameSaveService.Load(0);
 
         GUILayout.Space(8); GUILayout.Label("6. 게임오버");
-        if(GUILayout.Button("게임오버 화면 강제 표시")) FindAnyObjectByType<GameOverController>()?.TriggerGameOver();
+        if(GUILayout.Button("게임오버 화면 강제 표시")) GameOverController.Instance?.TriggerGameOver("필수 의뢰를 완료하지 못했습니다");
         GUILayout.EndScrollView(); GUILayout.EndArea();
     }
 

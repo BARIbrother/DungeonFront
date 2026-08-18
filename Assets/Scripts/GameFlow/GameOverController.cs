@@ -8,6 +8,8 @@ public class GameOverController : MonoBehaviour
 {
     public static GameOverController Instance { get; private set; }
 
+    private const string PauseRequester = "GameOver";
+
     [Header("[게임오버 UI 연결]")]
     [SerializeField] private GameObject gameOverUI;         // 게임오버 Panel
     [SerializeField] private TMP_Text gameOverMessageText;  // "필수 의뢰를 완료하지 못했습니다" Text
@@ -15,6 +17,25 @@ public class GameOverController : MonoBehaviour
 
     [Header("[타이틀 씬 이름]")]
     [SerializeField] private string titleSceneName = "TitleScene"; // 실제 프로젝트의 타이틀 씬 이름
+
+    public bool IsGameOver { get; private set; }
+
+    // 씬에 패널이 연결되어 있으면 Overlay는 그리지 않는다.
+    public bool HasAssignedUi => gameOverUI != null;
+
+    private GameSessionState boundSession;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Bootstrap()
+    {
+        if (FindAnyObjectByType<GameOverController>() != null)
+        {
+            return;
+        }
+
+        var controllerObject = new GameObject("GameOverController");
+        controllerObject.AddComponent<GameOverController>();
+    }
 
     private void Awake()
     {
@@ -39,24 +60,54 @@ public class GameOverController : MonoBehaviour
             titleButton.onClick.AddListener(OnTitleButtonClicked);
         }
 
-        // GameSessionState 페이즈 변경 이벤트 구독
-        if (GameSessionState.Instance != null)
-        {
-            GameSessionState.Instance.OnPhaseChanged += HandlePhaseChanged;
-        }
+        BindSession();
     }
 
     private void OnDestroy()
     {
-        // 이벤트 구독 해제
-        if (GameSessionState.Instance != null)
+        UnbindSession();
+        GamePauseService.ReleasePause(PauseRequester);
+        if (Instance == this)
         {
-            GameSessionState.Instance.OnPhaseChanged -= HandlePhaseChanged;
+            Instance = null;
         }
+    }
+
+    private void BindSession()
+    {
+        GameSessionState candidate = GameSessionState.Instance;
+        if (candidate == boundSession)
+        {
+            return;
+        }
+
+        UnbindSession();
+        boundSession = candidate;
+        if (boundSession == null)
+        {
+            return;
+        }
+
+        boundSession.OnPhaseChanged += HandlePhaseChanged;
+        boundSession.OnNewGame += ResetGameOver;
+    }
+
+    private void UnbindSession()
+    {
+        if (boundSession == null)
+        {
+            return;
+        }
+
+        boundSession.OnPhaseChanged -= HandlePhaseChanged;
+        boundSession.OnNewGame -= ResetGameOver;
+        boundSession = null;
     }
 
     private void Update()
     {
+        BindSession();
+
         // ⭐ [디버그 기능] 키보드 'G' 키 입력 시 강제 게임오버 발동 (테스트용)
         if (Keyboard.current != null)
         {
@@ -119,6 +170,12 @@ public class GameOverController : MonoBehaviour
     // 게임오버 팝업 출력
     public void TriggerGameOver(string message)
     {
+        if (IsGameOver)
+        {
+            return;
+        }
+
+        IsGameOver = true;
         Debug.LogError($"[GameOver] {message}");
 
         if (gameOverMessageText != null)
@@ -131,13 +188,30 @@ public class GameOverController : MonoBehaviour
             gameOverUI.SetActive(true);
         }
 
-        Time.timeScale = 0f; // 게임 일시정지
+        GamePauseService.RequestPause(PauseRequester);
+    }
+
+    public void ResetGameOver()
+    {
+        if (!IsGameOver && (gameOverUI == null || !gameOverUI.activeSelf))
+        {
+            GamePauseService.ReleasePause(PauseRequester);
+            return;
+        }
+
+        IsGameOver = false;
+        if (gameOverUI != null)
+        {
+            gameOverUI.SetActive(false);
+        }
+
+        GamePauseService.ReleasePause(PauseRequester);
     }
 
     // Title 로드 버튼 클릭 핸들러
     private void OnTitleButtonClicked()
     {
-        Time.timeScale = 1f; // 일시정지 해제
+        ResetGameOver();
         SceneManager.LoadScene(titleSceneName);
     }
 }

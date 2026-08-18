@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: mana_crystal
   displayName: 마력석 결정
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 5665972f48ea4feeb1bfde9c2fb207f0, type: 3}
   category: 0

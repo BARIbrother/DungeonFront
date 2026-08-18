@@ -49,7 +49,29 @@
 진강 흉갑	greysteel_chestplate	greysteel_chestplate_icon.png
 진강 각반	greysteel_leggings	greysteel_leggings_icon.png
 진강 부츠	greysteel_boots	greysteel_boots_icon.png
+마력석 광석	mana_ore	mana_ore_icon.png
+마력석 결정	mana_crystal	mana_crystal_icon.png
+마력 코어	mana_core	mana_core_icon.png
+마나 완드	mana_wand	mana_wand_icon.png
+마나강 검	manasteel_sword	manasteel_sword_icon.png
+마나강 투구	manasteel_helmet	manasteel_helmet_icon.png
+마나강 흉갑	manasteel_chestplate	manasteel_chestplate_icon.png
+마나강 각반	manasteel_leggings	manasteel_leggings_icon.png
+마나강 부츠	manasteel_boots	manasteel_boots_icon.png
+빈 마법 스크롤	blank_magic_scroll	blank_magic_scroll_icon.png
+원소 스크롤	element_scroll	element_scroll_icon.png
+원소 형태 스크롤	element_form_scroll	element_form_scroll_icon.png
+빈 2단계 마법 스크롤	blank_tier2_magic_scroll	blank_tier2_magic_scroll_icon.png
+2단계 원소 스크롤	tier2_element_scroll	tier2_element_scroll_icon.png
+2단계 원소 형태 스크롤	tier2_element_form_scroll	tier2_element_form_scroll_icon.png
+마술사의 로브	mage_robe	mage_robe_icon.png
+흑마법 코어	dark_magic_core	dark_magic_core_icon.png
+흑마술사의 로브	dark_mage_robe	dark_mage_robe_icon.png
+흑마술 지팡이	dark_magic_staff	dark_magic_staff_icon.png
+백마법 코어	light_magic_core	light_magic_core_icon.png
+백마술사의 로브	light_mage_robe	light_mage_robe_icon.png
+백마술 지팡이	light_magic_staff	light_magic_staff_icon.png
 
 # note: itemId `iron` maps to filename iron_ingot_icon.png (display: 철 주괴)
 # English prefixes: 흑강=darksteel, 백강=brightsteel, 진강=greysteel
-# _sheet.png rows: wood(+stick/paper) | iron | blackstone/darksteel | whitestone/brightsteel | greysteel
+# _sheet.png rows: wood(+stick/paper) | iron | blackstone/darksteel | whitestone/brightsteel | greysteel | mana/manasteel | scroll/robe

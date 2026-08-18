@@ -193,7 +193,7 @@ public class QuestCard : MonoBehaviour
         text.enableAutoSizing = true;
         text.fontSizeMin = 11f;
         text.fontSizeMax = maximumSize;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.Normal;
         text.overflowMode = TextOverflowModes.Ellipsis;
         text.raycastTarget = false;
         text.margin = new Vector4(4f, 3f, 4f, 3f);

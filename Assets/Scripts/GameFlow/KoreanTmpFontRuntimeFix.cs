@@ -102,7 +102,7 @@ public sealed class KoreanTmpFontRuntimeFix : MonoBehaviour
     {
         if (SharedFont == null) return;
 
-        foreach (TMP_Text text in FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (TMP_Text text in FindObjectsByType<TMP_Text>(FindObjectsInactive.Include))
         {
             if (text == null || text.font == SharedFont) continue;
             text.font = SharedFont;

@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: mana_wand
   displayName: 마나 완드
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: acdff299d16e4dbc9d182a4d23de01a0, type: 3}
   category: 0

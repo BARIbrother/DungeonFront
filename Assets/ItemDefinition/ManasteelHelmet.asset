@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   id: manasteel_helmet
   displayName: 마나강 투구
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 443ed343d93649aa9c07166932ce960d, type: 3}
   category: 0
   enchantmentSlotCount: 1

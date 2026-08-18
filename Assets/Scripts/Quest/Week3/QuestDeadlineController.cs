@@ -84,6 +84,7 @@ public class QuestDeadlineController : MonoBehaviour
             if (info.isMandatory)
             {
                 gameOverController?.TriggerGameOver();
+                GameOverController.Instance?.TriggerGameOver("필수 의뢰를 완료하지 못했습니다");
             }
             else if (economy != null)
             {

@@ -160,7 +160,7 @@ public sealed class TutorialPanelUI : MonoBehaviour
         titleText = Text("Title", box.transform, 37, TextAlignmentOptions.Center, Color.white);
         Stretch(titleText.rectTransform, new Vector2(0.08f, 0.62f), new Vector2(0.92f, 0.82f));
         bodyText = Text("Body", box.transform, 25, TextAlignmentOptions.Center, Color.white);
-        bodyText.enableWordWrapping = true;
+        bodyText.textWrappingMode = TextWrappingModes.Normal;
         Stretch(bodyText.rectTransform, new Vector2(0.1f, 0.28f), new Vector2(0.9f, 0.62f));
         nextButton = Button("Next", box.transform, "다음");
         Stretch(nextButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0.07f), new Vector2(0.86f, 0.22f));
