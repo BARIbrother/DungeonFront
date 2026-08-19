@@ -53,7 +53,6 @@ public class TechTreeUI : MonoBehaviour
     private readonly List<GameObject> columnGuides = new();
     private static Sprite arrowHeadSprite;
     private static Sprite dashSprite;
-    private static bool hudOpenButtonsNudged;
 
     public static bool IsOpen => instance != null && instance.isOpen;
 
@@ -328,31 +327,59 @@ public class TechTreeUI : MonoBehaviour
 
     public static void NudgeHudOpenButtons()
     {
-        if (hudOpenButtonsNudged)
-        {
-            return;
-        }
-
-        hudOpenButtonsNudged = true;
-        NudgeHudButton("TechTreeOpenButton");
-        NudgeHudButton("MachineCraftOpenButton");
+        AlignHudOpenButtons();
     }
 
-    private static void NudgeHudButton(string objectName)
+    public static void AlignHudOpenButtons()
     {
-        GameObject go = GameObject.Find(objectName);
-        if (go == null)
+        RectTransform quest = FindHudButtonRect("QuestOpenButton");
+        RectTransform tech = FindHudButtonRect("TechTreeOpenButton");
+        RectTransform craft = FindHudButtonRect("MachineCraftOpenButton");
+        if (quest == null && tech == null && craft == null)
         {
             return;
         }
 
-        RectTransform rect = go.GetComponent<RectTransform>();
+        const float buttonWidth = 168f;
+        const float buttonHeight = 56f;
+        const float gap = 12f;
+        const float firstCenterX = 108f;
+        const float rowY = 0f;
+
+        PlaceHudButton(quest, firstCenterX, rowY, buttonWidth, buttonHeight);
+        PlaceHudButton(tech, firstCenterX + buttonWidth + gap, rowY, buttonWidth, buttonHeight);
+        PlaceHudButton(
+            craft,
+            firstCenterX + (buttonWidth + gap) * 2f,
+            rowY,
+            buttonWidth,
+            buttonHeight);
+    }
+
+    private static RectTransform FindHudButtonRect(string objectName)
+    {
+        GameObject go = GameObject.Find(objectName);
+        return go != null ? go.GetComponent<RectTransform>() : null;
+    }
+
+    private static void PlaceHudButton(
+        RectTransform rect,
+        float centerX,
+        float y,
+        float width,
+        float height)
+    {
         if (rect == null)
         {
             return;
         }
 
-        rect.anchoredPosition += new Vector2(24f, 0f);
+        rect.anchorMin = new Vector2(0f, 0.5f);
+        rect.anchorMax = new Vector2(0f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(width, height);
+        rect.anchoredPosition = new Vector2(centerX, y);
+        rect.localScale = Vector3.one;
     }
 
     private void BuildGraph()
@@ -383,17 +410,20 @@ public class TechTreeUI : MonoBehaviour
 
         CreateColumnGuides();
 
-        for (int i = 0; i < TechTreeCatalog.Connections.Length; i++)
+        // 보이는 선행만 선으로 그린다. 숨은 선행은 가장 가까운 보이는 조상으로 잇는다.
+        var drawn = new HashSet<string>();
+        for (int i = 0; i < TechTreeCatalog.All.Length; i++)
         {
-            TechTreeCatalog.Connection link = TechTreeCatalog.Connections[i];
-            TechTreeCatalog.Node from = TechTreeCatalog.Get(link.from);
-            TechTreeCatalog.Node to = TechTreeCatalog.Get(link.to);
-            if (from == null || to == null || !from.visibleInGame || !to.visibleInGame)
+            TechTreeCatalog.Node to = TechTreeCatalog.All[i];
+            if (!to.visibleInGame)
             {
                 continue;
             }
 
-            CreateConnection(from, to);
+            TechTreeCatalog.ForEachIncomingParent(to.id, fromId =>
+            {
+                DrawVisibleConnections(fromId, to, drawn);
+            });
         }
 
         for (int i = 0; i < TechTreeCatalog.All.Length; i++)
@@ -406,6 +436,34 @@ public class TechTreeUI : MonoBehaviour
         }
 
         graphBuilt = true;
+    }
+
+    private void DrawVisibleConnections(
+        string fromId,
+        TechTreeCatalog.Node to,
+        HashSet<string> drawn)
+    {
+        TechTreeCatalog.Node from = TechTreeCatalog.Get(fromId);
+        if (from == null || from == to)
+        {
+            return;
+        }
+
+        if (from.visibleInGame)
+        {
+            string key = from.id + ">" + to.id;
+            if (drawn.Add(key))
+            {
+                CreateConnection(from, to);
+            }
+
+            return;
+        }
+
+        TechTreeCatalog.ForEachIncomingParent(from.id, parentId =>
+        {
+            DrawVisibleConnections(parentId, to, drawn);
+        });
     }
 
     private void CreateColumnGuides()
@@ -806,8 +864,30 @@ public class TechTreeUI : MonoBehaviour
             return;
         }
 
-        unlockButton.interactable = canUnlock && honor >= selectedNode.honor;
-        unlockLabel.text = canUnlock ? "해금" : "잠김";
+        if (!string.IsNullOrEmpty(selectedNode.grantOnQuestId))
+        {
+            detailCost.text = "레이에게 골드 1을 주면 해금됩니다.";
+            unlockButton.interactable = false;
+            unlockLabel.text = "의뢰 해금";
+            return;
+        }
+
+        if (!canUnlock)
+        {
+            unlockButton.interactable = false;
+            unlockLabel.text = "잠김";
+            return;
+        }
+
+        if (honor < selectedNode.honor)
+        {
+            unlockButton.interactable = false;
+            unlockLabel.text = "명예 부족";
+            return;
+        }
+
+        unlockButton.interactable = true;
+        unlockLabel.text = "해금";
     }
 
     private static string BuildDetailBody(
@@ -817,10 +897,11 @@ public class TechTreeUI : MonoBehaviour
     {
         var text = new System.Text.StringBuilder();
         text.Append(node.description);
-        if (!string.IsNullOrEmpty(node.machineDefId))
+        string machineNames = ResolveUnlockedMachineNames(node);
+        if (!string.IsNullOrEmpty(machineNames))
         {
             text.Append("\n\n해금 기계: ");
-            text.Append(ResolveMachineName(node.machineDefId));
+            text.Append(machineNames);
         }
         else if (node.isFuelTrack)
         {
@@ -829,21 +910,29 @@ public class TechTreeUI : MonoBehaviour
             text.Append("분으로 늘립니다.");
         }
 
-        if (unlocked || node.parentIds == null || node.parentIds.Length == 0)
+        if (unlocked)
         {
+            return text.ToString();
+        }
+
+        if (!string.IsNullOrEmpty(node.grantOnQuestId))
+        {
+            text.Append("\n레이의 의뢰(골드 1)를 마치면 자동으로 해금됩니다.");
             return text.ToString();
         }
 
         var missing = new System.Text.StringBuilder();
         var ready = new System.Text.StringBuilder();
-        for (int i = 0; i < node.parentIds.Length; i++)
+        bool hasIncoming = false;
+        TechTreeCatalog.ForEachIncomingParent(node.id, parentId =>
         {
-            TechTreeCatalog.Node parent = TechTreeCatalog.Get(node.parentIds[i]);
+            TechTreeCatalog.Node parent = TechTreeCatalog.Get(parentId);
             if (parent == null || !parent.visibleInGame)
             {
-                continue;
+                return;
             }
 
+            hasIncoming = true;
             bool parentUnlocked = UnlockManager.Instance != null
                 && UnlockManager.Instance.IsUnlocked(parent.id);
             System.Text.StringBuilder target = parentUnlocked ? ready : missing;
@@ -853,6 +942,11 @@ public class TechTreeUI : MonoBehaviour
             }
 
             target.Append(parent.name);
+        });
+
+        if (!hasIncoming)
+        {
+            return text.ToString();
         }
 
         if (missing.Length > 0)
@@ -862,7 +956,14 @@ public class TechTreeUI : MonoBehaviour
         }
         else if (!canUnlock)
         {
-            text.Append("\n선행 기술을 먼저 해금해야 합니다.");
+            if (HasLockedQuestGrantParent(node))
+            {
+                text.Append("\n레이의 의뢰(골드 1)를 마치면 열립니다.");
+            }
+            else
+            {
+                text.Append("\n선행 기술을 먼저 해금해야 합니다.");
+            }
         }
         else if (ready.Length > 0)
         {
@@ -872,6 +973,26 @@ public class TechTreeUI : MonoBehaviour
         }
 
         return text.ToString();
+    }
+
+    private static bool HasLockedQuestGrantParent(TechTreeCatalog.Node node)
+    {
+        bool locked = false;
+        TechTreeCatalog.ForEachIncomingParent(node.id, parentId =>
+        {
+            TechTreeCatalog.Node parent = TechTreeCatalog.Get(parentId);
+            if (parent == null
+                || string.IsNullOrEmpty(parent.grantOnQuestId)
+                || UnlockManager.Instance == null
+                || UnlockManager.Instance.IsUnlocked(parent.id))
+            {
+                return;
+            }
+
+            locked = true;
+        });
+
+        return locked;
     }
 
     private static string FormatUnlockCost(TechTreeCatalog.Node node, bool unlocked, int honor)
@@ -889,6 +1010,37 @@ public class TechTreeUI : MonoBehaviour
         }
 
         return $"해금 비용  명예 {node.honor}\n보유  명예 {honor}  ·  부족 {node.honor - honor}";
+    }
+
+    private static string ResolveUnlockedMachineNames(TechTreeCatalog.Node node)
+    {
+        var names = new System.Text.StringBuilder();
+        var seen = new HashSet<string>();
+        for (int i = 0; i < MachineCraftCatalog.All.Length; i++)
+        {
+            MachineCraftCatalog.Recipe recipe = MachineCraftCatalog.All[i];
+            if (recipe == null
+                || recipe.requiredTechId != node.id
+                || string.IsNullOrEmpty(recipe.machineDefId)
+                || !seen.Add(recipe.machineDefId))
+            {
+                continue;
+            }
+
+            if (names.Length > 0)
+            {
+                names.Append(", ");
+            }
+
+            names.Append(ResolveMachineName(recipe.machineDefId));
+        }
+
+        if (names.Length == 0 && !string.IsNullOrEmpty(node.machineDefId))
+        {
+            return ResolveMachineName(node.machineDefId);
+        }
+
+        return names.ToString();
     }
 
     private static string ResolveMachineName(string machineDefId)

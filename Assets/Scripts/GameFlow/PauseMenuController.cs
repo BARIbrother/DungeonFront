@@ -56,7 +56,7 @@ public sealed class PauseMenuController : MonoBehaviour
             return;
         }
 
-        // 대화·튜토리얼처럼 다른 모달이 멈춘 상태에서는 그 모달이 ESC를 처리한다.
+        // 대화처럼 다른 모달이 멈춘 상태에서는 그 모달이 입력을 처리한다.
         if (!menuVisible && GamePauseService.IsPaused)
         {
             return;

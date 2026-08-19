@@ -1,7 +1,6 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using UnityEngine.InputSystem; 
 using TMPro; 
 using UnityEngine.UI;
 using UnityEngine.SceneManagement; 
@@ -153,6 +152,21 @@ public class GameSessionState : MonoBehaviour
         RefreshHudTexts();
     }
 
+    // Day/Time 아래의 "생산 시작" 버튼을 연결한다.
+    public void BindStartProductionButton(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        startProductionButton = button;
+        startProductionButton.onClick.RemoveAllListeners();
+        startProductionButton.onClick.AddListener(StartProduction);
+        UiButtonStyle.Apply(startProductionButton);
+        ApplyUIState(phase);
+    }
+
     // Day/Time 아래의 "다음 일차 시작" 버튼을 연결한다.
     public void BindAdvanceDayButton(Button button)
     {
@@ -177,10 +191,6 @@ public class GameSessionState : MonoBehaviour
             {
                 EndProduction();
             }
-        }
-        if (!isEndingProduction && (phase == GamePhase.Prepare || phase == GamePhase.Production))
-        {
-            HandleGlobalInput();
         }
     }
 
@@ -333,16 +343,6 @@ public class GameSessionState : MonoBehaviour
             advanceDayButton.onClick.RemoveAllListeners();
             advanceDayButton.onClick.AddListener(AdvanceDay);
             UiButtonStyle.Apply(advanceDayButton);
-        }
-    }
-
-    private void HandleGlobalInput()
-    {
-        if (Keyboard.current == null) return;
-
-        if (phase == GamePhase.Production && Keyboard.current.fKey.wasPressedThisFrame)
-        {
-            ForceEndProduction();
         }
     }
 

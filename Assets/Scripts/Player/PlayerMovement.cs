@@ -145,7 +145,10 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // TEMP: 모션 검수용. 기계 없이 스페이스만 눌러도 수리 모션을 재생한다.
-        if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame)
+        if (keyboard != null
+            && keyboard.spaceKey.wasPressedThisFrame
+            && !DialogueUI.IsOpen
+            && !TutorialPanelUI.IsOpen)
         {
             PlayRepairMotion();
         }
@@ -243,7 +246,10 @@ public class PlayerMovement : MonoBehaviour
     // Space: 근접 1칸 내 고장 기계 수리 우선, 없으면 수작업 기계 진도.
     private void TryInteractNearbyMachine(Keyboard keyboard)
     {
-        if (keyboard == null || !keyboard.spaceKey.wasPressedThisFrame)
+        if (keyboard == null
+            || !keyboard.spaceKey.wasPressedThisFrame
+            || DialogueUI.IsOpen
+            || TutorialPanelUI.IsOpen)
         {
             return;
         }
@@ -558,7 +564,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 Debug.LogWarning(
                     $"[PlayerMovement] F키 무시: 현재 페이즈={GameSessionState.Instance.Phase}. " +
-                    "Production일 때만 즉시 종료됩니다. (시작 버튼 또는 T키)");
+                    "Production일 때만 즉시 종료됩니다.");
                 return;
             }
 

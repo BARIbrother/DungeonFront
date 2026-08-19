@@ -65,9 +65,9 @@ public static class MachineCraftCatalog
         RecipeOf("Smelter_3", "m_furnace_3", 90,
             Item("darksteel_ingot", 8), Item("brightsteel_ingot", 8), Item("blackstone_ore", 4)),
 
-        RecipeOf("ManaAssembler_3", "m_manacraft_3", 120,
+        RecipeOf("ManaAssembler_3", "m_manacraft_2", 120,
             Item("greysteel_plate", 6), Item("structure_pillar", 2)),
-        RecipeOf("Altar_1", "m_altar_1", 150,
+        RecipeOf("Altar_1", "m_crafter_3", 150,
             Item("greysteel_ingot", 8), Item("concrete", 4)),
     };
 

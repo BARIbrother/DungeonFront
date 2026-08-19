@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 // Production Canvas의 HUD를 GameSessionState에 연결한다.
 // Day/Time은 Production 씬에 두고, 필요 시 레이아웃만 보정한다.
-// 결산 단계용 "다음 일차" 버튼도 Day/Time 아래에 둔다.
+// 일차 아래 생산 시작, 그 아래 타이머·다음 일차 버튼을 둔다.
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
@@ -12,10 +12,12 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Canvas targetCanvas;
     [SerializeField] private TextMeshProUGUI dayText;
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private Button startProductionButton;
     [SerializeField] private Button advanceDayButton;
 
     public TextMeshProUGUI DayText => dayText;
     public TextMeshProUGUI TimerText => timerText;
+    public Button StartProductionButton => startProductionButton;
     public Button AdvanceDayButton => advanceDayButton;
 
     public void SetTargetCanvas(Canvas canvas)
@@ -70,7 +72,8 @@ public class UIManager : MonoBehaviour
     {
         ResolveHudRefs();
         EnsureTopLayout(dayText != null ? dayText.rectTransform : null, 24f);
-        EnsureTopLayout(timerText != null ? timerText.rectTransform : null, 64f);
+        EnsureStartProductionButton();
+        EnsureTopLayout(timerText != null ? timerText.rectTransform : null, 108f);
         EnsureAdvanceDayButton();
         BindSessionHud();
     }
@@ -101,6 +104,51 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void EnsureStartProductionButton()
+    {
+        if (targetCanvas == null)
+        {
+            return;
+        }
+
+        if (startProductionButton == null)
+        {
+            Transform existing = targetCanvas.transform.Find("StartProductionButton");
+            if (existing == null)
+            {
+                GameObject found = GameObject.Find("StartProductionButton");
+                existing = found != null ? found.transform : null;
+            }
+
+            if (existing != null)
+            {
+                startProductionButton = existing.GetComponent<Button>();
+            }
+        }
+
+        if (startProductionButton == null)
+        {
+            startProductionButton = CreateHudButton(
+                targetCanvas.transform,
+                "StartProductionButton",
+                "생산 시작",
+                new Color(0.42f, 0.32f, 0.14f, 0.95f));
+        }
+
+        if (startProductionButton == null)
+        {
+            return;
+        }
+
+        RectTransform rect = startProductionButton.transform as RectTransform;
+        if (rect != null)
+        {
+            rect.SetParent(targetCanvas.transform, false);
+            EnsureTopLayout(rect, 64f);
+            rect.sizeDelta = new Vector2(220f, 40f);
+        }
+    }
+
     private void EnsureAdvanceDayButton()
     {
         if (targetCanvas == null)
@@ -119,7 +167,11 @@ public class UIManager : MonoBehaviour
 
         if (advanceDayButton == null)
         {
-            advanceDayButton = CreateAdvanceDayButton(targetCanvas.transform);
+            advanceDayButton = CreateHudButton(
+                targetCanvas.transform,
+                "AdvanceDayButton",
+                "다음 일차 시작",
+                new Color(0.28f, 0.45f, 0.32f, 0.95f));
         }
 
         if (advanceDayButton == null)
@@ -138,14 +190,14 @@ public class UIManager : MonoBehaviour
         advanceDayButton.gameObject.SetActive(false);
     }
 
-    private static Button CreateAdvanceDayButton(Transform parent)
+    private static Button CreateHudButton(Transform parent, string objectName, string label, Color color)
     {
-        var buttonObject = new GameObject("AdvanceDayButton", typeof(RectTransform));
+        var buttonObject = new GameObject(objectName, typeof(RectTransform));
         var rect = (RectTransform)buttonObject.transform;
         rect.SetParent(parent, false);
 
         var image = buttonObject.AddComponent<Image>();
-        image.color = new Color(0.28f, 0.45f, 0.32f, 0.95f);
+        image.color = color;
 
         var button = buttonObject.AddComponent<Button>();
         button.targetGraphic = image;
@@ -159,12 +211,12 @@ public class UIManager : MonoBehaviour
         labelRect.offsetMin = Vector2.zero;
         labelRect.offsetMax = Vector2.zero;
 
-        var label = labelObject.AddComponent<TextMeshProUGUI>();
-        label.text = "다음 일차 시작";
-        label.alignment = TextAlignmentOptions.Center;
-        label.fontSize = 22f;
-        label.color = Color.white;
-        label.raycastTarget = false;
+        var labelText = labelObject.AddComponent<TextMeshProUGUI>();
+        labelText.text = label;
+        labelText.alignment = TextAlignmentOptions.Center;
+        labelText.fontSize = 22f;
+        labelText.color = Color.white;
+        labelText.raycastTarget = false;
 
         return button;
     }
@@ -183,6 +235,7 @@ public class UIManager : MonoBehaviour
         }
 
         session.BindPrimaryHud(dayText, timerText);
+        session.BindStartProductionButton(startProductionButton);
         session.BindAdvanceDayButton(advanceDayButton);
     }
 

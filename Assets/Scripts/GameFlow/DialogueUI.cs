@@ -17,6 +17,8 @@ using UnityEditor;
 public sealed class DialogueUI : MonoBehaviour
 {
     private const string PauseRequester = "DialogueUI";
+    // P를 1초 동안 누르면 현재 대화를 통째로 닫는다. 대사 중 timeScale=0이므로 unscaled time을 쓴다.
+    private const float SkipHoldDuration = 1f;
 
     private static DialogueUI instance;
     public static event Action<string> OnDialogueClosed;
@@ -96,6 +98,12 @@ public sealed class DialogueUI : MonoBehaviour
     private TMP_Text nextText;
     private Image portraitImage;
     private Button nextButton;
+    // P 홀드 스킵 게이지. 누르는 동안에만 화면 중앙 상단에 표시한다.
+    private GameObject skipHoldGauge;
+    private Image skipHoldFill;
+    private float skipHoldTime;
+    // 스킵 직후 같은 누름으로 다음 대화까지 넘어가지 않게 한다.
+    private bool skipHoldConsumed;
     private DialogueLine[] activeLines;
     private string activeEventId;
     private int lineIndex;
@@ -103,6 +111,7 @@ public sealed class DialogueUI : MonoBehaviour
     private static readonly Color PortraitFallbackColor = new(0.26f, 0.39f, 0.57f, 1f);
 
     public bool IsShowing => activeLines != null;
+    public static bool IsOpen => instance != null && instance.IsShowing;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -139,8 +148,22 @@ public sealed class DialogueUI : MonoBehaviour
 
     private void Update()
     {
-        if (!IsShowing || Keyboard.current == null)
+        if (Keyboard.current == null)
         {
+            skipHoldConsumed = false;
+            ResetSkipHoldVisual();
+            return;
+        }
+
+        if (!Keyboard.current.pKey.isPressed)
+        {
+            skipHoldConsumed = false;
+            ResetSkipHoldVisual();
+        }
+
+        if (!IsShowing)
+        {
+            ResetSkipHoldVisual();
             return;
         }
 
@@ -149,6 +172,24 @@ public sealed class DialogueUI : MonoBehaviour
             || Keyboard.current.numpadEnterKey.wasPressedThisFrame)
         {
             Advance();
+            if (!IsShowing)
+            {
+                return;
+            }
+        }
+
+        if (!Keyboard.current.pKey.isPressed || skipHoldConsumed)
+        {
+            return;
+        }
+
+        skipHoldTime += Time.unscaledDeltaTime;
+        SetSkipHoldProgress(skipHoldTime / SkipHoldDuration);
+        if (skipHoldTime >= SkipHoldDuration)
+        {
+            skipHoldConsumed = true;
+            ResetSkipHoldVisual();
+            SkipActiveDialogue();
         }
     }
 
@@ -195,6 +236,23 @@ public sealed class DialogueUI : MonoBehaviour
             return;
         }
 
+        CloseActiveDialogue();
+    }
+
+    // 남은 줄을 재생하지 않고 현재 이벤트 대화를 종료한다. 스토리 훅은 정상 종료와 같다.
+    private void SkipActiveDialogue()
+    {
+        if (!IsShowing)
+        {
+            return;
+        }
+
+        CloseActiveDialogue();
+    }
+
+    private void CloseActiveDialogue()
+    {
+        ResetSkipHoldVisual();
         string completedEvent = activeEventId;
         activeEventId = null;
         activeLines = null;
@@ -301,7 +359,71 @@ public sealed class DialogueUI : MonoBehaviour
         nextButton = CreateButton("NextButton", box.transform, out nextText, "다음");
         Stretch(nextButton.GetComponent<RectTransform>(), new Vector2(0.81f, 0.08f), new Vector2(0.955f, 0.24f), Vector2.zero, Vector2.zero);
         nextButton.onClick.AddListener(Advance);
+        CreateSkipHoldGauge(modal.transform);
         modal.SetActive(false);
+    }
+
+    // 화면 중앙 상단의 작은 가로 게이지. P를 누르는 동안만 채운다.
+    private void CreateSkipHoldGauge(Transform parent)
+    {
+        skipHoldGauge = CreatePanel("SkipHoldGauge", parent, new Color(0.1f, 0.09f, 0.08f, 0.88f));
+        RectTransform root = skipHoldGauge.GetComponent<RectTransform>();
+        root.anchorMin = new Vector2(0.5f, 1f);
+        root.anchorMax = new Vector2(0.5f, 1f);
+        root.pivot = new Vector2(0.5f, 1f);
+        root.sizeDelta = new Vector2(220f, 14f);
+        root.anchoredPosition = new Vector2(0f, -28f);
+        skipHoldGauge.GetComponent<Image>().raycastTarget = false;
+
+        GameObject fillArea = CreatePanel("FillArea", skipHoldGauge.transform, new Color(0f, 0f, 0f, 0f));
+        Stretch(fillArea.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(3f, 3f), new Vector2(-3f, -3f));
+        fillArea.GetComponent<Image>().raycastTarget = false;
+
+        GameObject fill = CreatePanel("Fill", fillArea.transform, new Color(1f, 0.82f, 0.38f, 1f));
+        skipHoldFill = fill.GetComponent<Image>();
+        skipHoldFill.raycastTarget = false;
+        SetSkipHoldProgress(0f);
+        skipHoldGauge.SetActive(false);
+    }
+
+    private void SetSkipHoldProgress(float normalized)
+    {
+        float amount = Mathf.Clamp01(normalized);
+        if (skipHoldGauge != null && !skipHoldGauge.activeSelf)
+        {
+            skipHoldGauge.SetActive(true);
+        }
+
+        if (skipHoldFill == null)
+        {
+            return;
+        }
+
+        RectTransform fillRect = skipHoldFill.rectTransform;
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = new Vector2(amount, 1f);
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+        skipHoldFill.enabled = amount > 0.001f;
+    }
+
+    private void ResetSkipHoldVisual()
+    {
+        skipHoldTime = 0f;
+        if (skipHoldFill != null)
+        {
+            skipHoldFill.enabled = false;
+            RectTransform fillRect = skipHoldFill.rectTransform;
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = new Vector2(0f, 1f);
+            fillRect.offsetMin = Vector2.zero;
+            fillRect.offsetMax = Vector2.zero;
+        }
+
+        if (skipHoldGauge != null)
+        {
+            skipHoldGauge.SetActive(false);
+        }
     }
 
     private static GameObject CreatePanel(string name, Transform parent, Color color)

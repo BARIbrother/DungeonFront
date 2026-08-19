@@ -17,6 +17,8 @@ public static class TechTreeCatalog
         public float y;
         public bool isFuelTrack;
         public int dayMinutes;
+        // 이 의뢰를 완료하면 명예 없이 해금된다. 비어 있으면 명예로 산다.
+        public string grantOnQuestId;
     }
 
     public readonly struct Connection
@@ -30,6 +32,8 @@ public static class TechTreeCatalog
             this.to = to;
         }
     }
+
+    public const string RayJoinQuestId = "00100002";
 
     public static readonly Node[] All =
     {
@@ -55,61 +59,56 @@ public static class TechTreeCatalog
             40, true, false, "Miner_2", 360f, 40f,
             "m_drill_1"),
 
-        NodeOf("m_manaext_1", "마나 포집",
+        QuestGrant(NodeOf("m_manaext_1", "마나 포집",
             "공기에서 마나 정수를 모은다.",
-            30, true, false, "ManaExtractor_1", 610f, 230f,
+            0, false, false, "ManaExtractor_1", 610f, 230f,
             "m_drill_2"),
-        NodeOf("m_manastore_1", "마나 비축",
+            RayJoinQuestId),
+        QuestGrant(NodeOf("m_manastore_1", "마나 비축",
             "정수 버퍼. 포집과 가공 사이.",
-            20, true, false, "ManaStorage_1", 860f, 230f,
-            "m_warehouse_1", "m_drill_2"),
-        NodeOf("m_manacraft_1", "마나 가공",
+            0, false, false, "ManaStorage_1", 860f, 230f,
+            "m_manaext_1", "m_warehouse_1"),
+            RayJoinQuestId),
+        QuestGrant(NodeOf("m_manacraft_1", "마나 가공",
             "마력석에서 코어·완드, 마나강 장비, 1단계 스크롤.",
-            50, true, false, "ManaHandmade_1", 610f, 610f,
+            0, false, false, "ManaHandmade_1", 610f, 610f,
             "m_drill_2"),
-        NodeOf("m_enchant_1", "마법 부여",
+            RayJoinQuestId),
+        QuestGrant(NodeOf("m_enchant_1", "마법 부여",
             "마나 가공으로 만든 장비·스크롤을 인챈트한다.",
-            20, true, false, "Enchanting_1", 860f, 610f,
+            0, false, false, "Enchanting_1", 860f, 610f,
             "m_manacraft_1"),
+            RayJoinQuestId),
 
         NodeOf("m_furnace_2", "더 좋은 용광로",
             "흑강·백강 합금과 철 Lv.2 주괴.",
             850, true, false, "Smelter_2", 1210f, 320f,
-            "m_manacraft_1", "m_drill_2"),
+            "m_drill_2"),
         NodeOf("m_crafter_2", "고속 제작기",
             "흑강·백강·진강 판·막대·장비. 진강 제련은 고열 용광로.",
             850, true, false, "Assembler_2", 1210f, 510f,
-            "m_manacraft_1", "m_drill_2"),
+            "m_drill_2"),
 
-        NodeOf("m_manacraft_2", "정교한 마나제작",
-            "2단계 스크롤, 마술사 로브, 흑·백마법 코어·로브·지팡이.",
-            500, true, false, "ManaAssembler_2", 1660f, 610f,
-            "m_furnace_2", "m_crafter_2"),
+        NodeOf("m_drill_3", "암반 분쇄",
+            "심화 광맥과 돌. 진강 원료.",
+            400, true, false, "Miner_3", 1660f, 40f,
+            "m_furnace_2"),
         NodeOf("m_foundry_1", "거대 주조 시설",
             "콘크리트와 거대 구조물(기둥·대들보·지붕).",
             450, true, false, "Foundry_1", 1660f, 230f,
             "m_furnace_2", "m_crafter_2"),
-        NodeOf("m_crafter_3", "대형 조립",
-            "철제 뼈대와 제단 조립. 진강 장비는 고속 제작기.",
-            400, true, false, "Assembler_3", 1660f, 420f,
-            "m_furnace_2", "m_crafter_2"),
-        NodeOf("m_drill_3", "암반 분쇄",
-            "심화 광맥과 돌. 진강 원료.",
-            400, true, false, "Miner_3", 2110f, 40f,
-            "m_furnace_2"),
         NodeOf("m_furnace_3", "고열 용광로",
             "철·칠흑석·순백석 Lv.2로 진강 주괴를 만든다.",
-            600, true, false, "Smelter_3", 2110f, 420f,
-            "m_furnace_2", "m_drill_3"),
-
-        NodeOf("m_manacraft_3", "의식 세공",
-            "철 Lv.3 정련, 대검 날, 의식 스크롤.",
-            700, true, false, "ManaAssembler_3", 2560f, 610f,
-            "m_manacraft_2", "m_furnace_3"),
-        NodeOf("m_altar_1", "제단 건립",
-            "의식 부여. 집행자의 대검을 전쟁에 물들인다.",
-            800, true, false, "Altar_1", 2810f, 420f,
-            "m_foundry_1", "m_crafter_3", "m_manacraft_3"),
+            600, true, false, "Smelter_3", 1660f, 420f,
+            "m_furnace_2"),
+        NodeOf("m_crafter_3", "대형 조립",
+            "철제 뼈대와 제단. 집행자의 대검을 전쟁에 물들인다. 진강 장비는 고속 제작기.",
+            400, true, false, "Assembler_3", 1660f, 610f,
+            "m_furnace_2", "m_crafter_2"),
+        NodeOf("m_manacraft_2", "정교한 마나제작",
+            "2단계 스크롤, 마술사 로브, 흑·백마법 코어·로브·지팡이, 의식 스크롤.",
+            500, true, false, "ManaAssembler_2", 1660f, 800f,
+            "m_furnace_2", "m_crafter_2"),
 
         FuelOf("fuel_1", "추가 근무 1",
             "생산 하루 3분 → 4분.",
@@ -126,27 +125,19 @@ public static class TechTreeCatalog
         new Connection("m_warehouse_1", "m_manastore_1"),
         new Connection("m_furnace_1", "m_conveyor_1"),
         new Connection("m_drill_2", "m_manaext_1"),
-        new Connection("m_drill_2", "m_manastore_1"),
+        new Connection("m_manaext_1", "m_manastore_1"),
         new Connection("m_drill_2", "m_manacraft_1"),
         new Connection("m_manacraft_1", "m_enchant_1"),
-        new Connection("m_manacraft_1", "m_furnace_2"),
-        new Connection("m_manacraft_1", "m_crafter_2"),
         new Connection("m_drill_2", "m_furnace_2"),
         new Connection("m_drill_2", "m_crafter_2"),
-        new Connection("m_furnace_2", "m_manacraft_2"),
-        new Connection("m_crafter_2", "m_manacraft_2"),
+        new Connection("m_furnace_2", "m_drill_3"),
         new Connection("m_furnace_2", "m_foundry_1"),
         new Connection("m_crafter_2", "m_foundry_1"),
+        new Connection("m_furnace_2", "m_furnace_3"),
         new Connection("m_furnace_2", "m_crafter_3"),
         new Connection("m_crafter_2", "m_crafter_3"),
-        new Connection("m_furnace_2", "m_drill_3"),
-        new Connection("m_furnace_2", "m_furnace_3"),
-        new Connection("m_drill_3", "m_furnace_3"),
-        new Connection("m_manacraft_2", "m_manacraft_3"),
-        new Connection("m_furnace_3", "m_manacraft_3"),
-        new Connection("m_foundry_1", "m_altar_1"),
-        new Connection("m_crafter_3", "m_altar_1"),
-        new Connection("m_manacraft_3", "m_altar_1"),
+        new Connection("m_furnace_2", "m_manacraft_2"),
+        new Connection("m_crafter_2", "m_manacraft_2"),
         new Connection("fuel_1", "fuel_2"),
     };
 
@@ -166,6 +157,57 @@ public static class TechTreeCatalog
         }
 
         return null;
+    }
+
+    // 이 노드로 들어오는 모든 연결(+ parentIds)을 방문한다. 중복은 한 번만.
+    public static void ForEachIncomingParent(string nodeId, Action<string> visit)
+    {
+        if (string.IsNullOrEmpty(nodeId) || visit == null)
+        {
+            return;
+        }
+
+        Node node = Get(nodeId);
+        if (node?.parentIds != null)
+        {
+            for (int i = 0; i < node.parentIds.Length; i++)
+            {
+                string parentId = node.parentIds[i];
+                if (!string.IsNullOrEmpty(parentId))
+                {
+                    visit(parentId);
+                }
+            }
+        }
+
+        for (int i = 0; i < Connections.Length; i++)
+        {
+            Connection link = Connections[i];
+            if (link.to != nodeId || string.IsNullOrEmpty(link.from))
+            {
+                continue;
+            }
+
+            if (node?.parentIds != null && ContainsId(node.parentIds, link.from))
+            {
+                continue;
+            }
+
+            visit(link.from);
+        }
+    }
+
+    private static bool ContainsId(string[] ids, string id)
+    {
+        for (int i = 0; i < ids.Length; i++)
+        {
+            if (ids[i] == id)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static string DisplayName(string id)
@@ -199,6 +241,16 @@ public static class TechTreeCatalog
             x = x,
             y = y,
         };
+    }
+
+    private static Node QuestGrant(Node node, string questId)
+    {
+        if (node != null)
+        {
+            node.grantOnQuestId = questId;
+        }
+
+        return node;
     }
 
     private static Node FuelOf(

@@ -9,6 +9,7 @@ public class UnlockManager : MonoBehaviour
     public event Action OnUnlocksChanged;
 
     private readonly HashSet<string> unlockedNodeIds = new HashSet<string>();
+    private QuestProgressionService boundProgression;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -36,6 +37,11 @@ public class UnlockManager : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        BindProgression();
+    }
+
     private void Start()
     {
         if (GameSessionState.Instance != null)
@@ -43,6 +49,26 @@ public class UnlockManager : MonoBehaviour
             GameSessionState.Instance.OnNewGame -= ResetUnlockedNodes;
             GameSessionState.Instance.OnNewGame += ResetUnlockedNodes;
         }
+
+        BindProgression();
+        GrantCompletedQuestTechs();
+    }
+
+    private void Update()
+    {
+        if (boundProgression == null)
+        {
+            BindProgression();
+            if (boundProgression != null)
+            {
+                GrantCompletedQuestTechs();
+            }
+        }
+    }
+
+    private void OnDisable()
+    {
+        UnbindProgression();
     }
 
     private void OnDestroy()
@@ -52,9 +78,76 @@ public class UnlockManager : MonoBehaviour
             GameSessionState.Instance.OnNewGame -= ResetUnlockedNodes;
         }
 
+        UnbindProgression();
         if (Instance == this)
         {
             Instance = null;
+        }
+    }
+
+    private void BindProgression()
+    {
+        QuestProgressionService candidate = QuestProgressionService.Instance
+            ?? FindAnyObjectByType<QuestProgressionService>();
+        if (candidate == boundProgression)
+        {
+            return;
+        }
+
+        UnbindProgression();
+        boundProgression = candidate;
+        if (boundProgression != null)
+        {
+            boundProgression.OnProgressionChanged += HandleProgressionChanged;
+        }
+    }
+
+    private void UnbindProgression()
+    {
+        if (boundProgression != null)
+        {
+            boundProgression.OnProgressionChanged -= HandleProgressionChanged;
+        }
+
+        boundProgression = null;
+    }
+
+    private void HandleProgressionChanged()
+    {
+        GrantCompletedQuestTechs();
+    }
+
+    // Q002 완료 기록이 있으면 열 2·3 마나 테크를 지급한다.
+    private void GrantCompletedQuestTechs()
+    {
+        BindProgression();
+        QuestProgressionService progression = boundProgression
+            ?? QuestProgressionService.Instance
+            ?? FindAnyObjectByType<QuestProgressionService>();
+        if (progression == null)
+        {
+            return;
+        }
+
+        bool changed = false;
+        for (int i = 0; i < TechTreeCatalog.All.Length; i++)
+        {
+            TechTreeCatalog.Node node = TechTreeCatalog.All[i];
+            if (string.IsNullOrEmpty(node.grantOnQuestId)
+                || !progression.IsCompleted(node.grantOnQuestId))
+            {
+                continue;
+            }
+
+            if (unlockedNodeIds.Add(node.id))
+            {
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            OnUnlocksChanged?.Invoke();
         }
     }
 
@@ -85,7 +178,19 @@ public class UnlockManager : MonoBehaviour
 
     public bool IsUnlocked(string nodeId)
     {
-        return !string.IsNullOrEmpty(nodeId) && unlockedNodeIds.Contains(nodeId);
+        if (string.IsNullOrEmpty(nodeId))
+        {
+            return false;
+        }
+
+        if (unlockedNodeIds.Contains(nodeId))
+        {
+            return true;
+        }
+
+        // 시작 지급 테크는 해금 집합에 빠져 있어도 열린 것으로 본다.
+        TechTreeCatalog.Node node = TechTreeCatalog.Get(nodeId);
+        return node != null && node.startUnlocked;
     }
 
     public bool CanUnlock(string techId)
@@ -100,20 +205,27 @@ public class UnlockManager : MonoBehaviour
             return false;
         }
 
-        if (node.parentIds == null)
+        if (!string.IsNullOrEmpty(node.grantOnQuestId))
         {
-            return true;
+            return false;
         }
 
-        for (int i = 0; i < node.parentIds.Length; i++)
+        bool blocked = false;
+        TechTreeCatalog.ForEachIncomingParent(node.id, parentId =>
         {
-            if (!IsUnlocked(node.parentIds[i]))
+            TechTreeCatalog.Node parent = TechTreeCatalog.Get(parentId);
+            if (parent != null && !parent.visibleInGame)
             {
-                return false;
+                return;
             }
-        }
 
-        return true;
+            if (!IsUnlocked(parentId))
+            {
+                blocked = true;
+            }
+        });
+
+        return !blocked;
     }
 
     public bool CanUnlock(TechNodeSO node)
@@ -150,6 +262,12 @@ public class UnlockManager : MonoBehaviour
         if (IsUnlocked(node.id))
         {
             error = "이미 해금된 기술입니다.";
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(node.grantOnQuestId))
+        {
+            error = "레이의 의뢰를 마치면 해금됩니다.";
             return false;
         }
 
@@ -233,18 +351,12 @@ public class UnlockManager : MonoBehaviour
 
     private static string FormatMissingParents(TechTreeCatalog.Node node)
     {
-        if (node.parentIds == null || node.parentIds.Length == 0)
-        {
-            return "선행 기술을 먼저 해금해야 합니다.";
-        }
-
         var names = new List<string>();
-        for (int i = 0; i < node.parentIds.Length; i++)
+        TechTreeCatalog.ForEachIncomingParent(node.id, parentId =>
         {
-            string parentId = node.parentIds[i];
             if (Instance != null && Instance.IsUnlocked(parentId))
             {
-                continue;
+                return;
             }
 
             TechTreeCatalog.Node parent = TechTreeCatalog.Get(parentId);
@@ -252,7 +364,7 @@ public class UnlockManager : MonoBehaviour
             {
                 names.Add(parent.name);
             }
-        }
+        });
 
         if (names.Count == 0)
         {

@@ -155,14 +155,11 @@ public class MachineCraftUI : MonoBehaviour
         RectTransform craftRect = craftOpen.GetComponent<RectTransform>();
         if (techRect != null && craftRect != null)
         {
-            float height = techRect.sizeDelta.y > 1f ? techRect.sizeDelta.y : 56f;
             craftRect.anchorMin = techRect.anchorMin;
             craftRect.anchorMax = techRect.anchorMax;
             craftRect.pivot = techRect.pivot;
             craftRect.sizeDelta = new Vector2(168f, 56f);
-            craftRect.anchoredPosition = new Vector2(
-                techRect.anchoredPosition.x,
-                techRect.anchoredPosition.y - height - 8f);
+            craftRect.anchoredPosition = techRect.anchoredPosition;
         }
 
         TMP_Text tmp = craftOpen.GetComponentInChildren<TMP_Text>(true);

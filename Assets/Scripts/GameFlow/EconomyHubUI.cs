@@ -7,7 +7,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 /// <summary>
-/// 상점 카탈로그 구매와 테크트리 기계 해금을 B키 허브에서 호출한다.
+/// 상점 카탈로그 구매와 테크트리 기계 해금을 O키 허브에서 호출한다.
 /// </summary>
 public sealed class EconomyHubUI : MonoBehaviour
 {
@@ -58,7 +58,7 @@ public sealed class EconomyHubUI : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.oKey.wasPressedThisFrame)
         {
             if (!visible && !GamePauseService.IsPaused)
             {

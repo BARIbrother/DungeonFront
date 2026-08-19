@@ -14,6 +14,8 @@ public class QuestSystemDebugPanel : MonoBehaviour
     [SerializeField] private bool enableDevMode = true;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+    private static QuestSystemDebugPanel instance;
+
     [SerializeField] private QuestManager questManager;
     [SerializeField] private QuestPool questPool;
     [SerializeField] private Week3EconomyService economy;
@@ -52,6 +54,31 @@ public class QuestSystemDebugPanel : MonoBehaviour
     private string lastStatus = string.Empty;
     private string smokeSummary = string.Empty;
 
+    // QuestSystemRoot 프리팹은 GDC용으로 enableDevMode가 꺼져 있어 F8이 막힌다.
+    // 에디터·개발 빌드에서는 별도 패널을 띄워 F8을 연다.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Bootstrap()
+    {
+        if (instance != null)
+        {
+            return;
+        }
+
+        var root = new GameObject("DevModePanel");
+        DontDestroyOnLoad(root);
+        instance = root.AddComponent<QuestSystemDebugPanel>();
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
+        }
+
+        ClearPerpetualCopies();
+    }
+
     private void Start()
     {
         if (!IsEnabled)
@@ -64,14 +91,10 @@ public class QuestSystemDebugPanel : MonoBehaviour
         RefreshCatalog();
     }
 
-    private void OnDestroy()
-    {
-        ClearPerpetualCopies();
-    }
-
     private void Update()
     {
-        if (!IsEnabled
+        if (instance != this
+            || !IsEnabled
             || Keyboard.current == null
             || !Keyboard.current.f8Key.wasPressedThisFrame)
         {
@@ -90,7 +113,7 @@ public class QuestSystemDebugPanel : MonoBehaviour
 
     private void OnGUI()
     {
-        if (!IsEnabled || !visible)
+        if (instance != this || !IsEnabled || !visible)
         {
             return;
         }

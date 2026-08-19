@@ -70,18 +70,18 @@ public static class CopyFactoryUiToProduction
                 {
                     case "QuestOpenButton":
                         questOpen = clone;
-                        PlaceLeftMiddle(clone.GetComponent<RectTransform>(), 40f, 0f, 56f, 56f);
+                        PlaceLeftMiddle(clone.GetComponent<RectTransform>(), 108f, 0f, 168f, 56f);
                         SetButtonLabel(clone, "quest");
                         break;
                     case "orderWindow":
                         orderWindow = clone;
-                        PlaceStretch(clone.GetComponent<RectTransform>(), 0.15f, 0.1f, 0.85f, 0.9f);
+                        PlaceStretch(clone.GetComponent<RectTransform>(), 0.15f, 0.1f, 0.85f, 0.85f);
                         SetImageColor(clone, new Color(0.05f, 0.08f, 0.22f, 0.96f));
                         clone.SetActive(false);
                         break;
                     case "TechTreeOpenButton":
                         techOpen = clone;
-                        PlaceLeftMiddle(clone.GetComponent<RectTransform>(), 40f, -64f, 56f, 56f);
+                        PlaceLeftMiddle(clone.GetComponent<RectTransform>(), 288f, 0f, 168f, 56f);
                         SetButtonLabel(clone, "tech");
                         break;
                     case "TechTreePanel":

@@ -28,6 +28,8 @@ public sealed class TutorialPanelUI : MonoBehaviour
     private bool showing;
     private bool skipConfirmPending;
 
+    public static bool IsOpen => instance != null && instance.showing;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
@@ -81,7 +83,7 @@ public sealed class TutorialPanelUI : MonoBehaviour
 
     private void Update()
     {
-        if (showing && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (showing && Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             Skip();
         }

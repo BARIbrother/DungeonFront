@@ -120,6 +120,7 @@ public class QuestWindowController : MonoBehaviour
         }
 
         rect.sizeDelta = new Vector2(168f, 56f);
+        TechTreeUI.AlignHudOpenButtons();
     }
 
     private void OnEnable()
