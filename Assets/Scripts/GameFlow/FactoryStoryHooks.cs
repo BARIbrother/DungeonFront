@@ -282,6 +282,7 @@ public class FactoryStoryHooks : MonoBehaviour
         tutorialPanelPendingAfter004 = false;
         oreCountAtGateStart = 0;
         ingotCountAtGateStart = 0;
+        ProductionEventManager.ResetBreakdownGate();
     }
 
     private void HandlePhaseChanged(GamePhase phase)

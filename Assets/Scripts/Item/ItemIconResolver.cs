@@ -94,6 +94,15 @@ public static class ItemIconResolver
             return null;
         }
 
+        if (item is ItemDef_Machine machineDefinition)
+        {
+            Sprite fromPrefab = MachineIconResolver.Resolve(machineDefinition);
+            if (IsUsable(fromPrefab))
+            {
+                return fromPrefab;
+            }
+        }
+
         // Art 경로를 최우선으로 쓴다. SO icon 참조가 깨져 있어도 동일 아이디면 표시된다.
         if (!string.IsNullOrEmpty(item.id))
         {

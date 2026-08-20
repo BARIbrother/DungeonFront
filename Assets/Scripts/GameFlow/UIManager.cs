@@ -37,7 +37,7 @@ public class UIManager : MonoBehaviour
 
         if (targetCanvas == null)
         {
-            targetCanvas = FindAnyObjectByType<Canvas>();
+            targetCanvas = FindHudCanvas();
         }
     }
 
@@ -49,7 +49,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        Canvas canvas = FindAnyObjectByType<Canvas>();
+        Canvas canvas = FindHudCanvas();
         if (canvas == null)
         {
             return;
@@ -58,6 +58,56 @@ public class UIManager : MonoBehaviour
         GameObject go = new GameObject("UIManager");
         UIManager manager = go.AddComponent<UIManager>();
         manager.SetTargetCanvas(canvas);
+    }
+
+    // Dialogue/Tutorial 등 오버레이 Canvas에 HUD를 붙이면 sorting이 같아져 검은 배경 위에 버튼이 뜬다.
+    private static Canvas FindHudCanvas()
+    {
+        Canvas named = null;
+        Canvas best = null;
+        int bestOrder = int.MaxValue;
+        Canvas[] canvases = Object.FindObjectsByType<Canvas>(FindObjectsInactive.Exclude);
+        for (int i = 0; i < canvases.Length; i++)
+        {
+            Canvas canvas = canvases[i];
+            if (canvas == null || canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            {
+                continue;
+            }
+
+            string canvasName = canvas.gameObject.name;
+            if (IsOverlayCanvasName(canvasName))
+            {
+                continue;
+            }
+
+            if (canvasName == "Canvas")
+            {
+                named = canvas;
+            }
+
+            if (canvas.sortingOrder < bestOrder)
+            {
+                bestOrder = canvas.sortingOrder;
+                best = canvas;
+            }
+        }
+
+        return named != null ? named : best;
+    }
+
+    private static bool IsOverlayCanvasName(string canvasName)
+    {
+        return canvasName.Contains("Dialogue")
+            || canvasName.Contains("Tutorial")
+            || canvasName.Contains("Pause")
+            || canvasName.Contains("GameOver")
+            || canvasName.Contains("Summary")
+            || canvasName.Contains("Recipe")
+            || canvasName.Contains("Craft")
+            || canvasName.Contains("TechTree")
+            || canvasName.Contains("Economy")
+            || canvasName.Contains("Zone");
     }
 
     private void OnDestroy()
@@ -80,9 +130,9 @@ public class UIManager : MonoBehaviour
 
     private void ResolveHudRefs()
     {
-        if (targetCanvas == null)
+        if (targetCanvas == null || IsOverlayCanvasName(targetCanvas.gameObject.name))
         {
-            targetCanvas = FindAnyObjectByType<Canvas>();
+            targetCanvas = FindHudCanvas();
         }
 
         if (dayText == null && targetCanvas != null)

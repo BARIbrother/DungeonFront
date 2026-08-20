@@ -31,13 +31,39 @@ public class ProductionEventManager : MonoBehaviour
     public event Action<Machine> OnMachineBroken;
     public event Action<Machine> OnMachineRepaired;
 
-    private const int BreakdownAfterTicks = 100;
+    private const int BreakdownsPerDay = 1;
+    private const int MinTicksBeforeBreakdown = 30;
+    public const string BreakdownUnlockStoryEventId = "001E00020";
 
+    private static bool isBreakdownEnabled;
+    private int breakdownQuotaDay = -1;
+    private int breakdownsUsedThisDay;
+    private int scheduledBreakdownAtTick = -1;
     private bool isBreakdownPending;
     private Machine brokenMachine;
     private bool isSubscribedToSession;
 
     public Machine BrokenMachine => brokenMachine;
+    public static bool IsBreakdownEnabled => isBreakdownEnabled;
+
+    // 001E00020 이브 대사("왜 저한테 설명하시는 겁니까?") 이후 고장을 허용한다.
+    public static void EnableBreakdown()
+    {
+        if (isBreakdownEnabled)
+        {
+            return;
+        }
+
+        isBreakdownEnabled = true;
+        Debug.Log("[ProductionEventManager] 기계 고장 기능 활성화");
+        Instance?.TryScheduleBreakdownAfterGate();
+    }
+
+    public static void ResetBreakdownGate()
+    {
+        isBreakdownEnabled = false;
+        Instance?.ResetDailyBreakdownQuota();
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -191,11 +217,67 @@ public class ProductionEventManager : MonoBehaviour
         }
     }
 
-    private void ScheduleBreakdown()
+    private void ResetDailyBreakdownQuota()
     {
-        ClearBreakdownState(keepBrokenMachine: false);
+        breakdownQuotaDay = -1;
+        breakdownsUsedThisDay = 0;
+        scheduledBreakdownAtTick = -1;
+        isBreakdownPending = false;
+    }
+
+    private void EnsureDailyBreakdownQuota()
+    {
+        int day = Session != null ? Session.day : 1;
+        if (breakdownQuotaDay == day)
+        {
+            return;
+        }
+
+        breakdownQuotaDay = day;
+        breakdownsUsedThisDay = 0;
+        scheduledBreakdownAtTick = -1;
+        isBreakdownPending = false;
+    }
+
+    private void TryScheduleBreakdownIfNeeded(int currentTick)
+    {
+        if (IsBreakdownSuppressed())
+        {
+            return;
+        }
+
+        EnsureDailyBreakdownQuota();
+
+        if (breakdownsUsedThisDay >= BreakdownsPerDay)
+        {
+            return;
+        }
+
+        if (isBreakdownPending || brokenMachine != null)
+        {
+            return;
+        }
+
+        ScheduleNextBreakdown(currentTick);
+    }
+
+    // currentTick 이후 ~ 생산 종료 틱 사이의 랜덤 시점에 고장을 예약한다.
+    private void ScheduleNextBreakdown(int currentTick)
+    {
+        int totalTicks = TickManager.ProductionPhaseTicks;
+        int earliestTick = currentTick + MinTicksBeforeBreakdown;
+        if (earliestTick > totalTicks)
+        {
+            Debug.Log(
+                $"[ProductionEventManager] Day {breakdownQuotaDay}: 남은 틱이 부족해 고장을 예약하지 않습니다. (현재 {currentTick}/{totalTicks})");
+            return;
+        }
+
+        scheduledBreakdownAtTick = UnityEngine.Random.Range(earliestTick, totalTicks + 1);
         isBreakdownPending = true;
-        Debug.Log($"[ProductionEventManager] {BreakdownAfterTicks}틱 후 랜덤 기계 고장 예약");
+        Debug.Log(
+            $"[ProductionEventManager] Day {breakdownQuotaDay}: {scheduledBreakdownAtTick}틱에 고장 예약 "
+            + $"(현재 {currentTick}, 일일 {breakdownsUsedThisDay + 1}/{BreakdownsPerDay})");
     }
 
     private bool TryTriggerRandomBreakdown()
@@ -221,6 +303,8 @@ public class ProductionEventManager : MonoBehaviour
         brokenMachine = target;
         brokenMachine.SetBroken(true);
         isBreakdownPending = false;
+        scheduledBreakdownAtTick = -1;
+        breakdownsUsedThisDay++;
         OnMachineBroken?.Invoke(brokenMachine);
         Debug.Log($"[ProductionEventManager] 기계 고장: {brokenMachine.name} (틱 {Tick.ProductionTick})");
         return true;
@@ -229,6 +313,7 @@ public class ProductionEventManager : MonoBehaviour
     private void ClearBreakdownState(bool keepBrokenMachine = false)
     {
         isBreakdownPending = false;
+        scheduledBreakdownAtTick = -1;
 
         if (!keepBrokenMachine && brokenMachine != null)
         {
@@ -240,7 +325,16 @@ public class ProductionEventManager : MonoBehaviour
     // TickManager가 생산 틱 세션을 시작할 때 호출한다.
     public void NotifyProductionSessionStarted()
     {
-        ScheduleBreakdown();
+        EnsureDailyBreakdownQuota();
+
+        if (IsBreakdownSuppressed())
+        {
+            scheduledBreakdownAtTick = -1;
+            isBreakdownPending = false;
+            return;
+        }
+
+        TryScheduleBreakdownIfNeeded(0);
     }
 
     // TickManager가 생산 틱을 진행할 때마다 호출한다.
@@ -253,7 +347,12 @@ public class ProductionEventManager : MonoBehaviour
 
         OnProductionTickAdvanced?.Invoke(tick);
 
-        if (!isBreakdownPending || brokenMachine != null || tick < BreakdownAfterTicks)
+        if (IsBreakdownSuppressed())
+        {
+            return;
+        }
+
+        if (!isBreakdownPending || brokenMachine != null || tick < scheduledBreakdownAtTick)
         {
             return;
         }
@@ -262,7 +361,37 @@ public class ProductionEventManager : MonoBehaviour
         {
             Debug.LogWarning(
                 $"[ProductionEventManager] {tick}틱 시점에 고장을 낼 기계가 없습니다. 그리드에 기계를 배치해 주세요.");
+            isBreakdownPending = false;
+            scheduledBreakdownAtTick = -1;
+            return;
         }
+
+        if (breakdownsUsedThisDay < BreakdownsPerDay)
+        {
+            TryScheduleBreakdownIfNeeded(tick);
+        }
+    }
+
+    private void TryScheduleBreakdownAfterGate()
+    {
+        if (!IsProductionActive || Tick == null || !Tick.IsRunning)
+        {
+            return;
+        }
+
+        TryScheduleBreakdownIfNeeded(Tick.ProductionTick);
+    }
+
+    // 1일차는 001E00020 이브 대사 전까지 고장을 막는다. 2일차 이후는 항상 허용.
+    private bool IsBreakdownSuppressed()
+    {
+        GameSessionState session = GameSessionState.Instance;
+        if (session != null && session.day > 1)
+        {
+            return false;
+        }
+
+        return !isBreakdownEnabled;
     }
 
     // 기계 생산 완료 시 호출한다.

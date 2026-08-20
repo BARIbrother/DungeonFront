@@ -25,7 +25,9 @@ public sealed class PerpetualDeliveryRuntimeUI : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
-        if (FindAnyObjectByType<PerpetualQuestPanel>() != null)
+        // QuestWindowController가 Prepare·Settlement·상시 납품을 모두 처리하므로 중복 UI는 띄우지 않는다.
+        if (FindAnyObjectByType<QuestWindowController>() != null
+            || FindAnyObjectByType<PerpetualQuestPanel>() != null)
         {
             return;
         }

@@ -343,17 +343,13 @@ public class TechTreeUI : MonoBehaviour
         const float buttonWidth = 168f;
         const float buttonHeight = 56f;
         const float gap = 12f;
-        const float firstCenterX = 108f;
-        const float rowY = 0f;
+        const float columnX = 108f;
+        const float centerY = 0f;
+        const float step = buttonHeight + gap;
 
-        PlaceHudButton(quest, firstCenterX, rowY, buttonWidth, buttonHeight);
-        PlaceHudButton(tech, firstCenterX + buttonWidth + gap, rowY, buttonWidth, buttonHeight);
-        PlaceHudButton(
-            craft,
-            firstCenterX + (buttonWidth + gap) * 2f,
-            rowY,
-            buttonWidth,
-            buttonHeight);
+        PlaceHudButton(quest, columnX, centerY + step, buttonWidth, buttonHeight);
+        PlaceHudButton(tech, columnX, centerY, buttonWidth, buttonHeight);
+        PlaceHudButton(craft, columnX, centerY - step, buttonWidth, buttonHeight);
     }
 
     private static RectTransform FindHudButtonRect(string objectName)
@@ -713,6 +709,8 @@ public class TechTreeUI : MonoBehaviour
         colors.selectedColor = Color.white;
         button.colors = colors;
         TechTreeCatalog.Node captured = node;
+        var pressSelect = nodeObject.AddComponent<TechTreeNodePressSelect>();
+        pressSelect.Initialize(captured, SelectNode);
         button.onClick.AddListener(() => SelectNode(captured));
 
         var slotObject = new GameObject("Slot");
@@ -1208,7 +1206,7 @@ public class TechTreeUI : MonoBehaviour
         headerRect.anchoredPosition = Vector2.zero;
         var headerText = TmpUiStyle.Create(headerObject, TmpUiStyle.Role.Title, TextAlignmentOptions.MidlineLeft, true);
         headerText.fontSize = 22f;
-        headerText.color = Ink;
+        headerText.color = Color.black;
         headerText.text = "테크 트리";
         var headerTextRect = headerText.rectTransform;
         headerTextRect.anchorMin = Vector2.zero;
@@ -1226,7 +1224,7 @@ public class TechTreeUI : MonoBehaviour
         honorRect.sizeDelta = new Vector2(220f, 40f);
         honorText = TmpUiStyle.Create(honorObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.MidlineRight, true);
         honorText.fontSize = 18f;
-        honorText.color = InkGold;
+        honorText.color = Color.black;
         honorText.text = "명예 0";
 
         CreateCloseButton(panelObject.transform);
@@ -1261,7 +1259,7 @@ public class TechTreeUI : MonoBehaviour
         titleRect.anchoredPosition = Vector2.zero;
         detailTitle = TmpUiStyle.Create(titleObject, TmpUiStyle.Role.Title, TextAlignmentOptions.MidlineLeft, true);
         detailTitle.fontSize = 24f;
-        detailTitle.color = Ink;
+        detailTitle.color = Color.black;
         var detailTitleRect = detailTitle.rectTransform;
         detailTitleRect.offsetMin = new Vector2(8f, 0f);
         detailTitleRect.offsetMax = new Vector2(-8f, 0f);
@@ -1295,7 +1293,7 @@ public class TechTreeUI : MonoBehaviour
         bodyRect.sizeDelta = new Vector2(0f, 0f);
         detailBody = TmpUiStyle.Create(bodyObject, TmpUiStyle.Role.Body, TextAlignmentOptions.TopLeft, true);
         detailBody.fontSize = 18f;
-        detailBody.color = Ink;
+        detailBody.color = Color.black;
         detailBody.textWrappingMode = TextWrappingModes.Normal;
         detailBody.overflowMode = TextOverflowModes.Overflow;
         var bodyFitter = bodyObject.AddComponent<ContentSizeFitter>();
@@ -1320,7 +1318,7 @@ public class TechTreeUI : MonoBehaviour
         costRect.sizeDelta = new Vector2(0f, 56f);
         detailCost = TmpUiStyle.Create(costObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.BottomLeft, true);
         detailCost.fontSize = 18f;
-        detailCost.color = InkGold;
+        detailCost.color = Color.black;
         detailCost.textWrappingMode = TextWrappingModes.Normal;
         detailCost.overflowMode = TextOverflowModes.Truncate;
         var detailCostRect = detailCost.rectTransform;
@@ -1348,7 +1346,8 @@ public class TechTreeUI : MonoBehaviour
         unlockLabelRect.offsetMax = Vector2.zero;
         unlockLabel = TmpUiStyle.Create(unlockLabelObject, TmpUiStyle.Role.Button, TextAlignmentOptions.Center);
         unlockLabel.fontSize = 16f;
-        unlockLabel.color = Color.white;
+        // 닫힌/밝은 배경 위에서 흰색이 겹쳐 보이므로 기본 잉크 톤으로 맞춘다.
+        unlockLabel.color = Color.black;
         unlockLabel.text = "해금";
 
         var scrollObject = new GameObject("GraphScroll");
@@ -1411,7 +1410,7 @@ public class TechTreeUI : MonoBehaviour
         labelRect.offsetMax = Vector2.zero;
         var label = TmpUiStyle.Create(labelObject, TmpUiStyle.Role.Button, TextAlignmentOptions.Center);
         label.fontSize = 22f;
-        label.color = Color.white;
+        label.color = Color.black;
         label.text = "×";
     }
 
@@ -1425,5 +1424,23 @@ public class TechTreeUI : MonoBehaviour
         var eventSystemObject = new GameObject("EventSystem");
         eventSystemObject.AddComponent<EventSystem>();
         eventSystemObject.AddComponent<InputSystemUIInputModule>();
+    }
+
+    // ScrollRect 안에서 onClick이 취소돼도 누르는 순간 선택이 유지되게 한다.
+    private sealed class TechTreeNodePressSelect : MonoBehaviour, IPointerDownHandler
+    {
+        private TechTreeCatalog.Node node;
+        private System.Action<TechTreeCatalog.Node> onSelect;
+
+        public void Initialize(TechTreeCatalog.Node target, System.Action<TechTreeCatalog.Node> select)
+        {
+            node = target;
+            onSelect = select;
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            onSelect?.Invoke(node);
+        }
     }
 }

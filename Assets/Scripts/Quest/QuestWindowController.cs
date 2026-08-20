@@ -1,10 +1,11 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Prepare 단계 의뢰창. 오늘 받을 수 있는 의뢰 목록을 띄우고, 클릭 시 상세·수락을 처리한다.
+// Prepare 단계 의뢰 수락·Settlement 단계 수락·상시 의뢰 납품을 처리하는 의뢰창.
 public class QuestWindowController : MonoBehaviour
 {
     [Header("[UI 오브젝트 참조]")]
@@ -38,6 +39,12 @@ public class QuestWindowController : MonoBehaviour
     private Quest selectedQuest;
     private bool layoutReady;
     private Transform closeButtonTransform;
+    private PerpetualQuestService perpetualService;
+    private readonly List<Quest> perpetualQuests = new();
+    private Slider deliverMultiplierSlider;
+    private TMP_Text deliverMultiplierLabel;
+    private GameObject deliverMultiplierRow;
+    private PlayerInventory boundInventory;
 
     public static QuestWindowController Instance { get; private set; }
 
@@ -137,6 +144,28 @@ public class QuestWindowController : MonoBehaviour
             session.OnPhaseChanged += HandlePhaseChanged;
             session.OnNewGame += HandleNewGame;
         }
+
+        BindInventory();
+    }
+
+    private void BindInventory()
+    {
+        PlayerInventory inventory = PlayerInventory.Instance ?? FindAnyObjectByType<PlayerInventory>();
+        if (inventory == boundInventory)
+        {
+            return;
+        }
+
+        if (boundInventory != null)
+        {
+            boundInventory.OnItemsChanged -= HandleInventoryChanged;
+        }
+
+        boundInventory = inventory;
+        if (boundInventory != null)
+        {
+            boundInventory.OnItemsChanged += HandleInventoryChanged;
+        }
     }
 
     private void OnDisable()
@@ -150,6 +179,12 @@ public class QuestWindowController : MonoBehaviour
         {
             session.OnPhaseChanged -= HandlePhaseChanged;
             session.OnNewGame -= HandleNewGame;
+        }
+
+        if (boundInventory != null)
+        {
+            boundInventory.OnItemsChanged -= HandleInventoryChanged;
+            boundInventory = null;
         }
     }
 
@@ -180,9 +215,10 @@ public class QuestWindowController : MonoBehaviour
         }
 
         if (GameSessionState.Instance != null
-            && GameSessionState.Instance.Phase != GamePhase.Prepare)
+            && GameSessionState.Instance.Phase != GamePhase.Prepare
+            && GameSessionState.Instance.Phase != GamePhase.Settlement)
         {
-            Debug.LogWarning("[QuestUI] Prepare 단계에서만 의뢰 목록을 열 수 있습니다.");
+            Debug.LogWarning("[QuestUI] Prepare 또는 Settlement 단계에서만 의뢰창을 열 수 있습니다.");
             return;
         }
 
@@ -206,6 +242,7 @@ public class QuestWindowController : MonoBehaviour
         }
 
         selectedQuest = null;
+        ClearPerpetualCopies();
     }
 
     // 열려 있으면 닫고, 닫혀 있으면 연다.
@@ -247,9 +284,15 @@ public class QuestWindowController : MonoBehaviour
 
     private void HandlePhaseChanged(GamePhase phase)
     {
-        if (phase != GamePhase.Prepare)
+        if (phase != GamePhase.Prepare && phase != GamePhase.Settlement)
         {
             CloseQuestWindow();
+            return;
+        }
+
+        if (phase == GamePhase.Settlement)
+        {
+            StartCoroutine(OpenQuestWindowAfterSettlement());
             return;
         }
 
@@ -257,6 +300,41 @@ public class QuestWindowController : MonoBehaviour
         {
             RefreshAvailableAndList();
         }
+    }
+
+    private IEnumerator OpenQuestWindowAfterSettlement()
+    {
+        yield return null;
+        OpenQuestWindow();
+    }
+
+    private void HandleInventoryChanged()
+    {
+        if (orderWindowPanel == null || !orderWindowPanel.activeInHierarchy || !IsSettlementPhase())
+        {
+            return;
+        }
+
+        if (selectedQuest == null)
+        {
+            return;
+        }
+
+        if (IsPerpetualQuest(selectedQuest))
+        {
+            RefreshPerpetualDetail(selectedQuest);
+            return;
+        }
+
+        if (IsAcceptedQuest(selectedQuest))
+        {
+            RefreshAcceptedDetail(selectedQuest);
+        }
+    }
+
+    private bool IsSettlementPhase()
+    {
+        return session != null && session.Phase == GamePhase.Settlement;
     }
 
     private void HandleQuestsChanged()
@@ -312,8 +390,44 @@ public class QuestWindowController : MonoBehaviour
     {
         ResolveReferences();
         EnsureLayout();
-        questPool?.MakeAvailableQuestsToday(CurrentReputation);
+        if (IsSettlementPhase())
+        {
+            RebuildPerpetualList();
+        }
+        else
+        {
+            questPool?.MakeAvailableQuestsToday(CurrentReputation);
+        }
+
         RefreshList();
+    }
+
+    private void RebuildPerpetualList()
+    {
+        ClearPerpetualCopies();
+        perpetualService ??= FindAnyObjectByType<PerpetualQuestService>();
+        if (questPool == null)
+        {
+            return;
+        }
+
+        perpetualQuests.AddRange(questPool.CreatePerpetualQuestList(CurrentReputation));
+    }
+
+    private void ClearPerpetualCopies()
+    {
+        foreach (Quest quest in perpetualQuests)
+        {
+            if (quest == null)
+            {
+                continue;
+            }
+
+            QuestRuntimeRegistry.Forget(quest);
+            Destroy(quest);
+        }
+
+        perpetualQuests.Clear();
     }
 
     private void RefreshList()
@@ -324,6 +438,12 @@ public class QuestWindowController : MonoBehaviour
         }
 
         ClearListEntries();
+
+        if (IsSettlementPhase())
+        {
+            RefreshSettlementList();
+            return;
+        }
 
         Quest firstQuest = null;
         bool selectionStillAvailable = false;
@@ -395,15 +515,377 @@ public class QuestWindowController : MonoBehaviour
         if (acceptButton != null)
         {
             acceptButton.gameObject.SetActive(true);
-            acceptButton.interactable = CanAccept(quest);
             acceptButton.onClick.RemoveAllListeners();
-            acceptButton.onClick.AddListener(TryAcceptSelected);
             TMP_Text label = acceptButton.GetComponentInChildren<TMP_Text>();
-            if (label != null)
+
+            if (IsSettlementPhase() && IsPerpetualQuest(quest))
             {
-                label.text = "수락";
+                EnsureDeliverMultiplierControls();
+                ConfigureDeliverMultiplier(quest);
+                SetDeliverMultiplierRowVisible(true);
+
+                acceptButton.interactable = GetPerpetualMaxMultiplier(quest) > 0;
+                acceptButton.onClick.AddListener(TryDeliverPerpetual);
+                if (label != null)
+                {
+                    label.text = "납품";
+                }
+
+                RefreshPerpetualDetail(quest);
+            }
+            else if (IsSettlementPhase() && IsAcceptedQuest(quest))
+            {
+                SetDeliverMultiplierRowVisible(false);
+
+                acceptButton.interactable = questManager.CanCompleteQuest(quest);
+                acceptButton.onClick.AddListener(TryDeliverAccepted);
+                if (label != null)
+                {
+                    label.text = "납품";
+                }
+
+                RefreshAcceptedDetail(quest);
+            }
+            else
+            {
+                SetDeliverMultiplierRowVisible(false);
+
+                acceptButton.interactable = CanAccept(quest);
+                acceptButton.onClick.AddListener(TryAcceptSelected);
+                if (label != null)
+                {
+                    label.text = "수락";
+                }
             }
         }
+    }
+
+    private void RefreshSettlementList()
+    {
+        Quest firstQuest = null;
+        bool selectionStillAvailable = false;
+
+        foreach (Quest quest in questManager.currentQuests)
+        {
+            if (quest == null)
+            {
+                continue;
+            }
+
+            firstQuest ??= quest;
+            if (selectedQuest == quest)
+            {
+                selectionStillAvailable = true;
+            }
+
+            QuestListEntry entry = QuestListEntry.Create(listContent);
+            entry.Bind(quest, ShowDetail);
+            entry.SetSelected(selectedQuest == quest);
+        }
+
+        foreach (Quest quest in perpetualQuests)
+        {
+            if (quest == null)
+            {
+                continue;
+            }
+
+            firstQuest ??= quest;
+            if (selectedQuest == quest)
+            {
+                selectionStillAvailable = true;
+            }
+
+            QuestListEntry entry = QuestListEntry.Create(listContent);
+            entry.Bind(quest, ShowDetail);
+            entry.SetSelected(selectedQuest == quest);
+        }
+
+        if (!selectionStillAvailable)
+        {
+            selectedQuest = null;
+            if (firstQuest != null)
+            {
+                ShowDetail(firstQuest);
+            }
+            else
+            {
+                ClearDetail();
+            }
+        }
+        else
+        {
+            ShowDetail(selectedQuest);
+        }
+    }
+
+    private bool IsAcceptedQuest(Quest quest)
+    {
+        return quest != null
+            && questManager != null
+            && questManager.currentQuests.Contains(quest);
+    }
+
+    private void RefreshAcceptedDetail(Quest quest)
+    {
+        if (!IsSettlementPhase() || !IsAcceptedQuest(quest))
+        {
+            return;
+        }
+
+        if (detailRequireText != null)
+        {
+            detailRequireText.text = BuildAcceptedRequirementText(quest);
+        }
+
+        if (acceptButton != null)
+        {
+            acceptButton.interactable = questManager.CanCompleteQuest(quest);
+        }
+    }
+
+    private static string BuildAcceptedRequirementText(Quest quest)
+    {
+        if (quest == null)
+        {
+            return "-";
+        }
+
+        var builder = new StringBuilder();
+        builder.AppendLine(QuestCard.FormatDeadline(quest));
+        builder.AppendLine("필요:");
+        foreach (ItemEntry entry in quest.requiredItems?.entries ?? System.Array.Empty<ItemEntry>())
+        {
+            if (entry?.item == null)
+            {
+                continue;
+            }
+
+            int owned = PlayerInventory.Instance != null
+                ? PlayerInventory.Instance.GetCount(entry.item.Id)
+                : 0;
+            string itemName = string.IsNullOrWhiteSpace(entry.item.DisplayName)
+                ? entry.item.Id
+                : entry.item.DisplayName;
+            builder.AppendLine($"{itemName}  보유 {owned} / 제출 {entry.count}");
+        }
+
+        return builder.ToString().TrimEnd();
+    }
+
+    private void TryDeliverAccepted()
+    {
+        if (selectedQuest == null || questManager == null)
+        {
+            return;
+        }
+
+        Quest delivered = selectedQuest;
+        if (!questManager.progressQuest(delivered))
+        {
+            Debug.LogWarning(
+                $"[QuestUI] 의뢰 납품 실패: {delivered.title}",
+                delivered);
+            RefreshAcceptedDetail(delivered);
+            return;
+        }
+
+        selectedQuest = null;
+        RefreshAvailableAndList();
+    }
+
+    private bool IsPerpetualQuest(Quest quest)
+    {
+        return quest != null && perpetualQuests.Contains(quest);
+    }
+
+    private int GetPerpetualMaxMultiplier(Quest quest)
+    {
+        perpetualService ??= FindAnyObjectByType<PerpetualQuestService>();
+        return quest != null && perpetualService != null
+            ? perpetualService.GetMaxMultiplier(quest)
+            : 0;
+    }
+
+    private void ConfigureDeliverMultiplier(Quest quest)
+    {
+        if (deliverMultiplierSlider == null)
+        {
+            return;
+        }
+
+        int maximum = GetPerpetualMaxMultiplier(quest);
+        deliverMultiplierSlider.wholeNumbers = true;
+        deliverMultiplierSlider.minValue = maximum > 0 ? 1 : 0;
+        deliverMultiplierSlider.maxValue = Mathf.Max(1, maximum);
+        deliverMultiplierSlider.SetValueWithoutNotify(
+            maximum > 0
+                ? Mathf.Clamp(deliverMultiplierSlider.value, 1, maximum)
+                : 0);
+    }
+
+    private void RefreshPerpetualDetail(Quest quest)
+    {
+        if (!IsSettlementPhase() || !IsPerpetualQuest(quest))
+        {
+            return;
+        }
+
+        ConfigureDeliverMultiplier(quest);
+        int maximum = GetPerpetualMaxMultiplier(quest);
+        int chosen = deliverMultiplierSlider != null
+            ? Mathf.RoundToInt(deliverMultiplierSlider.value)
+            : 0;
+
+        if (deliverMultiplierLabel != null)
+        {
+            deliverMultiplierLabel.text = maximum > 0
+                ? $"납품 배수 x{chosen} / 최대 x{maximum}"
+                : "납품 가능한 재고가 없습니다.";
+        }
+
+        if (detailRequireText != null)
+        {
+            detailRequireText.text = BuildPerpetualRequirementText(quest, chosen, maximum);
+        }
+
+        if (acceptButton != null)
+        {
+            acceptButton.interactable = maximum > 0;
+        }
+    }
+
+    private static string BuildPerpetualRequirementText(Quest quest, int amount, int maximum)
+    {
+        if (quest == null)
+        {
+            return "-";
+        }
+
+        var builder = new StringBuilder();
+        builder.AppendLine($"상시 의뢰 · 선택 x{amount} / 가능한 최대 x{maximum}");
+        builder.AppendLine("필요:");
+        foreach (ItemEntry entry in quest.requiredItems?.entries ?? System.Array.Empty<ItemEntry>())
+        {
+            if (entry?.item == null)
+            {
+                continue;
+            }
+
+            int owned = PlayerInventory.Instance != null
+                ? PlayerInventory.Instance.GetCount(entry.item.Id)
+                : 0;
+            string itemName = string.IsNullOrWhiteSpace(entry.item.DisplayName)
+                ? entry.item.Id
+                : entry.item.DisplayName;
+            builder.AppendLine($"{itemName}  보유 {owned} / 제출 {entry.count * amount}");
+        }
+
+        return builder.ToString().TrimEnd();
+    }
+
+    private void TryDeliverPerpetual()
+    {
+        if (selectedQuest == null)
+        {
+            return;
+        }
+
+        perpetualService ??= FindAnyObjectByType<PerpetualQuestService>();
+        int amount = deliverMultiplierSlider != null
+            ? Mathf.RoundToInt(deliverMultiplierSlider.value)
+            : 0;
+        if (perpetualService == null || !perpetualService.TryDeliver(selectedQuest, amount))
+        {
+            Debug.LogWarning(
+                $"[QuestUI] 상시 의뢰 납품 실패: {selectedQuest.title}",
+                selectedQuest);
+        }
+
+        RefreshPerpetualDetail(selectedQuest);
+    }
+
+    private void EnsureDeliverMultiplierControls()
+    {
+        if (deliverMultiplierSlider != null || detailRoot == null)
+        {
+            return;
+        }
+
+        GameObject rowObject = new GameObject(
+            "DeliverMultiplierRow",
+            typeof(RectTransform),
+            typeof(LayoutElement),
+            typeof(VerticalLayoutGroup));
+        rowObject.transform.SetParent(detailRoot, false);
+
+        LayoutElement rowLayout = rowObject.GetComponent<LayoutElement>();
+        rowLayout.minHeight = 72f;
+        rowLayout.preferredHeight = 72f;
+        rowLayout.flexibleWidth = 1f;
+
+        VerticalLayoutGroup rowGroup = rowObject.GetComponent<VerticalLayoutGroup>();
+        rowGroup.spacing = 6f;
+        rowGroup.childAlignment = TextAnchor.MiddleCenter;
+        rowGroup.childControlHeight = true;
+        rowGroup.childControlWidth = true;
+        rowGroup.childForceExpandHeight = false;
+        rowGroup.childForceExpandWidth = true;
+
+        GameObject labelObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelObject.transform.SetParent(rowObject.transform, false);
+        deliverMultiplierLabel = labelObject.GetComponent<TextMeshProUGUI>();
+        deliverMultiplierLabel.text = "납품 배수";
+        deliverMultiplierLabel.alignment = TextAlignmentOptions.Center;
+        TmpUiStyle.Apply(deliverMultiplierLabel, TmpUiStyle.Role.Body);
+
+        GameObject sliderObject = new GameObject(
+            "Slider",
+            typeof(RectTransform),
+            typeof(Image),
+            typeof(Slider),
+            typeof(LayoutElement));
+        sliderObject.transform.SetParent(rowObject.transform, false);
+        LayoutElement sliderLayout = sliderObject.GetComponent<LayoutElement>();
+        sliderLayout.minHeight = 28f;
+        sliderLayout.preferredHeight = 28f;
+        sliderLayout.flexibleWidth = 1f;
+
+        Image sliderBackground = sliderObject.GetComponent<Image>();
+        sliderBackground.color = new Color(0.18f, 0.23f, 0.33f, 1f);
+
+        GameObject fillObject = new GameObject("Fill", typeof(RectTransform), typeof(Image));
+        fillObject.transform.SetParent(sliderObject.transform, false);
+        RectTransform fillRect = fillObject.GetComponent<RectTransform>();
+        fillRect.anchorMin = new Vector2(0f, 0.2f);
+        fillRect.anchorMax = new Vector2(1f, 0.8f);
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+        fillObject.GetComponent<Image>().color = new Color(0.28f, 0.65f, 0.9f, 1f);
+
+        GameObject handleObject = new GameObject("Handle", typeof(RectTransform), typeof(Image));
+        handleObject.transform.SetParent(sliderObject.transform, false);
+        RectTransform handleRect = handleObject.GetComponent<RectTransform>();
+        handleRect.sizeDelta = new Vector2(24f, 24f);
+        Image handleImage = handleObject.GetComponent<Image>();
+        handleImage.color = new Color(0.95f, 0.95f, 1f, 1f);
+
+        deliverMultiplierSlider = sliderObject.GetComponent<Slider>();
+        deliverMultiplierSlider.fillRect = fillRect;
+        deliverMultiplierSlider.handleRect = handleRect;
+        deliverMultiplierSlider.targetGraphic = handleImage;
+        deliverMultiplierSlider.direction = Slider.Direction.LeftToRight;
+        deliverMultiplierSlider.wholeNumbers = true;
+        deliverMultiplierSlider.onValueChanged.AddListener(_ => RefreshPerpetualDetail(selectedQuest));
+
+        deliverMultiplierRow = rowObject;
+        rowObject.transform.SetSiblingIndex(detailRoot.childCount - 1);
+        if (acceptButton != null)
+        {
+            rowObject.transform.SetSiblingIndex(acceptButton.transform.GetSiblingIndex());
+        }
+
+        rowObject.SetActive(false);
     }
 
     private void ClearDetail()
@@ -445,6 +927,19 @@ public class QuestWindowController : MonoBehaviour
         if (acceptButton != null)
         {
             acceptButton.interactable = false;
+        }
+
+        if (deliverMultiplierRow != null)
+        {
+            deliverMultiplierRow.SetActive(false);
+        }
+    }
+
+    private void SetDeliverMultiplierRowVisible(bool visible)
+    {
+        if (deliverMultiplierRow != null)
+        {
+            deliverMultiplierRow.SetActive(visible);
         }
     }
 

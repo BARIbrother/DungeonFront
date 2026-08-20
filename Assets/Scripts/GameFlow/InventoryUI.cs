@@ -265,24 +265,15 @@ public class InventoryUI : MonoBehaviour
         slotImage.color = new Color(0.16f, 0.2f, 0.28f, 1f);
 
         Image iconImage = slotObject.transform.Find("Icon").GetComponent<Image>();
-        Sprite icon = ItemIconResolver.Resolve(definition);
-        if (icon != null)
-        {
-            iconImage.sprite = icon;
-            iconImage.color = Color.white;
-        }
-        else
-        {
-            iconImage.sprite = null;
-            iconImage.color = new Color(0.4f, 0.55f, 0.75f, 1f);
-        }
+        MachineIconResolver.ConfigureInventoryImage(iconImage, definition);
+        bool hasIcon = iconImage.sprite != null;
 
         Text countText = slotObject.transform.Find("Count").GetComponent<Text>();
         countText.font = uiFont;
         countText.fontSize = 14;
         countText.alignment = TextAnchor.MiddleCenter;
         countText.color = Color.white;
-        countText.text = $"{label}\nx{count}";
+        countText.text = hasIcon ? $"x{count}" : $"{label}\nx{count}";
         countText.horizontalOverflow = HorizontalWrapMode.Wrap;
         countText.verticalOverflow = VerticalWrapMode.Truncate;
     }

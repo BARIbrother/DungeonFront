@@ -201,6 +201,7 @@ public sealed class DialogueUI : MonoBehaviour
     };
 
     private GameObject modal;
+    private Canvas dialogueCanvas;
     private GameObject dialogueBox;
     private GameObject blackScreen;
     private TMP_Text speakerText;
@@ -370,6 +371,11 @@ public sealed class DialogueUI : MonoBehaviour
         activeLines = null;
         modal.SetActive(false);
         GamePauseService.ReleasePause(PauseRequester);
+        if (completedEvent == ProductionEventManager.BreakdownUnlockStoryEventId)
+        {
+            ProductionEventManager.EnableBreakdown();
+        }
+
         OnDialogueClosed?.Invoke(completedEvent);
         FactoryStoryHooks.NotifyDialogueClosed(completedEvent);
         ShowNextPending();
@@ -384,8 +390,11 @@ public sealed class DialogueUI : MonoBehaviour
             ? Color.black
             : new Color(0f, 0f, 0f, 0.62f);
 
+        // 블랙아웃은 HUD(생산 시작 등)보다 위에 그려야 한다.
+        EnsureOverlayOnTop();
         if (line.blackout)
         {
+            blackScreen.transform.SetAsLastSibling();
             blackoutText.text = line.body;
             return;
         }
@@ -408,6 +417,33 @@ public sealed class DialogueUI : MonoBehaviour
         }
 
         nextText.text = lineIndex == activeLines.Length - 1 ? "닫기" : "다음";
+        TryEnableBreakdownOnStoryLine(line);
+    }
+
+    // 001E00020에서 이브 대사가 표시되면 고장 기능을 켠다.
+    private void TryEnableBreakdownOnStoryLine(DialogueLine line)
+    {
+        if (activeEventId != ProductionEventManager.BreakdownUnlockStoryEventId
+            || line.characterId != "eve")
+        {
+            return;
+        }
+
+        ProductionEventManager.EnableBreakdown();
+    }
+
+    // HUD Canvas(sorting 0)보다 위에 두고, 같은 Canvas에 붙은 HUD 자식이 있어도 모달이 최상단이다.
+    private void EnsureOverlayOnTop()
+    {
+        if (dialogueCanvas != null && dialogueCanvas.sortingOrder < 2000)
+        {
+            dialogueCanvas.sortingOrder = 2000;
+        }
+
+        if (modal != null)
+        {
+            modal.transform.SetAsLastSibling();
+        }
     }
 
     private void CreateUi()
@@ -415,9 +451,9 @@ public sealed class DialogueUI : MonoBehaviour
         EnsureEventSystem();
         var canvasObject = new GameObject("DialogueCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         canvasObject.transform.SetParent(transform, false);
-        Canvas canvas = canvasObject.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 2000;
+        dialogueCanvas = canvasObject.GetComponent<Canvas>();
+        dialogueCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        dialogueCanvas.sortingOrder = 2000;
         CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);

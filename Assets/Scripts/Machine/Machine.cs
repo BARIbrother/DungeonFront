@@ -442,8 +442,8 @@ public abstract class Machine : MonoBehaviour
         EnsureClickCollider();
     }
 
-    // 클릭 시 레시피 선택 UI를 띄우거나(지원 기계) 포트 내용을 로그한다.
-    private void OnMouseDown()
+    // 클릭 완료 시 레시피 UI를 연다. OnMouseDown이면 손을 뗄 때 백드롭이 같은 입력을 받아 바로 닫힌다.
+    private void OnMouseUpAsButton()
     {
         if (ProductionSummaryUI.IsOpen || IsPointerOverUi() || IsPlacementInteractionBlockingClick())
         {
@@ -540,7 +540,7 @@ public abstract class Machine : MonoBehaviour
         return builder.Length > 0 ? builder.ToString() : "(없음)";
     }
 
-    // OnMouseDown용 BoxCollider2D가 없으면 footprint 크기에 맞춰 추가한다.
+    // OnMouseUpAsButton용 BoxCollider2D가 없으면 footprint 크기에 맞춰 추가한다.
     private void EnsureClickCollider()
     {
         if (GetComponent<Collider2D>() != null)

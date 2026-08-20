@@ -35,7 +35,11 @@ public class PlayerMovement : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool repairAnimPending;
     private float repairAnimUntil;
+    private Machine pendingRepairMachine;
+    private bool pendingRepairApplied;
     private const float RepairAnimTimeout = 1.35f;
+    // P_Repair_10(망치 내려치며 멈춤) 시작 시점 = 9/12
+    private const float RepairImpactNormalizedTime = 9f / 12f;
 
     void Start()
     {
@@ -163,9 +167,12 @@ public class PlayerMovement : MonoBehaviour
 
         if (IsPlayingRepair())
         {
+            TryApplyPendingRepair();
             UpdateAnimator(Vector2.zero);
             return;
         }
+
+        ClearStalePendingRepair();
 
         if (input.sqrMagnitude > 1f)
         {
@@ -273,11 +280,12 @@ public class PlayerMovement : MonoBehaviour
         Machine brokenTarget = FindNearestMachineWithinOneCell(machine => machine.IsBroken);
         if (brokenTarget != null)
         {
-            TryRepairNearbyMachine(brokenTarget);
+            QueueRepairAtImpact(brokenTarget);
             PlayRepairMotion();
             return;
         }
 
+        ClearPendingRepair();
         Machine handmadeTarget = FindNearestMachineWithinOneCell(
             machine => machine is HandmadeMachine);
         if (handmadeTarget != null)
@@ -303,6 +311,45 @@ public class PlayerMovement : MonoBehaviour
         {
             PlayRepairMotion();
         }
+    }
+
+    private void QueueRepairAtImpact(Machine machine)
+    {
+        pendingRepairMachine = machine;
+        pendingRepairApplied = false;
+    }
+
+    private void ClearPendingRepair()
+    {
+        pendingRepairMachine = null;
+        pendingRepairApplied = false;
+    }
+
+    private void ClearStalePendingRepair()
+    {
+        if (pendingRepairMachine != null && !pendingRepairApplied)
+        {
+            ClearPendingRepair();
+        }
+    }
+
+    private void TryApplyPendingRepair()
+    {
+        if (pendingRepairApplied || pendingRepairMachine == null || animator == null)
+        {
+            return;
+        }
+
+        AnimatorStateInfo current = animator.GetCurrentAnimatorStateInfo(0);
+        if (current.shortNameHash != RepairHash
+            || current.normalizedTime < RepairImpactNormalizedTime)
+        {
+            return;
+        }
+
+        TryRepairNearbyMachine(pendingRepairMachine);
+        pendingRepairApplied = true;
+        pendingRepairMachine = null;
     }
 
     private void PlayRepairMotion()

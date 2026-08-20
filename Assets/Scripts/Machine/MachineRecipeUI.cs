@@ -29,6 +29,7 @@ public class MachineRecipeUI : MonoBehaviour
     private Image progressFillImage;
     private Text progressLabelText;
     private int lastMachineViewHash;
+    private int ignoreBackdropCloseUntilFrame = -1;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -106,8 +107,19 @@ public class MachineRecipeUI : MonoBehaviour
         SetRecipePickerVisible(false);
         SubscribeInventory();
         // 비활성 상태에서 레이아웃을 만들면 슬롯 크기가 안 잡히는 경우가 있다.
+        ignoreBackdropCloseUntilFrame = Time.frameCount + 1;
         modalRoot.SetActive(true);
         RebuildContent();
+    }
+
+    private void OnBackdropClicked()
+    {
+        if (Time.frameCount <= ignoreBackdropCloseUntilFrame)
+        {
+            return;
+        }
+
+        Hide();
     }
 
     private void Update()
@@ -370,11 +382,12 @@ public class MachineRecipeUI : MonoBehaviour
         var rowRect = row.AddComponent<RectTransform>();
         rowRect.anchorMin = Vector2.zero;
         rowRect.anchorMax = Vector2.one;
-        rowRect.offsetMin = new Vector2(10f, 8f);
-        rowRect.offsetMax = new Vector2(-10f, -8f);
+        rowRect.offsetMin = new Vector2(14f, 10f);
+        rowRect.offsetMax = new Vector2(-14f, -10f);
 
         var rowLayout = row.AddComponent<HorizontalLayoutGroup>();
-        rowLayout.spacing = 6f;
+        rowLayout.spacing = 12f;
+        rowLayout.padding = new RectOffset(8, 8, 0, 0);
         rowLayout.childAlignment = TextAnchor.MiddleCenter;
         rowLayout.childControlWidth = true;
         rowLayout.childControlHeight = true;
@@ -387,9 +400,11 @@ public class MachineRecipeUI : MonoBehaviour
         }
         else
         {
-            AddRecipeEntryIcons(row.transform, selected.inputEntryList);
+            Transform inputSide = CreateRecipeSideGroup(row.transform, "Inputs", TextAnchor.MiddleLeft);
+            AddRecipeEntryIcons(inputSide, selected.inputEntryList);
             CreateInlineLabel(row.transform, "→");
-            AddRecipeEntryIcons(row.transform, selected.outputEntryList);
+            Transform outputSide = CreateRecipeSideGroup(row.transform, "Outputs", TextAnchor.MiddleRight);
+            AddRecipeEntryIcons(outputSide, selected.outputEntryList);
         }
 
         dynamicRows.Add(buttonObject);
@@ -581,15 +596,15 @@ public class MachineRecipeUI : MonoBehaviour
         var rowObject = new GameObject("PortRow", typeof(RectTransform));
         rowObject.transform.SetParent(contentListRect, false);
 
-        float slotSize = 84f * UiScale;
-        float portRowHeight = slotSize + 12f;
+        float slotSize = 64f * UiScale;
+        float portRowHeight = slotSize + 20f;
         var layoutElement = rowObject.AddComponent<LayoutElement>();
         layoutElement.minHeight = portRowHeight;
         layoutElement.preferredHeight = portRowHeight;
 
         var rowLayout = rowObject.AddComponent<HorizontalLayoutGroup>();
-        rowLayout.spacing = 10f;
-        rowLayout.padding = new RectOffset(4, 4, 4, 4);
+        rowLayout.spacing = 16f;
+        rowLayout.padding = new RectOffset(12, 12, 6, 6);
         rowLayout.childAlignment = TextAnchor.MiddleCenter;
         rowLayout.childControlWidth = true;
         rowLayout.childControlHeight = true;
@@ -597,8 +612,9 @@ public class MachineRecipeUI : MonoBehaviour
         rowLayout.childForceExpandHeight = false;
 
         Recipe recipe = targetMachine.GetSelectedRecipe();
+        Transform inputSide = CreatePortSideGroup(rowObject.transform, "Inputs", TextAnchor.MiddleLeft);
         CreatePortSideButtons(
-            rowObject.transform,
+            inputSide,
             targetMachine.inputPort,
             recipe?.inputEntryList,
             isInput: true,
@@ -608,40 +624,67 @@ public class MachineRecipeUI : MonoBehaviour
         var arrowRect = (RectTransform)arrowObject.transform;
         arrowRect.SetParent(rowObject.transform, false);
         var arrowLayout = arrowObject.AddComponent<LayoutElement>();
-        arrowLayout.minWidth = 40f * UiScale;
-        arrowLayout.preferredWidth = 40f * UiScale;
+        arrowLayout.minWidth = 36f * UiScale;
+        arrowLayout.preferredWidth = 36f * UiScale;
         arrowLayout.minHeight = slotSize;
         arrowLayout.preferredHeight = slotSize;
         arrowLayout.flexibleWidth = 0f;
         var arrowText = arrowObject.AddComponent<Text>();
         arrowText.font = uiFont;
-        arrowText.fontSize = Mathf.RoundToInt(24f * UiScale);
+        arrowText.fontSize = Mathf.RoundToInt(22f * UiScale);
         arrowText.alignment = TextAnchor.MiddleCenter;
         arrowText.color = new Color(0.85f, 0.85f, 0.85f, 1f);
         arrowText.text = "→";
 
+        Transform outputSide = CreatePortSideGroup(rowObject.transform, "Outputs", TextAnchor.MiddleRight);
         CreatePortSideButtons(
-            rowObject.transform,
+            outputSide,
             targetMachine.outputPort,
             recipe?.outputEntryList,
             isInput: false,
             slotSize);
 
-        InsertPortSpacer(rowObject.transform, 0);
-        InsertPortSpacer(rowObject.transform, rowObject.transform.childCount);
-
         dynamicRows.Add(rowObject);
     }
 
-    private static void InsertPortSpacer(Transform row, int siblingIndex)
+    private static Transform CreatePortSideGroup(Transform parent, string name, TextAnchor alignment)
     {
-        var spacer = new GameObject("Spacer", typeof(RectTransform));
-        spacer.transform.SetParent(row, false);
-        spacer.transform.SetSiblingIndex(Mathf.Clamp(siblingIndex, 0, row.childCount - 1));
-        var layout = spacer.AddComponent<LayoutElement>();
-        layout.flexibleWidth = 1f;
-        layout.minWidth = 0f;
-        layout.preferredWidth = 0f;
+        var sideObject = new GameObject(name, typeof(RectTransform));
+        sideObject.transform.SetParent(parent, false);
+        var layoutElement = sideObject.AddComponent<LayoutElement>();
+        layoutElement.flexibleWidth = 1f;
+        layoutElement.minWidth = 0f;
+        layoutElement.preferredWidth = 0f;
+
+        var sideLayout = sideObject.AddComponent<HorizontalLayoutGroup>();
+        sideLayout.spacing = 8f;
+        sideLayout.padding = new RectOffset(8, 8, 0, 0);
+        sideLayout.childAlignment = alignment;
+        sideLayout.childControlWidth = true;
+        sideLayout.childControlHeight = true;
+        sideLayout.childForceExpandWidth = false;
+        sideLayout.childForceExpandHeight = false;
+        return sideObject.transform;
+    }
+
+    private static Transform CreateRecipeSideGroup(Transform parent, string name, TextAnchor alignment)
+    {
+        var sideObject = new GameObject(name, typeof(RectTransform));
+        sideObject.transform.SetParent(parent, false);
+        var layoutElement = sideObject.AddComponent<LayoutElement>();
+        layoutElement.flexibleWidth = 1f;
+        layoutElement.minWidth = 0f;
+        layoutElement.preferredWidth = 0f;
+
+        var sideLayout = sideObject.AddComponent<HorizontalLayoutGroup>();
+        sideLayout.spacing = 6f;
+        sideLayout.padding = new RectOffset(4, 4, 0, 0);
+        sideLayout.childAlignment = alignment;
+        sideLayout.childControlWidth = true;
+        sideLayout.childControlHeight = true;
+        sideLayout.childForceExpandWidth = false;
+        sideLayout.childForceExpandHeight = false;
+        return sideObject.transform;
     }
 
     private void CreatePortSideButtons(
@@ -775,17 +818,15 @@ public class MachineRecipeUI : MonoBehaviour
         Transform parent,
         Item item,
         int count,
-        Color color,
         UnityEngine.Events.UnityAction onClick)
     {
-        CreateItemIconButton(parent, item, count, color, 84f * UiScale, onClick);
+        CreateItemIconButton(parent, item, count, 96f * UiScale, onClick);
     }
 
     private void CreateItemIconButton(
         Transform parent,
         Item item,
         int count,
-        Color color,
         float slotSize,
         UnityEngine.Events.UnityAction onClick)
     {
@@ -806,7 +847,8 @@ public class MachineRecipeUI : MonoBehaviour
         layoutElement.flexibleHeight = 0f;
 
         var buttonImage = buttonObject.AddComponent<Image>();
-        buttonImage.color = color;
+        buttonImage.color = new Color(1f, 1f, 1f, 0f);
+        AddInventorySlotFrame(buttonObject.transform, slotSize);
 
         var button = buttonObject.AddComponent<Button>();
         button.targetGraphic = buttonImage;
@@ -815,9 +857,25 @@ public class MachineRecipeUI : MonoBehaviour
         CreateItemIconVisual(buttonObject.transform, item, count, slotSize);
     }
 
+    private static void AddInventorySlotFrame(Transform parent, float slotSize)
+    {
+        var frameObject = new GameObject("Frame", typeof(RectTransform), typeof(Image));
+        frameObject.transform.SetParent(parent, false);
+        var frameRect = (RectTransform)frameObject.transform;
+        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        frameRect.pivot = new Vector2(0.5f, 0.5f);
+        frameRect.anchoredPosition = Vector2.zero;
+        frameRect.sizeDelta = new Vector2(slotSize, slotSize);
+
+        var frameImage = frameObject.GetComponent<Image>();
+        UiNoteBookSlot.ApplySlot(frameImage);
+        frameImage.raycastTarget = false;
+    }
+
     private void CreateItemIconVisual(Transform parent, Item item, int count)
     {
-        CreateItemIconVisual(parent, item, count, 84f * UiScale, iconAlpha: 1f);
+        CreateItemIconVisual(parent, item, count, 96f * UiScale, iconAlpha: 1f);
     }
 
     private void CreateItemIconVisual(Transform parent, Item item, int count, float slotSize)
@@ -839,30 +897,36 @@ public class MachineRecipeUI : MonoBehaviour
             icon = ItemIconResolver.ResolveById(itemId);
         }
 
-        float iconSize = Mathf.Max(32f, slotSize * 0.62f);
+        ItemDefinition definition = ResolveItemDefinition(item);
+        float iconSize = Mathf.Max(32f, slotSize * 0.58f);
 
         var iconObject = new GameObject("Icon", typeof(RectTransform));
         var iconRect = (RectTransform)iconObject.transform;
         iconRect.SetParent(parent, false);
-        iconRect.anchorMin = new Vector2(0.5f, 0.58f);
-        iconRect.anchorMax = new Vector2(0.5f, 0.58f);
+        iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+        iconRect.anchorMax = new Vector2(0.5f, 0.5f);
         iconRect.pivot = new Vector2(0.5f, 0.5f);
         iconRect.anchoredPosition = Vector2.zero;
-        iconRect.sizeDelta = new Vector2(iconSize, iconSize);
         iconRect.localScale = Vector3.one;
 
         var iconImage = iconObject.AddComponent<Image>();
         iconImage.raycastTarget = false;
         iconImage.preserveAspect = true;
         iconImage.type = Image.Type.Simple;
-        if (icon != null)
+        if (definition is ItemDef_Machine machineDefinition)
         {
+            MachineIconResolver.ConfigureInventoryImage(iconImage, machineDefinition, iconSize);
+        }
+        else if (icon != null)
+        {
+            iconRect.sizeDelta = MachineIconResolver.GetInventoryIconSize(icon, iconSize);
             iconImage.sprite = icon;
             iconImage.color = new Color(1f, 1f, 1f, Mathf.Clamp01(iconAlpha));
             iconImage.enabled = true;
         }
         else
         {
+            iconRect.sizeDelta = new Vector2(iconSize, iconSize);
             iconImage.color = new Color(0.35f, 0.35f, 0.4f, Mathf.Clamp01(iconAlpha));
         }
 
@@ -903,22 +967,22 @@ public class MachineRecipeUI : MonoBehaviour
             }
 
             any = true;
-            float slotWidth = 64f * UiScale;
-            float slotHeight = 72f * UiScale;
+            float slotSize = 56f * UiScale;
             var slot = new GameObject("RecipeItem", typeof(RectTransform));
             var slotRect = (RectTransform)slot.transform;
             slotRect.SetParent(parent, false);
             slotRect.anchorMin = new Vector2(0.5f, 0.5f);
             slotRect.anchorMax = new Vector2(0.5f, 0.5f);
-            slotRect.sizeDelta = new Vector2(slotWidth, slotHeight);
+            slotRect.sizeDelta = new Vector2(slotSize, slotSize);
 
             var layout = slot.AddComponent<LayoutElement>();
-            layout.minWidth = slotWidth;
-            layout.preferredWidth = slotWidth;
-            layout.minHeight = slotHeight;
-            layout.preferredHeight = slotHeight;
+            layout.minWidth = slotSize;
+            layout.preferredWidth = slotSize;
+            layout.minHeight = slotSize;
+            layout.preferredHeight = slotSize;
             layout.flexibleWidth = 0f;
-            CreateItemIconVisual(slot.transform, entry.item, entry.count, slotHeight);
+            AddInventorySlotFrame(slot.transform, slotSize);
+            CreateItemIconVisual(slot.transform, entry.item, entry.count, slotSize);
         }
 
         if (!any)
@@ -960,15 +1024,23 @@ public class MachineRecipeUI : MonoBehaviour
         var rowObject = new GameObject("InventoryGrid");
         rowObject.transform.SetParent(contentListRect, false);
         var layoutElement = rowObject.AddComponent<LayoutElement>();
-        layoutElement.minHeight = 100f * UiScale;
+        layoutElement.minHeight = 120f * UiScale;
 
-        float cell = 88f * UiScale;
+        const int inventoryColumns = 5;
+        const float gridSpacing = 8f;
+        float cell = GetInventoryGridCellSize(inventoryColumns, gridSpacing);
         var grid = rowObject.AddComponent<GridLayoutGroup>();
         grid.cellSize = new Vector2(cell, cell);
-        grid.spacing = new Vector2(8f, 8f);
+        grid.spacing = new Vector2(gridSpacing, gridSpacing);
+        grid.padding = new RectOffset(2, 2, 2, 2);
         grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        grid.constraintCount = 5;
+        grid.constraintCount = inventoryColumns;
         grid.childAlignment = TextAnchor.UpperLeft;
+
+        float gridWidth = inventoryColumns * cell + gridSpacing * (inventoryColumns - 1) + grid.padding.horizontal;
+        layoutElement.minWidth = gridWidth;
+        layoutElement.preferredWidth = gridWidth;
+        layoutElement.flexibleWidth = 0f;
 
         bool any = false;
         for (int i = 0; i < owned.Count; i++)
@@ -987,7 +1059,7 @@ public class MachineRecipeUI : MonoBehaviour
                 rowObject.transform,
                 depositItem,
                 displayCount,
-                new Color(0.28f, 0.3f, 0.4f, 1f),
+                cell,
                 () => TryDepositOne(depositItem));
         }
 
@@ -997,10 +1069,21 @@ public class MachineRecipeUI : MonoBehaviour
             return;
         }
 
-        int rows = Mathf.CeilToInt(rowObject.transform.childCount / 5f);
-        layoutElement.minHeight = rows * (cell + 8f);
+        int rows = Mathf.CeilToInt(rowObject.transform.childCount / (float)inventoryColumns);
+        layoutElement.minHeight = rows * (cell + gridSpacing) + grid.padding.vertical;
         layoutElement.preferredHeight = layoutElement.minHeight;
         dynamicRows.Add(rowObject);
+    }
+
+    private float GetInventoryGridCellSize(int columns, float spacing)
+    {
+        const float scrollHorizontalPadding = 40f;
+        float panelWidth = panelRect != null && panelRect.rect.width > 1f
+            ? panelRect.rect.width
+            : 460f * UiScale;
+        float availableWidth = panelWidth - scrollHorizontalPadding;
+        float cell = (availableWidth - spacing * (columns - 1) - 4f) / columns;
+        return Mathf.Clamp(cell, 72f * UiScale, 96f * UiScale);
     }
 
     private void TryDepositOne(Item item)
@@ -1325,7 +1408,7 @@ public class MachineRecipeUI : MonoBehaviour
         backdropImage.color = new Color(0f, 0f, 0f, 0.45f);
 
         var backdropButton = backdropObject.AddComponent<Button>();
-        backdropButton.onClick.AddListener(Hide);
+        backdropButton.onClick.AddListener(OnBackdropClicked);
 
         var panelObject = new GameObject("RecipePanel");
         panelObject.transform.SetParent(modalRoot.transform, false);
@@ -1334,7 +1417,7 @@ public class MachineRecipeUI : MonoBehaviour
         panelRect.anchorMax = new Vector2(0.5f, 0.5f);
         panelRect.pivot = new Vector2(1f, 0.5f);
         panelRect.anchoredPosition = new Vector2(-8f, 0f);
-        panelRect.sizeDelta = new Vector2(460f * UiScale, 520f * UiScale);
+        panelRect.sizeDelta = new Vector2(460f * UiScale, 580f * UiScale);
 
         var panelImage = panelObject.AddComponent<Image>();
         UiPanelFrame.Apply(panelImage);
@@ -1344,8 +1427,8 @@ public class MachineRecipeUI : MonoBehaviour
         contentListRect = CreateScrollContent(
             panelObject.transform,
             "ContentScroll",
-            new Vector2(36f, 36f),
-            new Vector2(-36f, -60f));
+            new Vector2(20f, 20f),
+            new Vector2(-20f, -52f));
 
         CreateRecipePickerPanel();
     }
@@ -1359,7 +1442,7 @@ public class MachineRecipeUI : MonoBehaviour
         recipePickerPanel.anchorMax = new Vector2(0.5f, 0.5f);
         recipePickerPanel.pivot = new Vector2(0f, 0.5f);
         recipePickerPanel.anchoredPosition = new Vector2(8f, 0f);
-        recipePickerPanel.sizeDelta = new Vector2(360f * UiScale, 520f * UiScale);
+        recipePickerPanel.sizeDelta = new Vector2(360f * UiScale, 580f * UiScale);
 
         var pickerImage = pickerObject.AddComponent<Image>();
         UiPanelFrame.Apply(pickerImage);
@@ -1402,13 +1485,13 @@ public class MachineRecipeUI : MonoBehaviour
         var contentRect = contentObject.AddComponent<RectTransform>();
         contentRect.anchorMin = new Vector2(0f, 1f);
         contentRect.anchorMax = new Vector2(1f, 1f);
-        contentRect.pivot = new Vector2(0.5f, 1f);
+        contentRect.pivot = new Vector2(0f, 1f);
         contentRect.anchoredPosition = Vector2.zero;
         contentRect.sizeDelta = new Vector2(0f, 0f);
 
         var layout = contentObject.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 6f;
-        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childAlignment = TextAnchor.UpperLeft;
         layout.childControlWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandWidth = true;

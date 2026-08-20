@@ -7,7 +7,7 @@ using UnityEngine.UI;
 // 배치 모드 하단 슬라이드바. 인벤 MachineInventoryEntry 목록을 표시하고 선택한다.
 public class PlacementUI : MonoBehaviour
 {
-    [SerializeField] private float panelHeight = 120f;
+    [SerializeField] private float panelHeight = 168f;
     [SerializeField] private float pickupBarHeight = 40f;
     [SerializeField] private float slideSpeed = 900f;
 
@@ -24,6 +24,9 @@ public class PlacementUI : MonoBehaviour
     private float targetAnchoredY;
     private float slideHeight;
     private string selectedDefinitionId;
+    private RectTransform hoverTooltipRect;
+    private Text hoverTooltipText;
+    private const float HoverTooltipOffsetY = 8f;
 
     public void Initialize(PlacementController controller, PlayerInventory inventory)
     {
@@ -65,6 +68,11 @@ public class PlacementUI : MonoBehaviour
     {
         isVisible = visible;
         targetAnchoredY = visible ? 0f : -slideHeight;
+
+        if (!visible)
+        {
+            HideMachineHoverTooltip();
+        }
 
         if (instant && slideRootRect != null)
         {
@@ -215,8 +223,8 @@ public class PlacementUI : MonoBehaviour
         var scrollRect = scrollObject.AddComponent<RectTransform>();
         scrollRect.anchorMin = Vector2.zero;
         scrollRect.anchorMax = Vector2.one;
-        scrollRect.offsetMin = new Vector2(32f, 32f);
-        scrollRect.offsetMax = new Vector2(-32f, -32f);
+        scrollRect.offsetMin = new Vector2(16f, 12f);
+        scrollRect.offsetMax = new Vector2(-16f, -12f);
 
         var viewportObject = new GameObject("Viewport");
         viewportObject.transform.SetParent(scrollObject.transform, false);
@@ -234,7 +242,7 @@ public class PlacementUI : MonoBehaviour
         contentRect.anchorMin = new Vector2(0f, 0.5f);
         contentRect.anchorMax = new Vector2(0f, 0.5f);
         contentRect.pivot = new Vector2(0f, 0.5f);
-        contentRect.sizeDelta = new Vector2(0f, panelHeight - 24f);
+        contentRect.sizeDelta = new Vector2(0f, panelHeight - 8f);
 
         var layout = contentObject.AddComponent<HorizontalLayoutGroup>();
         layout.spacing = 8f;
@@ -254,6 +262,66 @@ public class PlacementUI : MonoBehaviour
         scroll.horizontal = true;
         scroll.vertical = false;
         scroll.movementType = ScrollRect.MovementType.Clamped;
+
+        CreateHoverTooltip(canvasObject.transform);
+    }
+
+    private void CreateHoverTooltip(Transform parent)
+    {
+        var labelObject = new GameObject("MachineHoverTooltip");
+        labelObject.transform.SetParent(parent, false);
+        hoverTooltipRect = labelObject.AddComponent<RectTransform>();
+        hoverTooltipRect.pivot = new Vector2(0.5f, 0f);
+
+        Image background = labelObject.AddComponent<Image>();
+        background.color = new Color(0.08f, 0.1f, 0.14f, 0.92f);
+        background.raycastTarget = false;
+
+        var fitter = labelObject.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        var layout = labelObject.AddComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(10, 10, 4, 4);
+        layout.childAlignment = TextAnchor.MiddleCenter;
+
+        var textObject = new GameObject("Text");
+        textObject.transform.SetParent(labelObject.transform, false);
+        hoverTooltipText = textObject.AddComponent<Text>();
+        hoverTooltipText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        hoverTooltipText.fontSize = 16;
+        hoverTooltipText.alignment = TextAnchor.MiddleCenter;
+        hoverTooltipText.color = Color.white;
+        hoverTooltipText.raycastTarget = false;
+        hoverTooltipText.horizontalOverflow = HorizontalWrapMode.Overflow;
+        hoverTooltipText.verticalOverflow = VerticalWrapMode.Overflow;
+
+        labelObject.SetActive(false);
+    }
+
+    internal void ShowMachineHoverTooltip(string text, RectTransform anchor)
+    {
+        if (hoverTooltipRect == null || hoverTooltipText == null || anchor == null)
+        {
+            return;
+        }
+
+        hoverTooltipText.text = text;
+        hoverTooltipRect.gameObject.SetActive(true);
+
+        Vector3[] corners = new Vector3[4];
+        anchor.GetWorldCorners(corners);
+        float centerX = (corners[0].x + corners[2].x) * 0.5f;
+        float topY = corners[1].y;
+        hoverTooltipRect.position = new Vector3(centerX, topY + HoverTooltipOffsetY, 0f);
+    }
+
+    internal void HideMachineHoverTooltip()
+    {
+        if (hoverTooltipRect != null)
+        {
+            hoverTooltipRect.gameObject.SetActive(false);
+        }
     }
 
     private static void EnsureEventSystem()
@@ -276,25 +344,43 @@ public class PlacementUI : MonoBehaviour
         }
 
         GameObject buttonObject = RentMachineButton($"Machine_{definition.id}");
-        Image buttonImage = buttonObject.GetComponent<Image>();
         bool isSelected = definition.id == selectedDefinitionId;
-        buttonImage.color = isSelected
-            ? new Color(0.35f, 0.55f, 0.85f, 1f)
-            : new Color(0.2f, 0.22f, 0.28f, 1f);
+
+        Image buttonImage = buttonObject.GetComponent<Image>();
+        buttonImage.color = new Color(1f, 1f, 1f, 0f);
+
+        Transform highlight = buttonObject.transform.Find("Highlight");
+        if (highlight != null)
+        {
+            highlight.gameObject.SetActive(isSelected);
+        }
+
+        Image iconImage = buttonObject.transform.Find("Icon").GetComponent<Image>();
+        const float slotSize = 112f;
+        MachineIconResolver.ConfigureInventoryImage(iconImage, definition, slotSize * 0.58f);
+        bool hasIcon = iconImage.sprite != null;
+
+        Text label = buttonObject.transform.Find("Count").GetComponent<Text>();
+        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        label.fontSize = 14;
+        label.alignment = TextAnchor.LowerRight;
+        label.color = Color.white;
+        string displayName = !string.IsNullOrEmpty(definition.displayName)
+            ? definition.displayName
+            : definition.id;
+        label.text = hasIcon ? $"x{count}" : $"{displayName}\nx{count}";
+        label.horizontalOverflow = HorizontalWrapMode.Wrap;
+        label.verticalOverflow = VerticalWrapMode.Truncate;
 
         Button button = buttonObject.GetComponent<Button>();
+        button.targetGraphic = buttonImage;
         button.onClick.RemoveAllListeners();
         string definitionId = definition.id;
         button.onClick.AddListener(() => placementController.SelectMachineDefinition(definitionId));
 
-        Text label = buttonObject.transform.Find("Label").GetComponent<Text>();
-        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        label.fontSize = 14;
-        label.alignment = TextAnchor.MiddleCenter;
-        label.color = Color.white;
-        label.text = $"{definition.displayName}\nx{count}";
-        label.horizontalOverflow = HorizontalWrapMode.Wrap;
-        label.verticalOverflow = VerticalWrapMode.Truncate;
+        MachineButtonHoverHandler hoverHandler = buttonObject.GetComponent<MachineButtonHoverHandler>()
+            ?? buttonObject.AddComponent<MachineButtonHoverHandler>();
+        hoverHandler.Initialize(this, displayName);
     }
 
     private GameObject RentMachineButton(string buttonName)
@@ -320,26 +406,59 @@ public class PlacementUI : MonoBehaviour
 
     private GameObject BuildMachineButtonShell()
     {
+        const float slotSize = 112f;
+
         var buttonObject = new GameObject("MachineButton");
         var buttonRect = buttonObject.AddComponent<RectTransform>();
-        buttonRect.sizeDelta = new Vector2(96f, 96f);
-        buttonObject.AddComponent<Image>();
+        buttonRect.sizeDelta = new Vector2(slotSize, slotSize);
+
+        Image buttonImage = buttonObject.AddComponent<Image>();
+        buttonImage.color = new Color(1f, 1f, 1f, 0f);
         buttonObject.AddComponent<Button>();
 
-        var labelObject = new GameObject("Label");
-        labelObject.transform.SetParent(buttonObject.transform, false);
-        var labelRect = labelObject.AddComponent<RectTransform>();
-        labelRect.anchorMin = Vector2.zero;
-        labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = new Vector2(4f, 4f);
-        labelRect.offsetMax = new Vector2(-4f, -4f);
-        labelObject.AddComponent<Text>();
+        GameObject frameObject = new GameObject("Frame", typeof(RectTransform), typeof(Image));
+        frameObject.transform.SetParent(buttonObject.transform, false);
+        RectTransform frameRect = frameObject.GetComponent<RectTransform>();
+        frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        frameRect.pivot = new Vector2(0.5f, 0.5f);
+        frameRect.anchoredPosition = Vector2.zero;
+        frameRect.sizeDelta = new Vector2(slotSize, slotSize);
+        Image frameImage = frameObject.GetComponent<Image>();
+        UiNoteBookSlot.ApplySlot(frameImage);
+        frameImage.raycastTarget = false;
+
+        var iconObject = new GameObject("Icon");
+        iconObject.transform.SetParent(buttonObject.transform, false);
+        var iconRect = iconObject.AddComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+        iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.sizeDelta = new Vector2(slotSize * 0.58f, slotSize * 0.58f);
+        var iconImage = iconObject.AddComponent<Image>();
+        iconImage.preserveAspect = true;
+        iconImage.raycastTarget = false;
+
+        var countObject = new GameObject("Count");
+        countObject.transform.SetParent(buttonObject.transform, false);
+        var countRect = countObject.AddComponent<RectTransform>();
+        countRect.anchorMin = new Vector2(0f, 0f);
+        countRect.anchorMax = new Vector2(1f, 0.35f);
+        countRect.offsetMin = new Vector2(4f, 2f);
+        countRect.offsetMax = new Vector2(-4f, -2f);
+        countObject.AddComponent<Text>();
+
+        GameObject highlight = UiNoteBookSlot.CreateSelectHighlight(buttonObject.transform, slotSize);
+        highlight.name = "Highlight";
+        highlight.SetActive(false);
 
         return buttonObject;
     }
 
     private void ClearMachineButtons()
     {
+        HideMachineHoverTooltip();
+
         foreach (GameObject buttonObject in machineButtons)
         {
             if (buttonObject == null)
@@ -358,5 +477,32 @@ public class PlacementUI : MonoBehaviour
         }
 
         machineButtons.Clear();
+    }
+
+    private sealed class MachineButtonHoverHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    {
+        private PlacementUI owner;
+        private string label;
+
+        public void Initialize(PlacementUI owner, string label)
+        {
+            this.owner = owner;
+            this.label = label;
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (owner == null || string.IsNullOrEmpty(label))
+            {
+                return;
+            }
+
+            owner.ShowMachineHoverTooltip(label, (RectTransform)transform);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            owner?.HideMachineHoverTooltip();
+        }
     }
 }
