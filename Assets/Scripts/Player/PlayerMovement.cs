@@ -92,6 +92,12 @@ public class PlayerMovement : MonoBehaviour
             InventoryUI.Toggle();
         }
 
+        // K: 레시피북 토글 (다른 키와 겹치지 않는 키로 배정)
+        if (keyboard != null && keyboard.kKey.wasPressedThisFrame)
+        {
+            RecipeBookUI.Toggle();
+        }
+
         // 1: 기계 제작 UI 토글. Shift+1은 기존 지급 치트.
         if (keyboard != null
             && (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame))
@@ -108,7 +114,7 @@ public class PlayerMovement : MonoBehaviour
 
         // 모달이 열려 있으면 이동·상호작용을 잠근다.
         if (ProductionSummaryUI.IsOpen || MachineGrantUI.IsOpen || MachineCraftUI.IsOpen
-            || ZoneExpansionUI.IsOpen || InventoryUI.IsOpen || TechTreeUI.IsOpen
+            || ZoneExpansionUI.IsOpen || InventoryUI.IsOpen || TechTreeUI.IsOpen || RecipeBookUI.IsOpen
             || (QuestWindowController.Instance != null && QuestWindowController.Instance.IsOpen))
         {
             UpdateAnimator(Vector2.zero);
