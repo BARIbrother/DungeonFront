@@ -109,6 +109,8 @@ public class ProductionEventManager : MonoBehaviour
         }
 
         OnMachineRepaired?.Invoke(machine);
+        PlayCatalogSfx(audio => audio.Catalog.repair);
+        AudioManager.Instance?.StopMachineBreaking();
         Debug.Log($"[ProductionEventManager] 기계 수리 완료: {machine.name}");
         return true;
     }
@@ -222,6 +224,8 @@ public class ProductionEventManager : MonoBehaviour
         brokenMachine.SetBroken(true);
         isBreakdownPending = false;
         OnMachineBroken?.Invoke(brokenMachine);
+        PlayCatalogSfx(audio => audio.Catalog.machineBreak);
+        AudioManager.Instance?.StartMachineBreaking();
         Debug.Log($"[ProductionEventManager] 기계 고장: {brokenMachine.name} (틱 {Tick.ProductionTick})");
         return true;
     }
@@ -235,6 +239,29 @@ public class ProductionEventManager : MonoBehaviour
             brokenMachine.SetBroken(false);
             brokenMachine = null;
         }
+
+        if (!keepBrokenMachine)
+        {
+            AudioManager.Instance?.StopMachineBreaking();
+        }
+    }
+
+    // 생산 종료가 결산 UI보다 먼저 일어날 때 호출한다.
+    // 고장 예약, 고장 상태, 반복음을 한 번에 정리한다.
+    public void EndProductionSession()
+    {
+        ClearBreakdownState();
+    }
+
+    private static void PlayCatalogSfx(Func<AudioManager, AudioCatalog.AudioEntry> selectClip)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectClip == null)
+        {
+            return;
+        }
+
+        audio.PlaySfx(selectClip(audio));
     }
 
     // TickManager가 생산 틱 세션을 시작할 때 호출한다.
@@ -246,7 +273,8 @@ public class ProductionEventManager : MonoBehaviour
     // TickManager가 생산 틱을 진행할 때마다 호출한다.
     public void NotifyProductionTick(int tick)
     {
-        if (Tick == null || !Tick.IsRunning)
+        if (!IsProductionActive || Session == null || Session.IsEndingProduction
+            || Tick == null || !Tick.IsRunning)
         {
             return;
         }

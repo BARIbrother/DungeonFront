@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -36,6 +37,17 @@ public class PlayerMovement : MonoBehaviour
     private bool repairAnimPending;
     private float repairAnimUntil;
     private const float RepairAnimTimeout = 1.35f;
+    private const float HammerSwingDuration = 1f;
+
+    private enum HammerTargetKind
+    {
+        Air,
+        BrokenMachine,
+        HandmadeMachine,
+        ManualMachine,
+        NormalMachine,
+    }
+    private bool footstepsPlaying;
 
     void Start()
     {
@@ -111,6 +123,7 @@ public class PlayerMovement : MonoBehaviour
             || ZoneExpansionUI.IsOpen || InventoryUI.IsOpen || TechTreeUI.IsOpen
             || (QuestWindowController.Instance != null && QuestWindowController.Instance.IsOpen))
         {
+            SetFootstepsPlaying(false);
             UpdateAnimator(Vector2.zero);
             return;
         }
@@ -145,18 +158,11 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // TEMP: 모션 검수용. 기계 없이 스페이스만 눌러도 수리 모션을 재생한다.
-        if (keyboard != null
-            && keyboard.spaceKey.wasPressedThisFrame
-            && !DialogueUI.IsOpen
-            && !TutorialPanelUI.IsOpen)
-        {
-            PlayRepairMotion();
-        }
-
         TryInteractNearbyMachine(keyboard);
 
         if (IsPlayingRepair())
         {
+            SetFootstepsPlaying(false);
             UpdateAnimator(Vector2.zero);
             return;
         }
@@ -166,6 +172,7 @@ public class PlayerMovement : MonoBehaviour
             input.Normalize();
         }
 
+        SetFootstepsPlaying(input.sqrMagnitude > 0f);
         UpdateAnimator(input);
 
         float speed = pixelsPerSecond / pixelsPerUnit;
@@ -178,6 +185,37 @@ public class PlayerMovement : MonoBehaviour
         }
 
         transform.position = next;
+    }
+
+    private void OnDisable()
+    {
+        SetFootstepsPlaying(false);
+    }
+
+    // 키보드 이동 입력이 있는 동안만 루프 발소리를 유지한다.
+    // 매 프레임 Start/Stop을 호출하지 않도록 상태가 바뀔 때만 AudioManager에 전달한다.
+    private void SetFootstepsPlaying(bool shouldPlay)
+    {
+        if (footstepsPlaying == shouldPlay)
+        {
+            return;
+        }
+
+        footstepsPlaying = shouldPlay;
+
+        if (AudioManager.Instance == null)
+        {
+            return;
+        }
+
+        if (shouldPlay)
+        {
+            AudioManager.Instance.StartFootsteps();
+        }
+        else
+        {
+            AudioManager.Instance.StopFootsteps();
+        }
     }
 
     // Locked·노드 칸을 뚫지 않도록 플레이어 월드 좌표를 보정한다. 막히면 축별 미끄러짐을 시도한다.
@@ -267,8 +305,7 @@ public class PlayerMovement : MonoBehaviour
         Machine brokenTarget = FindNearestMachineWithinOneCell(machine => machine.IsBroken);
         if (brokenTarget != null)
         {
-            TryRepairNearbyMachine(brokenTarget);
-            PlayRepairMotion();
+            BeginHammerSwing(brokenTarget, HammerTargetKind.BrokenMachine);
             return;
         }
 
@@ -276,27 +313,78 @@ public class PlayerMovement : MonoBehaviour
             machine => machine is HandmadeMachine);
         if (handmadeTarget != null)
         {
-            handmadeTarget.TryAdvanceManualClick();
-            PlayRepairMotion();
+            BeginHammerSwing(handmadeTarget, HammerTargetKind.HandmadeMachine);
             return;
         }
 
         Machine manualTarget = FindNearestMachineWithinOneCell(machine => machine.SupportsManualWorkClick());
         if (manualTarget != null)
         {
-            if (manualTarget.TryAdvanceManualClick())
-            {
-                TrySetAnimatorTrigger(WorkHash);
-            }
-
+            BeginHammerSwing(manualTarget, HammerTargetKind.ManualMachine);
             return;
         }
 
         Machine nearbyMachine = FindNearestMachineWithinOneCell(machine => machine != null);
         if (nearbyMachine != null)
         {
-            PlayRepairMotion();
+            BeginHammerSwing(nearbyMachine, HammerTargetKind.NormalMachine);
+            return;
         }
+
+        BeginHammerSwing(null, HammerTargetKind.Air);
+    }
+
+    // 모든 망치 행동은 휘두름음/모션을 먼저 끝내고, 1초 뒤에만 실제 효과를 적용한다.
+    private void BeginHammerSwing(Machine target, HammerTargetKind targetKind)
+    {
+        PlayRepairMotion();
+        PlayCatalogSfx(audio => audio.Catalog.hammerWhoosh);
+        StartCoroutine(ResolveHammerSwingAfterDelay(target, targetKind));
+    }
+
+    private IEnumerator ResolveHammerSwingAfterDelay(Machine target, HammerTargetKind targetKind)
+    {
+        yield return new WaitForSecondsRealtime(HammerSwingDuration);
+
+        switch (targetKind)
+        {
+            case HammerTargetKind.BrokenMachine:
+                TryRepairNearbyMachine(target);
+                break;
+
+            case HammerTargetKind.HandmadeMachine:
+                if (target != null && target.TryAdvanceManualClick())
+                {
+                    PlayCatalogSfx(audio => audio.Catalog.metalTap);
+                }
+                break;
+
+            case HammerTargetKind.ManualMachine:
+                if (target != null && target.TryAdvanceManualClick())
+                {
+                    TrySetAnimatorTrigger(WorkHash);
+                    PlayCatalogSfx(audio => audio.Catalog.metalTap);
+                }
+                break;
+
+            case HammerTargetKind.NormalMachine:
+                if (target != null)
+                {
+                    PlayCatalogSfx(audio => audio.Catalog.metalTap);
+                }
+                break;
+        }
+    }
+
+    private static void PlayCatalogSfx(System.Func<AudioManager, AudioCatalog.AudioEntry> selectEntry)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectEntry == null)
+        {
+            return;
+        }
+
+        audio.PlaySfx(selectEntry(audio));
     }
 
     private void PlayRepairMotion()

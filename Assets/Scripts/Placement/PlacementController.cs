@@ -166,6 +166,17 @@ public class PlacementController : MonoBehaviour
             ? gridManager.GetAnchorForCenteredFootprint(mouseWorld, prefabMachine.GetFootprintSize())
             : gridManager.WorldToGrid(mouseWorld);
 
+        // 빨간 미리보기 위치를 클릭한 경우 실제 설치 호출 전에 거절음을 확실히 재생한다.
+        if (prefabMachine == null
+            || !gridManager.CanPlaceFootprintAt(
+                placeAnchor,
+                prefabMachine.GetFootprintSize(),
+                prefabMachine))
+        {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
+            return;
+        }
+
         MachineInventoryEntry placing = selectedMachine;
         if (gridManager.TryPlaceMachine(
             placing.definition.machinePrefab,
@@ -173,6 +184,7 @@ public class PlacementController : MonoBehaviour
             placing,
             beltFlowDirection))
         {
+            PlayCatalogSfx(audio => audio.Catalog.placeMachine);
             string placedDefinitionId = placing.definition.id;
             if (!playerInventory.TryRemoveMachine(placing.instanceId, out _))
             {
@@ -190,6 +202,10 @@ public class PlacementController : MonoBehaviour
             OnInventoryChanged?.Invoke();
             OnMachinePlaced?.Invoke(placedDefinitionId, placeAnchor);
             placementUI.Refresh();
+        }
+        else
+        {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
         }
     }
 
@@ -215,6 +231,7 @@ public class PlacementController : MonoBehaviour
         Vector3 mouseWorld = GetMouseWorldPosition();
         if (!gridManager.TryGetMachineAtWorldPosition(mouseWorld, out Machine machine))
         {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return;
         }
 
@@ -230,12 +247,14 @@ public class PlacementController : MonoBehaviour
     {
         if (machine == null || gridManager == null || playerInventory == null)
         {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
         }
 
         MachineInventoryEntry entry = machine.CreateInventoryEntryForPickup();
         if (entry == null)
         {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
         }
 
@@ -243,11 +262,23 @@ public class PlacementController : MonoBehaviour
 
         if (!gridManager.TryRemoveMachine(machine))
         {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
         }
-
+        PlayCatalogSfx(audio => audio.Catalog.pickupMachine);
         playerInventory.ReturnMachine(entry);
         return true;
+    }
+
+    private static void PlayCatalogSfx(Func<AudioManager, AudioCatalog.AudioEntry> selectClip)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectClip == null)
+        {
+            return;
+        }
+
+        audio.PlaySfx(selectClip(audio));
     }
 
     // 기계 내부 inputPort·outputPort·WIP 재료를 플레이어 인벤으로 반환한다.

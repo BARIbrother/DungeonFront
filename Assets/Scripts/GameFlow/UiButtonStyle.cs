@@ -28,6 +28,12 @@ public static class UiButtonStyle
             return;
         }
 
+        // 버튼 스킨 리소스가 없더라도 소리는 동작해야 하므로 먼저 붙인다.
+        if (button.GetComponent<UiButtonSound>() == null)
+        {
+            button.gameObject.AddComponent<UiButtonSound>();
+        }
+
         EnsureSprites();
         if (normalSprite == null)
         {
@@ -61,6 +67,7 @@ public static class UiButtonStyle
             selectedSprite = highlightSprite != null ? highlightSprite : normalSprite,
             disabledSprite = disabledSprite != null ? disabledSprite : normalSprite
         };
+
     }
 
     public static void ApplyInChildren(GameObject root, float pixelsPerUnitMultiplier = DefaultPixelsPerUnitMultiplier)

@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: a6811121912c127459c99c51cc4c729a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - uiClick: {fileID: 8300000, guid: a3e7b936c53250e4d835933ae4e6d76e, type: 3}
+  - uiDeny: {fileID: 8300000, guid: d3054098b7f4b584e9b8963339727b7d, type: 3}
+  - coin: {fileID: 8300000, guid: c79b0db68146a9c46bfd00b2b0393b54, type: 3}
+  - footstep: {fileID: 8300000, guid: 1503054c738331441bd3868d6a2bfa4b, type: 3}
+  - gameOver: {fileID: 8300000, guid: 286b822e65324f948b323719cef26240, type: 3}
+  - machineBreak: {fileID: 8300000, guid: 7c9713393a8fa9949b05f775fcad0a64, type: 3}
+  - machineBreaking: {fileID: 8300000, guid: 337dfcdbecbc8c9459615b71ed346e5a, type: 3}
+  - repair: {fileID: 8300000, guid: 9624f7809b055594596985dc63f6e686, type: 3}
+  - placeMachine: {fileID: 8300000, guid: 4a9470035783a87409ff328f4f694cd2, type: 3}
+  - pickupMachine: {fileID: 8300000, guid: 525ee4edaa9a3c8499628e80d8b98ae6, type: 3}
+  - phaseStart: {fileID: 8300000, guid: 48f551a5c11d5ca4886143597043bf59, type: 3}
+  - phaseEnd: {fileID: 8300000, guid: 82cc620e85709714eb1235cca4834286, type: 3}
+  - questAccept: {fileID: 8300000, guid: 10f8d045f15ea4040a89bb395f1f6cac, type: 3}
+  - zoneUnlock: {fileID: 8300000, guid: 47275cd47f541a84089a8d26741df5a8, type: 3}
+  - prepare: {fileID: 8300000, guid: de9542d3e32961645947732903857c32, type: 3}
+  - production: {fileID: 8300000, guid: da9f9241e85cafd45b08aba783defae3, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

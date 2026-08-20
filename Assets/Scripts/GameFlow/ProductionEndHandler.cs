@@ -22,8 +22,25 @@ public static class ProductionEndHandler
             TickManager.Instance.StopTick();
         }
 
+        // 생산 종료 순간에는 고장 예약/루프도 끝낸다. 결산 확인을 누를 때까지
+        // 고장 상태가 남아 다음 단계에서 다시 소리 나는 일을 막는다.
+        ProductionEventManager.Instance?.EndProductionSession();
+
         List<ProductionSummaryLine> lines = CollectFinishedGoodsFromMap();
-        ProductionSummaryUI.Show(lines);
+        AudioManager audio = AudioManager.Instance;
+        AudioCatalog.AudioEntry phaseEnd = audio != null && audio.Catalog != null
+            ? audio.Catalog.phaseEnd
+            : null;
+
+        if (audio != null)
+        {
+            audio.StopBgm();
+            audio.PlaySfx(phaseEnd);
+        }
+
+        // 호루라기가 끝난 뒤에만 결산 내용을 연다.
+        ProductionSummaryUI.ShowAfterSound(lines,
+            audio != null ? audio.GetPlaybackDuration(phaseEnd) : 0f);
     }
 
     // 요약 확인 후 중복 종료 가드를 해제한다.
