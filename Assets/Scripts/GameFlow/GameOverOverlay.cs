@@ -56,6 +56,7 @@ public sealed class GameOverOverlay : MonoBehaviour
         canvas.sortingOrder = 3000;
         canvasObject.GetComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         canvasObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920, 1080);
+        canvasObject.GetComponent<CanvasScaler>().screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
 
         panel = Create("Panel", canvasObject.transform, new Color(0f, 0f, 0f, .85f));
         Stretch(panel.GetComponent<RectTransform>(), Vector2.zero, Vector2.one);

@@ -45,6 +45,7 @@ public sealed class ActiveQuestTrackerUI : MonoBehaviour
         CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
 
         panel = new GameObject("ActiveQuestPanel", typeof(RectTransform), typeof(Image));
         panel.transform.SetParent(canvasObject.transform, false);

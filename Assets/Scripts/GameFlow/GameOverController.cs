@@ -88,7 +88,6 @@ public class GameOverController : MonoBehaviour
             return;
         }
 
-        boundSession.OnPhaseChanged += HandlePhaseChanged;
         boundSession.OnNewGame += ResetGameOver;
     }
 
@@ -99,7 +98,6 @@ public class GameOverController : MonoBehaviour
             return;
         }
 
-        boundSession.OnPhaseChanged -= HandlePhaseChanged;
         boundSession.OnNewGame -= ResetGameOver;
         boundSession = null;
     }
@@ -118,54 +116,8 @@ public class GameOverController : MonoBehaviour
         }
     }
 
-    // 날짜 변경 시(Prepare 페이즈 진입) 미납 검사 실행
-    private void HandlePhaseChanged(GamePhase newPhase)
-    {
-        if (newPhase == GamePhase.Prepare)
-        {
-            CheckOverdueQuests(GameSessionState.Instance.day);
-        }
-    }
-
-    /// <summary>
-    /// 기한이 만료된 의뢰들을 검사하여 미납 페널티 또는 게임오버를 처리합니다.
-    /// </summary>
-    public void CheckOverdueQuests(int currentDay)
-    {
-        if (GameSessionState.Instance == null || GameSessionState.Instance.quests == null) return;
-
-        // 리스트 원소 삭제를 위해 역순 순회
-        for (int i = GameSessionState.Instance.quests.Count - 1; i >= 0; i--)
-        {
-            var quest = GameSessionState.Instance.quests[i];
-
-            if (IsQuestExpired(quest, currentDay))
-            {
-                // 1. 필수(스토리) 의뢰 미납 -> 게임오버
-                if (quest.isMandatory)
-                {
-                    TriggerGameOver("필수 의뢰를 완료하지 못했습니다");
-                    return;
-                }
-                // 2. 일반 의뢰 미납 -> 보상 명성의 0.5배 차감
-                else
-                {
-                    int penalty = Mathf.RoundToInt(quest.rewardReputation * 0.5f);
-                    GameSessionState.Instance.AddReputation(-penalty);
-
-                    Debug.Log($"<color=red>[미납 페널티] 일반 의뢰 '{quest.questName}' 미납! 명성 -{penalty} 차감</color>");
-
-                    GameSessionState.Instance.quests.RemoveAt(i);
-                }
-            }
-        }
-    }
-
-    // 만료 날짜 판정
-    private bool IsQuestExpired(AcceptedQuestState quest, int currentDay)
-    {
-        return currentDay >= quest.deadlineDay;
-    }
+    // 미납 판정·페널티는 QuestDeadlineController.EvaluateExpiredQuests가 담당한다.
+    // 이 클래스는 게임오버 UI 표출만 책임진다.
 
     // 게임오버 팝업 출력
     public void TriggerGameOver(string message)

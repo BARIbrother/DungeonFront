@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-// Prepare 단계 B키 배치 모드. 인벤 MachineInventoryEntry 선택 후 GridManager 마우스 위치로 배치한다.
+// Prepare·Production 단계 B키 배치 모드. 인벤 MachineInventoryEntry 선택 후 GridManager 마우스 위치로 배치한다.
 public class PlacementController : MonoBehaviour
 {
     [SerializeField] private GridManager gridManager;
@@ -94,7 +94,7 @@ public class PlacementController : MonoBehaviour
     {
         ResolveReferences();
 
-        if (!IsPreparePhase())
+        if (!IsPlacementAllowedPhase())
         {
             if (isPlacementMode)
             {
@@ -385,11 +385,13 @@ public class PlacementController : MonoBehaviour
         }
     }
 
-    private bool IsPreparePhase()
+    // 배치 모드(B키)는 Prepare·Production 단계에서 쓸 수 있다. Settlement에서는 막는다.
+    private bool IsPlacementAllowedPhase()
     {
         if (GameSessionState.Instance != null)
         {
-            return GameSessionState.Instance.Phase == GamePhase.Prepare;
+            GamePhase phase = GameSessionState.Instance.Phase;
+            return phase == GamePhase.Prepare || phase == GamePhase.Production;
         }
 
         return true;

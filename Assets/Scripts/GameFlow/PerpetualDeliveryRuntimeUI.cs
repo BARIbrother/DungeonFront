@@ -138,7 +138,7 @@ public sealed class PerpetualDeliveryRuntimeUI : MonoBehaviour
         GameObject canvasObject = new("PerpetualDeliveryCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         canvasObject.transform.SetParent(transform, false);
         Canvas canvas = canvasObject.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 1800;
-        CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920,1080);
+        CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1920,1080); scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
 
         openButtonObject = Panel("Open", canvasObject.transform, new Color(.25f,.46f,.72f));
         Stretch(openButtonObject.GetComponent<RectTransform>(),new Vector2(.76f,.83f),new Vector2(.94f,.91f));

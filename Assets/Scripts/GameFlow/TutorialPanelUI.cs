@@ -51,26 +51,18 @@ public sealed class TutorialPanelUI : MonoBehaviour
         CreateUi();
     }
 
-    private void OnEnable() => DialogueUI.OnDialogueClosed += HandleDialogueClosed;
-
     private void OnDisable()
     {
-        DialogueUI.OnDialogueClosed -= HandleDialogueClosed;
         GamePauseService.ReleasePause(PauseRequester);
     }
 
-    private void HandleDialogueClosed(string eventId)
-    {
-        // E1 뒤에는 E2가 자동으로 이어지므로, 첫 의뢰 설명까지 끝난 시점에 안내를 시작한다.
-        if (eventId == "001E00002" && PlayerPrefs.GetInt(CompletionKey, 0) == 0)
-        {
-            Show();
-        }
-    }
-
+    // FactoryStoryHooks가 준비 단계 독백 시퀀스(001E00017 게이트 → 001E00004 종료)를 다 마친 뒤 직접 호출한다.
     public void Show()
     {
-        if (showing || GameSessionState.Instance == null || GameSessionState.Instance.day != 1)
+        if (showing
+            || GameSessionState.Instance == null
+            || GameSessionState.Instance.day != 1
+            || PlayerPrefs.GetInt(CompletionKey, 0) != 0)
         {
             return;
         }
@@ -151,6 +143,7 @@ public sealed class TutorialPanelUI : MonoBehaviour
         CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
 
         modal = Panel("TutorialModal", canvasObject.transform, new Color(0f, 0f, 0f, 0.7f));
         Stretch(modal.GetComponent<RectTransform>(), Vector2.zero, Vector2.one);
