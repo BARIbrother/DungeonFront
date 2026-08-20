@@ -163,11 +163,11 @@ public class TickManager : MonoBehaviour
         beltOrderDirty = true;
     }
 
-    // T키로 생산 틱을 시작/정지한다.
+    // P키로 생산 틱을 시작/정지한다. (기존 T키는 테크트리 열기와 겹쳐서 P로 변경)
     private void HandleStartTickInput()
     {
         Keyboard keyboard = Keyboard.current;
-        if (keyboard == null || !keyboard.tKey.wasPressedThisFrame)
+        if (keyboard == null || !keyboard.pKey.wasPressedThisFrame)
         {
             return;
         }
@@ -175,7 +175,7 @@ public class TickManager : MonoBehaviour
         if (isRunning)
         {
             StopTick();
-            Debug.Log("[TickManager] 생산 틱 정지 (T)");
+            Debug.Log("[TickManager] 생산 틱 정지 (P)");
             return;
         }
 
@@ -195,7 +195,7 @@ public class TickManager : MonoBehaviour
             StartTick();
         }
 
-        Debug.Log("[TickManager] 생산 틱 시작 (T)");
+        Debug.Log("[TickManager] 생산 틱 시작 (P)");
     }
 
     public void StartTick(bool resetProductionCounter = true)

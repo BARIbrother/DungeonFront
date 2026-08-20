@@ -86,15 +86,44 @@ public class QuestDeadlineController : MonoBehaviour
                 gameOverController?.TriggerGameOver();
                 GameOverController.Instance?.TriggerGameOver("필수 의뢰를 완료하지 못했습니다");
             }
-            else if (economy != null)
+            else
             {
-                int penalty = Mathf.RoundToInt(info.rewardReputation * 0.5f);
-                economy.AddReputation(-penalty);
-                Debug.Log($"[Quest] {quest.title} 미납 — 명성 {penalty} 차감", quest);
+                ApplyOverduePenalty(quest, info);
             }
 
             questManager.ExpireQuest(quest);
         }
+    }
+
+    // 일반 의뢰 미납: 보상 명성의 0.5배를 차감한다.
+    // economy가 없어도 세션에 직접 반영해, 페널티 없이 조용히 사라지지 않게 한다.
+    private void ApplyOverduePenalty(Quest quest, QuestRuntimeInfo info)
+    {
+        int penalty = Mathf.RoundToInt(info.rewardReputation * 0.5f);
+        if (penalty <= 0)
+        {
+            Debug.LogWarning(
+                $"[Quest] {quest.title} 미납 — 보상 명성이 {info.rewardReputation}이라 차감할 값이 없습니다. "
+                + "questline.json의 fame 보상 또는 QuestRuntimeInfo 등록을 확인하세요.",
+                quest);
+            return;
+        }
+
+        if (economy != null)
+        {
+            economy.AddReputation(-penalty);
+        }
+        else if (GameSessionState.Instance != null)
+        {
+            GameSessionState.Instance.AddReputation(-penalty);
+        }
+        else
+        {
+            Debug.LogWarning($"[Quest] {quest.title} 미납 — 명성을 반영할 대상이 없습니다.", quest);
+            return;
+        }
+
+        Debug.Log($"[Quest] {quest.title} 미납 — 명성 {penalty} 차감", quest);
     }
 
     private void HandleCompleted(Quest quest)

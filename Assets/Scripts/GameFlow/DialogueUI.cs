@@ -72,13 +72,104 @@ public sealed class DialogueUI : MonoBehaviour
             new DialogueLine("이브", "첫 의뢰는 준비 단계에서 받을 수 있습니다. 의뢰를 수락하고 필요한 물품을 생산하세요.", "eve"),
             new DialogueLine("이브", "생산이 끝나면 결산 단계에서 물품을 한 번에 납품하면 됩니다.", "eve"),
         },
+        ["001E00008"] = new[]
+        {
+            new DialogueLine("주인공", "게임 시작 전, 몇가지 정보에 대해 알려줄게. 우선 하루는 크게 준비-생산-결산 단계로 나눠져있고, 결산 단계에서 다음 생산 단계로 넘어갈 때 일차수가 1씩 커져. 참고로, 지금은 준비단계야.", "protagonist"),
+        },
+        ["001E00003"] = new[]
+        {
+            // 종료 후 [게이트] 이동키 입력 감지 + 5초 대기 → 001E00007로 진행.
+            new DialogueLine("주인공", "다음으로는 조작키에 대해 알려줄게. 기본적으로 움직일 땐 화살표 방향키, 혹은 WASD를 통해 움직일 수 있어. 그리고 나중에 기계가 고장나 수리해야할 때에는 스페이스바를 눌러 수리하면 돼. 한 번 해볼래?", "protagonist"),
+        },
+        ["001E00007"] = new[]
+        {
+            // 종료 후 [게이트] 채굴기 배치 감지 → 001E00013으로 진행.
+            new DialogueLine("주인공", "좋았어. 다음으로는 기계를 배치해보자. B키를 눌러 하단의 인벤토리를 열고, 채굴기를 클릭한 뒤 철광석 위에 설치해보자.", "protagonist"),
+        },
+        ["001E00013"] = new[]
+        {
+            // 종료 후 [게이트] 배치 모드(B키) 닫힘 감지 → 001E00009로 진행.
+            new DialogueLine("주인공", "여기까지 순조롭네. 다음으로 넘어가기 전 B키로 인벤토리를 꺼두자.", "protagonist"),
+        },
+        ["001E00009"] = new[]
+        {
+            // 종료 후 [게이트] 퀘스트창 열림 감지 → 001E00010으로 진행.
+            new DialogueLine("주인공", "다음으로는 대장장이인 만큼, 의뢰를 받아볼거야. 의뢰창은, 옆에 있는 QUEST버튼을 눌러 열 수 있어. 한 번 열어볼까?", "protagonist"),
+        },
+        ["001E00010"] = new[]
+        {
+            // 종료 후 [게이트] 필수 퀘스트 수락 감지 → 001E00014로 진행.
+            new DialogueLine("주인공", "저기 필수 의뢰를 수락해보자.", "protagonist"),
+        },
+        ["001E00014"] = new[]
+        {
+            new DialogueLine("주인공", "방금 전과 같은 필수 의뢰는 내가 시험을 치기까지 꼭! 무조건! 지켜야하는 의뢰야. 이 의뢰를 못 지키면..... 게임 오버인거지... 이와 다른 일반 의뢰도 있는데, 이 의뢰는 지키면 보상을 주는 대신, 못 지키면 그만큼의 패널티가 있어.", "protagonist"),
+        },
+        ["001E00012"] = new[]
+        {
+            // 종료 후 [게이트] 퀘스트창 닫힘 감지 → 001E00015로 진행.
+            new DialogueLine("주인공", "그럼, 퀘스트창을 닫아보자.", "protagonist"),
+        },
+        ["001E00015"] = new[]
+        {
+            // 종료 후 [게이트] 테크트리창 열림 감지 → 001E00011로 진행.
+            new DialogueLine("주인공", "다음으로는, 앞으로의 공장을 혁신적으로 바꿔줄 테크트리야. T키, 또는 옆의 테크트리 버튼을 눌러서 테크트리 창을 열어보자.", "protagonist"),
+        },
+        ["001E00011"] = new[]
+        {
+            new DialogueLine("주인공", "테크트리에서는 앞으로 명성을 통해 다양한 기술/기계들을 해금할 수 있어.", "protagonist"),
+        },
+        ["001E00016"] = new[]
+        {
+            // 종료 후 [게이트] 테크트리창 닫힘 감지 → 001E00017로 진행.
+            new DialogueLine("주인공", "테크트리 창을 닫아보자.", "protagonist"),
+        },
+        ["001E00017"] = new[]
+        {
+            // 종료 후 [게이트] 생산 단계 진입 감지 → (001E00004가 자동으로 뜨고 닫히면) 튜토리얼 패널 표시.
+            new DialogueLine("주인공", "그럼, 이제 생산 단계로 넘어가서 직접 생산을 해보자.", "protagonist"),
+        },
         ["001E00004"] = new[]
         {
-            new DialogueLine("주인공", "생산이 시작됐어요. 기계와 운반 흐름을 확인해 볼까요?", "protagonist"),
+            // 종료 후 [게이트] 인벤토리 iron_ore 증가 감지 → 001E00018로 진행.
+            // main-Q001-production.md 원문 기반. "채굴기를 배치하자"는 이미 001E00007에서 끝냈으므로
+            // "이미 배치해둔 채굴기가 캐고 있다"로 각색했고, e키 안내는 빼고 채굴기 클릭으로 대체했다.
+            new DialogueLine("주인공", "자! 철 광석은 어떻게 재련하는지 차근차근 알아 보죠~", "protagonist"),
+            new DialogueLine("주인공", "채굴기는 아까 이미 철광석 노드 위에 배치해뒀으니, 지금쯤 부지런히 캐고 있을 거예요.", "protagonist"),
+            new DialogueLine("주인공", "그리고 조금만 기다리면..", "protagonist"),
+            new DialogueLine("주인공", "나왔다! 이제 이걸 직접 옮겨야 해요. 나중에는 컨베이어 벨트로 자동화할 수 있겠지만, 지금은 만들 수 없네요..", "protagonist"),
+            new DialogueLine("주인공", "채굴기를 클릭해서 인벤토리로 옮겨볼까요?", "protagonist"),
+        },
+        ["001E00018"] = new[]
+        {
+            // 종료 후 [게이트] 용광로(Smelter) 배치 감지 → 001E00021로 진행.
+            new DialogueLine("주인공", "이제 이 광석을 재련할 용광로가 필요해요. 인벤토리에서 원하시는 곳에 배치하면 돼요.", "protagonist"),
+        },
+        ["001E00021"] = new[]
+        {
+            // 종료 후 [게이트] 배치 모드(B키) 닫힘 감지 → 001E00019로 진행.
+            new DialogueLine("주인공", "용광로도 놓았으니, B키로 인벤토리를 닫아두자. 그래야 용광로를 클릭해서 쓸 수 있거든요.", "protagonist"),
+        },
+        ["001E00019"] = new[]
+        {
+            // 종료 후 [게이트] 인벤토리 iron_bar(철 주괴) 증가 감지 → 001E00020으로 진행.
+            new DialogueLine("주인공", "이제 여기에 아까 옮겨온 철 광석을 넣으면..", "protagonist"),
+            new DialogueLine("주인공", "짠! 이렇게 철 주괴가 나올 거예요! 제 첫 생산품.. 흐흐흐.. 좋아요. 클릭해서 인벤토리에 담아볼까요?", "protagonist"),
+        },
+        ["001E00020"] = new[]
+        {
+            // 종료 후 [게이트 없음] — 001E00017 게이트가 통과된 상태였다면 튜토리얼 패널 표시.
+            new DialogueLine("주인공", "좋아요! 이렇게 철 주괴를 생산하는 사이에 또 채굴기가 철 광석을 캤네요. 이제 이 과정을 반복해서 필요한 만큼 만들면 돼요.", "protagonist"),
+            new DialogueLine("이브", "...그런데, 왜 저한테 설명하시는 겁니까?", "eve"),
         },
         ["001E00005"] = new[]
         {
-            new DialogueLine("이브", "결산 단계입니다. 의뢰 카드의 보유/요구 수량을 확인한 뒤 납품하세요.", "eve"),
+            new DialogueLine("주인공", "하아~ 재밌었다. 감사관님, 여기요! 저희 대장간의 첫 생산품입니다!", "protagonist"),
+            new DialogueLine("이브", "흠. 나쁘지 않은 품질이군요. 첫 번째 과제는 합격점을 드리겠습니다.", "eve"),
+            new DialogueLine("주인공", "(광기 표정) 다음 과제는 뭔가요? 집행관의 대검? 이터널 플레임 코어? 드래그나이트 마나핵? 뭐든 좋으니까 빨리 주세요!", "protagonist"),
+            new DialogueLine("이브", "..그런 S급 아이템을 어떻게 알고 계신지는 모르겠지만, 그런 난이도의 시험을 출제할 리 없잖습니까. 저는 대장간 협회에 당신의 시험 관련 서류를 처리한 후, 모레 다시 오도록 하겠습니다. 그때까지는 대장간 영업을 하셔도 좋습니다. 그럼.", "eve"),
+            new DialogueLine("주인공", "... 아쉽다. 뭐, 하나씩 천천히 하다 보면 언젠가는 만들 수 있겠지! 오늘은 이만 쉬자!", "protagonist"),
+            new DialogueLine("", "(화면 암전. 오토세이브. 1일차 종료)", "unknown", blackout: true),
         },
         ["001E00006"] = new[]
         {
@@ -251,6 +342,7 @@ public sealed class DialogueUI : MonoBehaviour
         CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
 
         modal = CreatePanel("Modal", canvasObject.transform, new Color(0f, 0f, 0f, 0.62f));
         Stretch(modal.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);

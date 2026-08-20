@@ -7,7 +7,8 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 /// <summary>
-/// 상점 카탈로그 구매와 테크트리 기계 해금을 B키 허브에서 호출한다.
+/// 상점 카탈로그 구매와 테크트리 기계 해금을 L키 허브에서 호출한다.
+/// (원래 B키였으나 PlacementController의 배치 모드 토글과 겹쳐 임시로 L키로 변경 — Docs 참고)
 /// </summary>
 public sealed class EconomyHubUI : MonoBehaviour
 {
@@ -58,7 +59,8 @@ public sealed class EconomyHubUI : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.bKey.wasPressedThisFrame)
+        // 배치 모드(PlacementController)가 B키를 쓰기 때문에 상점·해금 허브는 L키를 쓴다.
+        if (Keyboard.current != null && Keyboard.current.lKey.wasPressedThisFrame)
         {
             if (!visible && !GamePauseService.IsPaused)
             {
@@ -117,7 +119,7 @@ public sealed class EconomyHubUI : MonoBehaviour
 
         goldText.text = $"골드 {economy?.Gold ?? 0}";
         reputationText.text = $"명성 {economy?.Reputation ?? 0}";
-        feedbackText.text = "B 또는 닫기 버튼으로 돌아가기";
+        feedbackText.text = "L 또는 닫기 버튼으로 돌아가기";
 
         if (shop == null || catalog == null)
         {
@@ -256,6 +258,7 @@ public sealed class EconomyHubUI : MonoBehaviour
         CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
 
         modal = Panel("Modal", canvasObject.transform, new Color(0f, 0f, 0f, 0.7f));
         Stretch(modal.GetComponent<RectTransform>(), Vector2.zero, Vector2.one);
