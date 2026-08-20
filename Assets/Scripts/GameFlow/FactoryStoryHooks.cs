@@ -19,7 +19,9 @@ using UnityEngine.InputSystem;
 // | 001E00010  | 1    | Prepare     | 001E00009 게이트 통과 직후 — 퀘스트 수락 안내 독백. [게이트] 필수 퀘스트 수락 감지 후 진행 | ✓ |
 // | 001E00014  | 1    | Prepare     | 001E00010 게이트 통과 직후 — 퀘스트 보상/페널티 안내 독백               | ✓ |
 // | 001E00012  | 1    | Prepare     | 001E00014 종료 직후 — 퀘스트창 닫기 안내 독백. [게이트] 퀘스트창 닫힘 감지 후 진행 | ✓ |
-// | 001E00015  | 1    | Prepare     | 001E00012 게이트 통과 직후 — 테크트리 열기 안내 독백. [게이트] 테크트리창 열림 감지 후 진행 | ✓ |
+// | 001E00022  | 1    | Prepare     | 001E00012 게이트 통과 직후 — 레시피북 열기 안내 독백. [게이트] 레시피북(K) 열림 감지 후 진행 | ✓ |
+// | 001E00023  | 1    | Prepare     | 001E00022 게이트 통과 직후 — 레시피북 닫기 안내 독백. [게이트] 레시피북(K) 닫힘 감지 후 진행 | ✓ |
+// | 001E00015  | 1    | Prepare     | 001E00023 게이트 통과 직후 — 테크트리 열기 안내 독백. [게이트] 테크트리창 열림 감지 후 진행 | ✓ |
 // | 001E00011  | 1    | Prepare     | 001E00015 게이트 통과 직후 — 테크트리 설명 독백                         | ✓ |
 // | 001E00016  | 1    | Prepare     | 001E00011 종료 직후 — 테크트리 닫기 안내 독백. [게이트] 테크트리창 닫힘 감지 후 진행 | ✓ |
 // | 001E00017  | 1    | Prepare     | 001E00016 게이트 통과 직후 — 생산 단계로 넘어가자는 독백. [게이트] 생산 단계 진입 감지 후 진행 | ✓ |
@@ -28,6 +30,8 @@ using UnityEngine.InputSystem;
 // | 001E00021  | 1    | Production  | 001E00018 게이트 통과 직후 — 배치창 닫기 안내. [게이트] 배치 모드(B) 닫힘 감지 후 진행       | ✓ |
 // | 001E00019  | 1    | Production  | 001E00021 게이트 통과 직후 — 제련·회수 안내. [게이트] 인벤토리 iron_bar 증가 감지 후 진행    | ✓ |
 // | 001E00020  | 1    | Production  | 001E00019 게이트 통과 직후 — 마무리 독백. 대화가 닫히면 TutorialPanelUI 시작              | ✓ |
+// | 001E00024  | 1    | Production  | 001E00020 종료 직후, [게이트] 고장난 기계 발생 감지 통과 후 — 기계 고장 안내 독백. [게이트] 수리(스페이스) 완료 감지 후 진행 | ✓ |
+// | 001E00025  | 1    | Production  | 001E00024 게이트 통과 직후 — 수리 완료 마무리 독백 (게이트 없음)          | ✓ |
 // | 001E00005  | 1    | Settlement  | 결산 진입 — 첫 납품 반응 독백                                            | ✓    |
 // | 001E00006  | 3    | Prepare     | 3일차 Prepare 진입 (레이)                                               | ✓    |
 //
@@ -52,12 +56,16 @@ public class FactoryStoryHooks : MonoBehaviour
         WaitQuestWindowOpen,        // 001E00009 종료 후: 퀘스트창 열기 대기
         WaitMandatoryQuestAccept,   // 001E00010 종료 후: 필수 퀘스트 수락 대기
         WaitQuestWindowClose,       // 001E00012 종료 후: 퀘스트창 닫기 대기
+        WaitRecipeBookOpen,         // 001E00022 종료 후: 레시피북(K) 열기 대기
+        WaitRecipeBookClose,        // 001E00023 종료 후: 레시피북(K) 닫기 대기
         WaitTechTreeOpen,           // 001E00015 종료 후: 테크트리창 열기 대기
         WaitTechTreeClose,          // 001E00016 종료 후: 테크트리창 닫기 대기
         WaitProductionStarted,      // 001E00017 종료 후: 생산 단계 진입 대기
         WaitOreCollected,           // 001E00004 종료 후: 인벤토리 iron_ore 증가 대기
         WaitSmelterPlacement,       // 001E00018 종료 후: 용광로(Smelter) 배치 대기
         WaitIronIngotCollected,     // 001E00019 종료 후: 인벤토리 iron_bar 증가 대기
+        WaitMachineBroken,          // 001E00020 종료 후: 기계 고장 발생 대기 (이미 고장 상태면 즉시 통과)
+        WaitMachineRepaired,        // 001E00024 종료 후: 기계 수리(스페이스) 완료 대기
     }
 
     private static FactoryStoryHooks instance;
@@ -310,6 +318,15 @@ public class FactoryStoryHooks : MonoBehaviour
 
             case GamePhase.Settlement:
                 StoryEventBus.Raise("OnProductionEnded");
+
+                // 기계 고장·수리 튜토리얼이 아직 진행 중이었다면(3분 내내 못 고쳤거나 등) 결산 대사와
+                // 겹치지 않도록 조용히 정리한다. ProductionEventManager도 결산 진입 시 고장 상태를 풀어준다.
+                if (activeGate == TutorialGate.WaitMachineBroken || activeGate == TutorialGate.WaitMachineRepaired)
+                {
+                    activeGate = TutorialGate.None;
+                    gateNextEventId = null;
+                }
+
                 TryRaiseOnce("001E00005", day == 1);
                 break;
         }
@@ -402,7 +419,15 @@ public class FactoryStoryHooks : MonoBehaviour
                 break;
             case "001E00012":
                 // 퀘스트창 닫기 안내 종료 — 퀘스트창을 닫을 때까지 대기한다.
-                BeginGate(TutorialGate.WaitQuestWindowClose, "001E00015");
+                BeginGate(TutorialGate.WaitQuestWindowClose, "001E00022");
+                break;
+            case "001E00022":
+                // 레시피북 열기 안내 종료 — 레시피북(K)을 열 때까지 대기한다.
+                BeginGate(TutorialGate.WaitRecipeBookOpen, "001E00023");
+                break;
+            case "001E00023":
+                // 레시피북 닫기 안내 종료 — 레시피북(K)을 닫을 때까지 대기한다.
+                BeginGate(TutorialGate.WaitRecipeBookClose, "001E00015");
                 break;
             case "001E00015":
                 // 테크트리 열기 안내 종료 — 테크트리창을 열 때까지 대기한다.
@@ -444,6 +469,12 @@ public class FactoryStoryHooks : MonoBehaviour
                     ShowTutorialPanel();
                 }
 
+                // 이어서 기계 고장·수리 튜토리얼 — 이미 고장난 기계가 있으면 바로, 없으면 고장날 때까지 대기한다.
+                BeginGate(TutorialGate.WaitMachineBroken, "001E00024");
+                break;
+            case "001E00024":
+                // 기계 고장 안내 종료 — 스페이스바로 실제 수리를 마칠 때까지 대기한다.
+                BeginGate(TutorialGate.WaitMachineRepaired, "001E00025");
                 break;
         }
     }
@@ -533,6 +564,22 @@ public class FactoryStoryHooks : MonoBehaviour
 
                 break;
 
+            case TutorialGate.WaitRecipeBookOpen:
+                if (RecipeBookUI.IsOpen)
+                {
+                    CompleteGate(TutorialGate.WaitRecipeBookOpen);
+                }
+
+                break;
+
+            case TutorialGate.WaitRecipeBookClose:
+                if (!RecipeBookUI.IsOpen)
+                {
+                    CompleteGate(TutorialGate.WaitRecipeBookClose);
+                }
+
+                break;
+
             case TutorialGate.WaitTechTreeOpen:
                 if (TechTreeUI.IsOpen)
                 {
@@ -561,6 +608,23 @@ public class FactoryStoryHooks : MonoBehaviour
                 if (GetPlayerItemCount("iron_bar") > ingotCountAtGateStart)
                 {
                     CompleteGate(TutorialGate.WaitIronIngotCollected);
+                }
+
+                break;
+
+            case TutorialGate.WaitMachineBroken:
+                // 이미 고장난 기계가 있으면(자연 발생 타이밍이 대사보다 먼저였을 수 있음) 바로 통과한다.
+                if (ProductionEventManager.Instance != null && ProductionEventManager.Instance.BrokenMachine != null)
+                {
+                    CompleteGate(TutorialGate.WaitMachineBroken);
+                }
+
+                break;
+
+            case TutorialGate.WaitMachineRepaired:
+                if (ProductionEventManager.Instance == null || ProductionEventManager.Instance.BrokenMachine == null)
+                {
+                    CompleteGate(TutorialGate.WaitMachineRepaired);
                 }
 
                 break;
