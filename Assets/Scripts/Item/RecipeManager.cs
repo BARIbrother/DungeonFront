@@ -8,7 +8,7 @@ using UnityEngine;
 //   "recipes": [
 //     {
 //       "id": "iron_plate_smelt",
-//       "recipeTime": 10,
+//       "recipeTime": 100,
 //       "inputs": [
 //         { "itemId": "iron_ore", "count": 2 }
 //       ],
@@ -124,6 +124,7 @@ public class RecipeManager : MonoBehaviour
             Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
             recipe.id = record.id;
             recipe.recipeTime = record.recipeTime > 0 ? record.recipeTime : record.durationByTick;
+            recipe.manaCost = record.manaCost;
             recipe.inputEntryList = BuildItemEntryList(items, record.inputs);
             recipe.outputEntryList = BuildItemEntryList(items, record.outputs);
             Register(recipe);
@@ -180,6 +181,7 @@ public class RecipeJsonRecord
     public int recipeTime;
     // 구 JSON 호환. recipeTime이 비어 있을 때만 사용한다.
     public int durationByTick;
+    public int manaCost;
     public RecipeItemJsonRecord[] inputs;
     public RecipeItemJsonRecord[] outputs;
 }

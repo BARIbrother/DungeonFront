@@ -9,6 +9,7 @@ public class PlacementUI : MonoBehaviour
 {
     [SerializeField] private float panelHeight = 168f;
     [SerializeField] private float pickupBarHeight = 40f;
+    [SerializeField] private float scrollbarHeight = 22f;
     [SerializeField] private float slideSpeed = 900f;
     // Expand 스케일에서 캔버스가 화면보다 커질 때 좌우·하단이 잘리지 않도록 안쪽으로 민다.
     [SerializeField] private float screenEdgePad = 12f;
@@ -19,6 +20,7 @@ public class PlacementUI : MonoBehaviour
     private CanvasScaler canvasScaler;
     private RectTransform slideRootRect;
     private RectTransform panelRect;
+    private RectTransform pickupBarRect;
     private RectTransform contentRect;
     private Image pickupButtonImage;
     private readonly List<GameObject> machineButtons = new();
@@ -159,7 +161,7 @@ public class PlacementUI : MonoBehaviour
         ApplyCanvasFit();
         canvasObject.AddComponent<GraphicRaycaster>();
 
-        slideHeight = panelHeight + pickupBarHeight;
+        slideHeight = GetSlideHeight();
 
         var slideRootObject = new GameObject("PlacementSlideRoot");
         slideRootObject.transform.SetParent(canvasObject.transform, false);
@@ -169,12 +171,12 @@ public class PlacementUI : MonoBehaviour
 
         var pickupBarObject = new GameObject("PickupBar");
         pickupBarObject.transform.SetParent(slideRootObject.transform, false);
-        var pickupBarRect = pickupBarObject.AddComponent<RectTransform>();
+        pickupBarRect = pickupBarObject.AddComponent<RectTransform>();
         pickupBarRect.anchorMin = new Vector2(0f, 0f);
         pickupBarRect.anchorMax = new Vector2(1f, 0f);
         pickupBarRect.pivot = new Vector2(0.5f, 0f);
         pickupBarRect.sizeDelta = new Vector2(0f, pickupBarHeight);
-        pickupBarRect.anchoredPosition = new Vector2(0f, panelHeight);
+        pickupBarRect.anchoredPosition = new Vector2(0f, panelHeight + scrollbarHeight);
 
         var pickupButtonObject = new GameObject("PickupButton");
         pickupButtonObject.transform.SetParent(pickupBarObject.transform, false);
@@ -213,7 +215,7 @@ public class PlacementUI : MonoBehaviour
         panelRect.anchorMin = new Vector2(0f, 0f);
         panelRect.anchorMax = new Vector2(1f, 0f);
         panelRect.pivot = new Vector2(0.5f, 0f);
-        panelRect.sizeDelta = new Vector2(0f, panelHeight);
+        panelRect.sizeDelta = new Vector2(0f, panelHeight + scrollbarHeight);
         panelRect.anchoredPosition = Vector2.zero;
 
         var panelImage = panelObject.AddComponent<Image>();
@@ -224,7 +226,7 @@ public class PlacementUI : MonoBehaviour
         var scrollRect = scrollObject.AddComponent<RectTransform>();
         scrollRect.anchorMin = Vector2.zero;
         scrollRect.anchorMax = Vector2.one;
-        scrollRect.offsetMin = new Vector2(16f, 12f);
+        scrollRect.offsetMin = new Vector2(16f, 4f);
         scrollRect.offsetMax = new Vector2(-16f, -12f);
 
         var viewportObject = new GameObject("Viewport");
@@ -234,8 +236,10 @@ public class PlacementUI : MonoBehaviour
         viewportRect.anchorMax = Vector2.one;
         viewportRect.offsetMin = Vector2.zero;
         viewportRect.offsetMax = Vector2.zero;
-        viewportObject.AddComponent<Mask>().showMaskGraphic = false;
-        viewportObject.AddComponent<Image>().color = new Color(1f, 1f, 1f, 0.01f);
+        viewportObject.AddComponent<RectMask2D>();
+        Image viewportImage = viewportObject.AddComponent<Image>();
+        viewportImage.color = new Color(1f, 1f, 1f, 0.01f);
+        viewportImage.raycastTarget = true;
 
         var contentObject = new GameObject("Content");
         contentObject.transform.SetParent(viewportObject.transform, false);
@@ -258,12 +262,18 @@ public class PlacementUI : MonoBehaviour
         fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
         fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
+        Scrollbar horizontalScrollbar = CreateHorizontalScrollbar(scrollObject.transform);
+
         var scroll = scrollObject.AddComponent<ScrollRect>();
         scroll.viewport = viewportRect;
         scroll.content = contentRect;
         scroll.horizontal = true;
         scroll.vertical = false;
         scroll.movementType = ScrollRect.MovementType.Clamped;
+        scroll.horizontalScrollbar = horizontalScrollbar;
+        scroll.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+        scroll.horizontalScrollbarSpacing = 0f;
+        scroll.scrollSensitivity = 24f;
 
         CreateHoverTooltip(canvasObject.transform);
     }
@@ -294,7 +304,7 @@ public class PlacementUI : MonoBehaviour
             return;
         }
 
-        slideHeight = panelHeight + pickupBarHeight;
+        slideHeight = GetSlideHeight();
         float pad = Mathf.Max(0f, screenEdgePad);
         slideRootRect.anchorMin = new Vector2(0f, 0f);
         slideRootRect.anchorMax = new Vector2(1f, 0f);
@@ -302,6 +312,63 @@ public class PlacementUI : MonoBehaviour
         // sizeDelta.x 음수 = 좌우 여백. 하단은 visible 시 anchoredY = pad.
         slideRootRect.sizeDelta = new Vector2(-pad * 2f, slideHeight);
         targetAnchoredY = isVisible ? pad : -slideHeight;
+
+        float panelTotalHeight = panelHeight + scrollbarHeight;
+        if (panelRect != null)
+        {
+            panelRect.sizeDelta = new Vector2(0f, panelTotalHeight);
+        }
+
+        if (pickupBarRect != null)
+        {
+            pickupBarRect.sizeDelta = new Vector2(0f, pickupBarHeight);
+            pickupBarRect.anchoredPosition = new Vector2(0f, panelTotalHeight);
+        }
+    }
+
+    private float GetSlideHeight()
+    {
+        return panelHeight + pickupBarHeight + scrollbarHeight;
+    }
+
+    private Scrollbar CreateHorizontalScrollbar(Transform parent)
+    {
+        var barObject = new GameObject("ScrollbarHorizontal");
+        barObject.transform.SetParent(parent, false);
+        var barRect = barObject.AddComponent<RectTransform>();
+        barRect.anchorMin = new Vector2(0f, 0f);
+        barRect.anchorMax = new Vector2(1f, 0f);
+        barRect.pivot = new Vector2(0.5f, 0f);
+        barRect.sizeDelta = new Vector2(0f, scrollbarHeight - 8f);
+        barRect.anchoredPosition = new Vector2(0f, 2f);
+
+        Image track = barObject.AddComponent<Image>();
+        track.color = new Color(0.12f, 0.13f, 0.16f, 0.95f);
+
+        var slidingObject = new GameObject("Sliding Area");
+        slidingObject.transform.SetParent(barObject.transform, false);
+        var slidingRect = slidingObject.AddComponent<RectTransform>();
+        slidingRect.anchorMin = Vector2.zero;
+        slidingRect.anchorMax = Vector2.one;
+        slidingRect.offsetMin = new Vector2(8f, 2f);
+        slidingRect.offsetMax = new Vector2(-8f, -2f);
+
+        var handleObject = new GameObject("Handle");
+        handleObject.transform.SetParent(slidingObject.transform, false);
+        var handleRect = handleObject.AddComponent<RectTransform>();
+        handleRect.anchorMin = Vector2.zero;
+        handleRect.anchorMax = Vector2.one;
+        handleRect.offsetMin = Vector2.zero;
+        handleRect.offsetMax = Vector2.zero;
+        Image handleImage = handleObject.AddComponent<Image>();
+        handleImage.color = new Color(0.48f, 0.5f, 0.58f, 1f);
+
+        Scrollbar scrollbar = barObject.AddComponent<Scrollbar>();
+        scrollbar.direction = Scrollbar.Direction.LeftToRight;
+        scrollbar.handleRect = handleRect;
+        scrollbar.targetGraphic = handleImage;
+        scrollbar.size = 1f;
+        return scrollbar;
     }
 
     private void CreateHoverTooltip(Transform parent)

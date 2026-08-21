@@ -116,5 +116,5 @@ MonoBehaviour:
   currentRecipe: {fileID: 0}
   AvailableRecipes: {fileID: 0}
   selectedRecipe: {fileID: 0}
-  workSpeed: 1
+  workSpeed: 10
   bufferSlotCount: 8

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8454ec19a32541c59096c671d07e9c39, type: 3}
+  m_Name: RecipePool_Altar
+  m_EditorClassIdentifier: Assembly-CSharp::RecipePool
+  recipes:
+  - {fileID: 11400000, guid: 20302732af4a47068bbccba7700e0c63, type: 2}
+  - {fileID: 11400000, guid: e5c939ef179a4a7d878d836ea236c198, type: 2}
+  - {fileID: 11400000, guid: 9aea484dfc0549f993ebe6622da7cf36, type: 2}
+  - {fileID: 11400000, guid: 38b94ff8b0e247479c334275915c3ef3, type: 2}

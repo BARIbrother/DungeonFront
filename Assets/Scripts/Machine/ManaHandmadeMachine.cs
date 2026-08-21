@@ -4,4 +4,6 @@ using UnityEngine;
 public class ManaHandmadeMachine : HandmadeMachine
 {
     public override Vector2Int GetFootprintSize() => new Vector2Int(2, 1);
+
+    public override bool UsesMana() => true;
 }

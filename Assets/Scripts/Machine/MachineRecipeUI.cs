@@ -28,6 +28,9 @@ public class MachineRecipeUI : MonoBehaviour
     private bool recipePickerOpen;
     private Image progressFillImage;
     private Text progressLabelText;
+    private Image manaFillImage;
+    private Text manaLabelText;
+    private GameObject manaHeaderRoot;
     private int lastMachineViewHash;
     private int ignoreBackdropCloseUntilFrame = -1;
 
@@ -132,6 +135,7 @@ public class MachineRecipeUI : MonoBehaviour
         }
 
         RefreshProgressUi();
+        RefreshManaUi();
 
         int viewHash = ComputeMachineViewHash();
         if (viewHash != lastMachineViewHash)
@@ -210,6 +214,9 @@ public class MachineRecipeUI : MonoBehaviour
             CreateProgressBar();
         }
 
+        SetManaHeaderVisible(targetMachine.UsesMana());
+        RefreshManaUi();
+
         if (targetMachine.SupportsInventoryTransferUi())
         {
             CreatePortRow();
@@ -243,6 +250,7 @@ public class MachineRecipeUI : MonoBehaviour
             Item picked = targetMachine.GetPickedItem();
             hash = hash * 31 + HashItemState(picked);
             hash = hash * 31 + (targetMachine.HasActiveWip ? 1 : 0);
+            hash = hash * 31 + targetMachine.ManaAmount;
             hash = HashPort(hash, targetMachine.inputPort);
             hash = HashPort(hash, targetMachine.outputPort);
 
@@ -544,7 +552,7 @@ public class MachineRecipeUI : MonoBehaviour
         else
         {
             Transform inputSide = CreateRecipeSideGroup(row.transform, "Inputs", TextAnchor.MiddleLeft);
-            AddRecipeEntryIcons(inputSide, selected.inputEntryList);
+            AddRecipeEntryIcons(inputSide, selected.inputEntryList, selected.GetManaCost());
             CreateInlineLabel(row.transform, "→");
             Transform outputSide = CreateRecipeSideGroup(row.transform, "Outputs", TextAnchor.MiddleRight);
             AddRecipeEntryIcons(outputSide, selected.outputEntryList);
@@ -621,6 +629,97 @@ public class MachineRecipeUI : MonoBehaviour
         }
 
         progressLabelText.text = $"{current} / {total}";
+    }
+
+    private void CreateManaHeader(Transform panel)
+    {
+        manaHeaderRoot = new GameObject("ManaHeader");
+        manaHeaderRoot.transform.SetParent(panel, false);
+        var headerRect = manaHeaderRoot.AddComponent<RectTransform>();
+        headerRect.anchorMin = new Vector2(0.5f, 1f);
+        headerRect.anchorMax = new Vector2(0.5f, 1f);
+        headerRect.pivot = new Vector2(0.5f, 1f);
+        headerRect.anchoredPosition = new Vector2(0f, -12f);
+        headerRect.sizeDelta = new Vector2(340f, 22f);
+        var headerLayout = manaHeaderRoot.AddComponent<HorizontalLayoutGroup>();
+        headerLayout.spacing = 10f;
+        headerLayout.childAlignment = TextAnchor.MiddleCenter;
+        headerLayout.childControlWidth = false;
+        headerLayout.childControlHeight = true;
+        headerLayout.childForceExpandWidth = false;
+        headerLayout.childForceExpandHeight = true;
+
+        var barObject = new GameObject("Bar");
+        barObject.transform.SetParent(manaHeaderRoot.transform, false);
+        var barRect = barObject.AddComponent<RectTransform>();
+        barRect.sizeDelta = new Vector2(180f, 16f);
+        var barLayout = barObject.AddComponent<LayoutElement>();
+        barLayout.minWidth = 180f;
+        barLayout.preferredWidth = 180f;
+        barLayout.minHeight = 16f;
+        barLayout.preferredHeight = 16f;
+        var barImage = barObject.AddComponent<Image>();
+        barImage.color = Color.black;
+        barImage.raycastTarget = false;
+
+        var fillObject = new GameObject("Fill");
+        fillObject.transform.SetParent(barObject.transform, false);
+        var fillRect = fillObject.AddComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+        manaFillImage = fillObject.AddComponent<Image>();
+        manaFillImage.color = new Color(0.25f, 0.5f, 1f, 1f);
+        manaFillImage.raycastTarget = false;
+
+        var labelObject = new GameObject("Amount");
+        labelObject.transform.SetParent(manaHeaderRoot.transform, false);
+        var labelLayout = labelObject.AddComponent<LayoutElement>();
+        labelLayout.minWidth = 120f;
+        labelLayout.preferredWidth = 140f;
+        manaLabelText = labelObject.AddComponent<Text>();
+        manaLabelText.font = uiFont;
+        manaLabelText.fontSize = 16;
+        manaLabelText.alignment = TextAnchor.MiddleLeft;
+        manaLabelText.color = Color.black;
+        manaLabelText.raycastTarget = false;
+        manaLabelText.text = "0 / 0";
+
+        manaHeaderRoot.SetActive(false);
+    }
+
+    private void SetManaHeaderVisible(bool visible)
+    {
+        if (manaHeaderRoot != null)
+        {
+            manaHeaderRoot.SetActive(visible);
+        }
+    }
+
+    private void RefreshManaUi()
+    {
+        if (manaFillImage == null || manaLabelText == null)
+        {
+            return;
+        }
+
+        if (targetMachine == null || !targetMachine.UsesMana())
+        {
+            SetManaHeaderVisible(false);
+            return;
+        }
+
+        SetManaHeaderVisible(true);
+        int current = targetMachine.ManaAmount;
+        int total = targetMachine.ManaCapacity;
+        float normalized = total > 0 ? (float)current / total : 0f;
+        RectTransform fillRect = manaFillImage.rectTransform;
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = new Vector2(Mathf.Clamp01(normalized), 1f);
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+        manaLabelText.text = $"{current}/{total}";
     }
 
     private void ToggleRecipePicker()
@@ -719,7 +818,7 @@ public class MachineRecipeUI : MonoBehaviour
         rowLayout.childForceExpandWidth = false;
         rowLayout.childForceExpandHeight = false;
 
-        AddRecipeEntryIcons(row.transform, recipe.inputEntryList);
+        AddRecipeEntryIcons(row.transform, recipe.inputEntryList, recipe.GetManaCost());
         CreateInlineLabel(row.transform, "→");
         AddRecipeEntryIcons(row.transform, recipe.outputEntryList);
 
@@ -869,6 +968,11 @@ public class MachineRecipeUI : MonoBehaviour
         for (int i = 0; i < slotCount; i++)
         {
             Item expected = GetEntryItem(recipeSide, i);
+            if (isInput && ManaEssence.IsEssence(expected))
+            {
+                continue;
+            }
+
             ItemEntry stored = GetPortEntry(port, i);
             Item storedItem = stored != null && stored.count > 0 ? stored.item : null;
             int count = storedItem != null ? stored.count : 0;
@@ -1099,10 +1203,16 @@ public class MachineRecipeUI : MonoBehaviour
         countText.text = $"x{count}";
     }
 
-    private void AddRecipeEntryIcons(Transform parent, ItemEntryList list)
+    private void AddRecipeEntryIcons(Transform parent, ItemEntryList list, int manaCost = 0)
     {
         if (list?.entries == null || list.entries.Length == 0)
         {
+            if (manaCost > 0)
+            {
+                CreateInlineLabel(parent, $"마나 {manaCost}");
+                return;
+            }
+
             CreateInlineLabel(parent, "-");
             return;
         }
@@ -1111,6 +1221,11 @@ public class MachineRecipeUI : MonoBehaviour
         foreach (ItemEntry entry in list.entries)
         {
             if (entry == null || entry.item == null || entry.count <= 0)
+            {
+                continue;
+            }
+
+            if (ManaEssence.IsEssence(entry.item))
             {
                 continue;
             }
@@ -1132,6 +1247,12 @@ public class MachineRecipeUI : MonoBehaviour
             layout.flexibleWidth = 0f;
             AddInventorySlotFrame(slot.transform, slotSize);
             CreateItemIconVisual(slot.transform, entry.item, entry.count, slotSize);
+        }
+
+        if (manaCost > 0)
+        {
+            CreateInlineLabel(parent, $"마나 {manaCost}");
+            any = true;
         }
 
         if (!any)
@@ -1201,6 +1322,11 @@ public class MachineRecipeUI : MonoBehaviour
                 continue;
             }
 
+            if (ManaEssence.IsEssence(item) && !targetMachine.AcceptsManaEssence())
+            {
+                continue;
+            }
+
             any = true;
             Item depositItem = item;
             int displayCount = ownedEntry.count;
@@ -1265,6 +1391,11 @@ public class MachineRecipeUI : MonoBehaviour
             return;
         }
 
+        if (ManaEssence.IsEssence(item))
+        {
+            return;
+        }
+
         PlayerInventory inventory = GetInventory();
         if (inventory == null)
         {
@@ -1284,6 +1415,11 @@ public class MachineRecipeUI : MonoBehaviour
     private void TryWithdrawOutput(Item item, int count)
     {
         if (targetMachine == null || item == null || count <= 0)
+        {
+            return;
+        }
+
+        if (ManaEssence.IsEssence(item))
         {
             return;
         }
@@ -1572,6 +1708,7 @@ public class MachineRecipeUI : MonoBehaviour
         UiPanelFrame.Apply(panelImage);
 
         CreateCloseButton(panelObject.transform);
+        CreateManaHeader(panelObject.transform);
 
         contentListRect = CreateScrollContent(
             panelObject.transform,

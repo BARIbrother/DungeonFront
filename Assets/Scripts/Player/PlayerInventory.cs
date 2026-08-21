@@ -52,6 +52,11 @@ public class PlayerInventory : MonoBehaviour
             return;
         }
 
+        if (ManaEssence.IsEssence(entry.item))
+        {
+            return;
+        }
+
         for (int i = 0; i < itemEntries.Count; i++)
         {
             ItemEntry existing = itemEntries[i];

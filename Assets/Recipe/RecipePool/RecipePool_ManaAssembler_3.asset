@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8454ec19a32541c59096c671d07e9c39, type: 3}
+  m_Name: RecipePool_ManaAssembler_3
+  m_EditorClassIdentifier: Assembly-CSharp::RecipePool
+  recipes:
+  - {fileID: 11400000, guid: 025d823478b54fc48fa7c869b7428660, type: 2}
+  - {fileID: 11400000, guid: fb068d2edbd240cf9654fbed592f4482, type: 2}
+  - {fileID: 11400000, guid: 7aad954f5057478fa02f587cbe99075a, type: 2}
+  - {fileID: 11400000, guid: f6c95dba17714b5882af4ec7976ca66f, type: 2}
+  - {fileID: 11400000, guid: 2db516fec4c1438e90d36ccb211d455a, type: 2}
+  - {fileID: 11400000, guid: 0634905f767747429da2ea50137fa272, type: 2}
+  - {fileID: 11400000, guid: 53e3737f3a98463daaa0b464aedfb1b3, type: 2}
+  - {fileID: 11400000, guid: 0b7e0d45af474bd89008fda043bbbc08, type: 2}
+  - {fileID: 11400000, guid: d698237dc48a4555b73cd5e2a48b169f, type: 2}
+  - {fileID: 11400000, guid: a62d0bca1e174c15961c41facfafbb86, type: 2}
+  - {fileID: 11400000, guid: 6408e2c2a577422aa211e1aa9587c76c, type: 2}
+  - {fileID: 11400000, guid: 8e50ae8d40bd4799a5390acab3819fd2, type: 2}
+  - {fileID: 11400000, guid: 541975ca895d48df9e484bc5e96e56ff, type: 2}
+  - {fileID: 11400000, guid: 45ceffd0aa2c4b4bbbf09b0498dbb905, type: 2}
+  - {fileID: 11400000, guid: 1bddfdf2a7c14c71afbb57a1981e1811, type: 2}
+  - {fileID: 11400000, guid: 7bcb6af17116433890d69d3642eee398, type: 2}
+  - {fileID: 11400000, guid: ccc78543c728428f96768eef2ebb4ccc, type: 2}
+  - {fileID: 11400000, guid: c7f50d3f2ade4c518aa1a38dcf0b46ac, type: 2}
+  - {fileID: 11400000, guid: c71bd89d9b2b405d856ff93a8bda59d3, type: 2}
+  - {fileID: 11400000, guid: b09c42f8b0cc440d804973eb059a1cf2, type: 2}
+  - {fileID: 11400000, guid: a16578ef56db44089211c79ad3026673, type: 2}

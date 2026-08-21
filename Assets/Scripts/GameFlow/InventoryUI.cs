@@ -212,7 +212,8 @@ public class InventoryUI : MonoBehaviour
         for (int i = 0; i < owned.Count; i++)
         {
             ItemEntry entry = owned[i];
-            if (entry?.item == null || entry.count <= 0 || IsCurrencyItem(entry.item.Id))
+            if (entry?.item == null || entry.count <= 0 || IsCurrencyItem(entry.item.Id)
+                || ManaEssence.IsEssence(entry.item))
             {
                 continue;
             }

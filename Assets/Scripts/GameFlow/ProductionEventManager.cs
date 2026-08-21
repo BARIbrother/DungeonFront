@@ -32,7 +32,7 @@ public class ProductionEventManager : MonoBehaviour
     public event Action<Machine> OnMachineRepaired;
 
     private const int BreakdownsPerDay = 1;
-    private const int MinTicksBeforeBreakdown = 30;
+    private static int MinTicksBeforeBreakdown => 3 * (int)TickManager.TicksPerSecond;
     public const string BreakdownUnlockStoryEventId = "001E00020";
 
     private static bool isBreakdownEnabled;

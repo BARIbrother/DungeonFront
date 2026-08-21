@@ -158,10 +158,10 @@ public class ConveyerBeltItemView : MonoBehaviour
     {
         cachedTickInterval = TickManager.Instance != null
             ? TickManager.Instance.TickInterval
-            : 0.1f;
+            : 1f / TickManager.TicksPerSecond;
         if (cachedTickInterval <= 0.0001f)
         {
-            cachedTickInterval = 0.1f;
+            cachedTickInterval = 1f / TickManager.TicksPerSecond;
         }
 
         cachedCellSize = belt != null ? belt.GetCellSize() : 1f;

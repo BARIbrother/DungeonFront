@@ -91,6 +91,11 @@ public abstract class StorageMachine : Machine
                 continue;
             }
 
+            if (ManaEssence.IsEssence(entry.item))
+            {
+                continue;
+            }
+
             AddToPlayerInventory(new ItemEntry { item = entry.item.Clone(), count = entry.count });
             entry.item = null;
             entry.count = 0;

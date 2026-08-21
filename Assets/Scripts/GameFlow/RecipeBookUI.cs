@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,27 +6,30 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-// 레시피북. K키로 열고 닫는다.
-// 마인크래프트 책&깃펜 방식으로, 좌/우 두 페이지를 한 번에 보여주고 넘기며 읽는다.
-// 내용·페이지 배치는 RecipeBookCatalog.PageLayout에 정의된 대로 그대로 그린다.
+// 레시피북. K키로 열고 닫는다. 왼쪽 챕터, 오른쪽 식·아이콘·기계.
 public class RecipeBookUI : MonoBehaviour
 {
-    private static readonly Color Ink = new Color(0.22f, 0.16f, 0.1f, 1f);
-    private static readonly Color HeaderInk = new Color(0.36f, 0.22f, 0.08f, 1f);
+    private static readonly Color Ink = Color.black;
     private static readonly Color SpineColor = new Color(0.42f, 0.32f, 0.18f, 0.5f);
+    private static readonly Color RowNormal = new Color(1f, 0.97f, 0.9f, 0.28f);
+    private static readonly Color RowHighlight = new Color(0.95f, 0.82f, 0.45f, 0.7f);
+    private const float IconSize = 52f;
+    private const float RecipeHeaderHeight = 40f;
 
     private static RecipeBookUI instance;
 
     private Canvas overlayCanvas;
     private GameObject modalRoot;
-    private TMP_Text leftPageText;
-    private TMP_Text rightPageText;
     private TMP_Text pageIndicatorText;
     private Button prevButton;
     private Button nextButton;
     private bool isOpen;
-    private List<string> pages;
-    private int currentSpread;
+    private int currentChapter;
+    private int highlightRecipeIndex = -1;
+    private RectTransform chapterContentRect;
+    private RectTransform recipeContentRect;
+    private ScrollRect recipeScroll;
+    private readonly List<RectTransform> recipeRowRects = new();
 
     public static bool IsOpen => instance != null && instance.isOpen;
 
@@ -102,7 +104,6 @@ public class RecipeBookUI : MonoBehaviour
             return;
         }
 
-        // 책이 열려 있을 때만 반응하고, 이동 등 다른 조작과는 겹치지 않는 방향키만 쓴다.
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
         {
@@ -133,9 +134,9 @@ public class RecipeBookUI : MonoBehaviour
     private void Open()
     {
         EnsureUiHierarchy();
-        RebuildPages();
-        currentSpread = 0;
-        RefreshPageView();
+        currentChapter = 0;
+        highlightRecipeIndex = -1;
+        RefreshChapterView();
         modalRoot.SetActive(true);
         isOpen = true;
     }
@@ -151,116 +152,347 @@ public class RecipeBookUI : MonoBehaviour
 
     private void NextPage()
     {
-        int totalSpreads = Mathf.Max(1, Mathf.CeilToInt(pages.Count / 2f));
-        if (currentSpread >= totalSpreads - 1)
+        if (currentChapter >= RecipeBookCatalog.Sections.Count - 1)
         {
             return;
         }
 
-        currentSpread++;
-        RefreshPageView();
+        SelectChapter(currentChapter + 1, -1);
     }
 
     private void PrevPage()
     {
-        if (currentSpread <= 0)
+        if (currentChapter <= 0)
         {
             return;
         }
 
-        currentSpread--;
-        RefreshPageView();
+        SelectChapter(currentChapter - 1, -1);
     }
 
-    private void RebuildPages()
+    private void SelectChapter(int chapterIndex, int recipeIndex)
     {
-        pages = BuildPages();
+        if (chapterIndex < 0 || chapterIndex >= RecipeBookCatalog.Sections.Count)
+        {
+            return;
+        }
+
+        currentChapter = chapterIndex;
+        highlightRecipeIndex = recipeIndex;
+        RefreshChapterView();
+        if (recipeIndex >= 0)
+        {
+            Canvas.ForceUpdateCanvases();
+            ScrollToRecipe(recipeIndex);
+        }
     }
 
-    // RecipeBookCatalog.PageLayout에 정의된 페이지 구성을 그대로 그린다 (자동 계산 없음).
-    // 조각(chunk)의 start가 0이면 그 섹션의 시작이라 제목을 보여주고, 0이 아니면 이전 페이지에서
-    // 이어지는 조각이라 제목 자리를 비워 둔다 — 다만 같은 구분자(sep)를 그대로 써서 높이는 유지한다.
-    // 페이지별 compact 여부에 따라 항목 사이 구분자를 촘촘하게(한 줄) 또는 넉넉하게(빈 줄 하나) 쓴다.
-    private static List<string> BuildPages()
+    private void JumpToItemRecipe(string itemId)
     {
-        var sectionsByTitle = new Dictionary<string, RecipeBookCatalog.Section>();
+        if (!RecipeBookCatalog.TryFindOutput(itemId, out int chapterIndex, out int recipeIndex))
+        {
+            return;
+        }
+
+        SelectChapter(chapterIndex, recipeIndex);
+    }
+
+    private void RefreshChapterView()
+    {
+        EnsureUiHierarchy();
+        RebuildChapterButtons();
+        RebuildRecipeRows();
+
+        int total = Mathf.Max(1, RecipeBookCatalog.Sections.Count);
+        string title = RecipeBookCatalog.Sections[currentChapter].title;
+        pageIndicatorText.text = $"{title}  {currentChapter + 1} / {total}";
+        prevButton.interactable = currentChapter > 0;
+        nextButton.interactable = currentChapter < total - 1;
+    }
+
+    private void RebuildChapterButtons()
+    {
+        for (int i = chapterContentRect.childCount - 1; i >= 0; i--)
+        {
+            Object.Destroy(chapterContentRect.GetChild(i).gameObject);
+        }
+
         for (int i = 0; i < RecipeBookCatalog.Sections.Count; i++)
         {
-            sectionsByTitle[RecipeBookCatalog.Sections[i].title] = RecipeBookCatalog.Sections[i];
-        }
+            int chapterIndex = i;
+            RecipeBookCatalog.Section section = RecipeBookCatalog.Sections[i];
 
-        string headerColor = ColorUtility.ToHtmlStringRGB(HeaderInk);
-        var pageList = new List<string>();
-
-        for (int p = 0; p < RecipeBookCatalog.PageLayout.Length; p++)
-        {
-            RecipeBookCatalog.PageChunk[] chunks = RecipeBookCatalog.PageLayout[p];
-            string sep = RecipeBookCatalog.CompactPageIndices.Contains(p) ? "\n" : "\n\n";
-            var current = new StringBuilder();
-            bool hasContent = false;
-
-            for (int c = 0; c < chunks.Length; c++)
+            var buttonObject = new GameObject($"Chapter_{i}");
+            buttonObject.transform.SetParent(chapterContentRect, false);
+            var buttonRect = buttonObject.AddComponent<RectTransform>();
+            buttonRect.sizeDelta = new Vector2(0f, 48f);
+            Image image = buttonObject.AddComponent<Image>();
+            Button button = buttonObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            button.onClick.AddListener(() => SelectChapter(chapterIndex, -1));
+            UiButtonStyle.Apply(button);
+            if (i == currentChapter)
             {
-                RecipeBookCatalog.PageChunk chunk = chunks[c];
-                if (!sectionsByTitle.TryGetValue(chunk.sectionTitle, out RecipeBookCatalog.Section section))
-                {
-                    continue;
-                }
-
-                if (hasContent)
-                {
-                    current.Append("\n\n");
-                }
-
-                if (chunk.start == 0)
-                {
-                    current.Append($"<b><color=#{headerColor}>{section.title}</color></b>");
-                }
-
-                current.Append(sep);
-
-                int end = Mathf.Min(chunk.start + chunk.count, section.lines.Count);
-                for (int i = chunk.start; i < end; i++)
-                {
-                    if (i > chunk.start)
-                    {
-                        current.Append(sep);
-                    }
-
-                    current.Append("· ").Append(section.lines[i]);
-                }
-
-                hasContent = true;
+                image.color = new Color(1f, 0.9f, 0.65f, 1f);
             }
 
-            pageList.Add(current.ToString());
+            var labelObject = new GameObject("Label");
+            labelObject.transform.SetParent(buttonObject.transform, false);
+            var labelRect = labelObject.AddComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = new Vector2(10f, 0f);
+            labelRect.offsetMax = new Vector2(-8f, 0f);
+            TMP_Text label = TmpUiStyle.Create(labelObject, TmpUiStyle.Role.Button, TextAlignmentOptions.MidlineLeft);
+            label.fontSize = 22f;
+            label.color = Color.white;
+            label.enableAutoSizing = true;
+            label.fontSizeMin = 16f;
+            label.fontSizeMax = 22f;
+            label.text = section.title;
         }
-
-        if (pageList.Count == 0)
-        {
-            pageList.Add(string.Empty);
-        }
-
-        return pageList;
     }
 
-    private void RefreshPageView()
+    private void RebuildRecipeRows()
     {
-        if (pages == null || pages.Count == 0)
+        for (int i = recipeContentRect.childCount - 1; i >= 0; i--)
         {
-            RebuildPages();
+            Object.Destroy(recipeContentRect.GetChild(i).gameObject);
         }
 
-        int leftIndex = currentSpread * 2;
-        int rightIndex = leftIndex + 1;
+        recipeRowRects.Clear();
+        RecipeBookCatalog.Section section = RecipeBookCatalog.Sections[currentChapter];
+        for (int i = 0; i < section.recipes.Count; i++)
+        {
+            recipeRowRects.Add(CreateRecipeRow(section.recipes[i], i == highlightRecipeIndex));
+        }
 
-        leftPageText.text = leftIndex < pages.Count ? pages[leftIndex] : string.Empty;
-        rightPageText.text = rightIndex < pages.Count ? pages[rightIndex] : string.Empty;
+        if (recipeScroll != null)
+        {
+            recipeScroll.verticalNormalizedPosition = 1f;
+        }
+    }
 
-        int totalSpreads = Mathf.Max(1, Mathf.CeilToInt(pages.Count / 2f));
-        pageIndicatorText.text = $"{currentSpread + 1} / {totalSpreads}";
-        prevButton.interactable = currentSpread > 0;
-        nextButton.interactable = currentSpread < totalSpreads - 1;
+    private RectTransform CreateRecipeRow(RecipeBookCatalog.RecipeLine line, bool highlight)
+    {
+        var rowObject = new GameObject(line.recipeId);
+        rowObject.transform.SetParent(recipeContentRect, false);
+        var rowRect = rowObject.AddComponent<RectTransform>();
+        Image rowImage = rowObject.AddComponent<Image>();
+        rowImage.color = highlight ? RowHighlight : RowNormal;
+        rowImage.raycastTarget = false;
+        var rowLayout = rowObject.AddComponent<VerticalLayoutGroup>();
+        rowLayout.padding = new RectOffset(10, 10, 8, 10);
+        rowLayout.spacing = 6f;
+        rowLayout.childAlignment = TextAnchor.UpperLeft;
+        rowLayout.childControlWidth = true;
+        rowLayout.childControlHeight = true;
+        rowLayout.childForceExpandWidth = true;
+        rowLayout.childForceExpandHeight = false;
+        var rowFitter = rowObject.AddComponent<ContentSizeFitter>();
+        rowFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        rowFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        var headerObject = new GameObject("Header");
+        headerObject.transform.SetParent(rowObject.transform, false);
+        LayoutElement headerLayout = headerObject.AddComponent<LayoutElement>();
+        headerLayout.minHeight = RecipeHeaderHeight;
+        headerLayout.preferredHeight = RecipeHeaderHeight;
+        var headerGroup = headerObject.AddComponent<HorizontalLayoutGroup>();
+        headerGroup.spacing = 12f;
+        headerGroup.childAlignment = TextAnchor.MiddleLeft;
+        headerGroup.childControlWidth = true;
+        headerGroup.childControlHeight = true;
+        headerGroup.childForceExpandWidth = false;
+        headerGroup.childForceExpandHeight = true;
+
+        string outputName = line.outputs.Length > 0
+            ? FormatStackName(line.outputs[0])
+            : line.recipeId;
+        var titleObject = new GameObject("Title");
+        titleObject.transform.SetParent(headerObject.transform, false);
+        LayoutElement titleLayout = titleObject.AddComponent<LayoutElement>();
+        titleLayout.flexibleWidth = 1f;
+        titleLayout.minWidth = 80f;
+        TMP_Text title = TmpUiStyle.Create(titleObject, TmpUiStyle.Role.Body, TextAlignmentOptions.MidlineLeft, true);
+        title.fontSize = 26f;
+        title.color = Ink;
+        title.enableAutoSizing = false;
+        title.textWrappingMode = TextWrappingModes.NoWrap;
+        title.overflowMode = TextOverflowModes.Ellipsis;
+        title.text = outputName;
+
+        var machineObject = new GameObject("Machine");
+        machineObject.transform.SetParent(headerObject.transform, false);
+        LayoutElement machineLayout = machineObject.AddComponent<LayoutElement>();
+        machineLayout.preferredWidth = 160f;
+        machineLayout.minWidth = 120f;
+        TMP_Text machineText = TmpUiStyle.Create(machineObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.MidlineRight, true);
+        machineText.fontSize = 22f;
+        machineText.color = Ink;
+        machineText.enableAutoSizing = false;
+        machineText.textWrappingMode = TextWrappingModes.NoWrap;
+        machineText.text = line.machineLabel;
+
+        var ioObject = new GameObject("IO");
+        ioObject.transform.SetParent(rowObject.transform, false);
+        LayoutElement ioLayoutElement = ioObject.AddComponent<LayoutElement>();
+        ioLayoutElement.minHeight = IconSize;
+        ioLayoutElement.preferredHeight = IconSize;
+        var ioLayout = ioObject.AddComponent<HorizontalLayoutGroup>();
+        ioLayout.spacing = 8f;
+        ioLayout.childAlignment = TextAnchor.MiddleLeft;
+        ioLayout.childControlWidth = false;
+        ioLayout.childControlHeight = false;
+        ioLayout.childForceExpandWidth = false;
+        ioLayout.childForceExpandHeight = false;
+
+        if (line.inputs.Length == 0 && line.manaCost <= 0)
+        {
+            CreatePlainLabel(ioObject.transform, "(없음)");
+        }
+        else
+        {
+            for (int i = 0; i < line.inputs.Length; i++)
+            {
+                CreateItemIcon(ioObject.transform, line.inputs[i]);
+            }
+
+            if (line.manaCost > 0)
+            {
+                CreatePlainLabel(ioObject.transform, $"마나 {line.manaCost}");
+            }
+        }
+
+        CreatePlainLabel(ioObject.transform, "→");
+
+        for (int i = 0; i < line.outputs.Length; i++)
+        {
+            CreateItemIcon(ioObject.transform, line.outputs[i]);
+        }
+
+        return rowRect;
+    }
+
+    private void CreateItemIcon(Transform parent, RecipeBookCatalog.Stack stack)
+    {
+        var slotObject = new GameObject(stack.itemId);
+        slotObject.transform.SetParent(parent, false);
+        var slotRect = slotObject.AddComponent<RectTransform>();
+        slotRect.sizeDelta = new Vector2(IconSize, IconSize);
+        Image frame = slotObject.AddComponent<Image>();
+        frame.color = new Color(0.2f, 0.16f, 0.12f, 0.18f);
+        frame.raycastTarget = false;
+
+        var iconObject = new GameObject("Icon");
+        iconObject.transform.SetParent(slotObject.transform, false);
+        var iconRect = iconObject.AddComponent<RectTransform>();
+        iconRect.anchorMin = Vector2.zero;
+        iconRect.anchorMax = Vector2.one;
+        iconRect.offsetMin = new Vector2(3f, 3f);
+        iconRect.offsetMax = new Vector2(-3f, -3f);
+        Image iconImage = iconObject.AddComponent<Image>();
+        iconImage.preserveAspect = true;
+        Sprite sprite = ItemIconResolver.ResolveById(stack.itemId);
+        if (ItemIconResolver.IsUsable(sprite))
+        {
+            iconImage.sprite = sprite;
+            iconImage.color = Color.white;
+        }
+        else
+        {
+            iconImage.color = new Color(0.55f, 0.5f, 0.4f, 0.7f);
+        }
+
+        bool canJump = RecipeBookCatalog.TryFindOutput(stack.itemId, out _, out _);
+        iconImage.raycastTarget = canJump;
+        if (canJump)
+        {
+            Button button = slotObject.AddComponent<Button>();
+            button.targetGraphic = iconImage;
+            button.transition = Selectable.Transition.None;
+            string itemId = stack.itemId;
+            button.onClick.AddListener(() => JumpToItemRecipe(itemId));
+        }
+
+        string badge = FormatStackBadge(stack);
+        if (!string.IsNullOrEmpty(badge))
+        {
+            var countObject = new GameObject("Count");
+            countObject.transform.SetParent(slotObject.transform, false);
+            var countRect = countObject.AddComponent<RectTransform>();
+            countRect.anchorMin = new Vector2(0f, 0f);
+            countRect.anchorMax = Vector2.one;
+            countRect.offsetMin = Vector2.zero;
+            countRect.offsetMax = Vector2.zero;
+            TMP_Text countText = TmpUiStyle.Create(countObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.BottomRight, true);
+            countText.fontSize = 16f;
+            countText.color = Ink;
+            countText.raycastTarget = false;
+            countText.text = badge;
+        }
+    }
+
+    private static void CreatePlainLabel(Transform parent, string text)
+    {
+        var labelObject = new GameObject("Label");
+        labelObject.transform.SetParent(parent, false);
+        var labelRect = labelObject.AddComponent<RectTransform>();
+        labelRect.sizeDelta = new Vector2(36f, IconSize);
+        TMP_Text label = TmpUiStyle.Create(labelObject, TmpUiStyle.Role.Body, TextAlignmentOptions.Midline, true);
+        label.fontSize = 24f;
+        label.color = Ink;
+        label.text = text;
+        LayoutElement layout = labelObject.AddComponent<LayoutElement>();
+        layout.minWidth = 28f;
+        layout.preferredWidth = text == "→" ? 28f : Mathf.Max(52f, text.Length * 14f);
+    }
+
+    private static string FormatStackName(RecipeBookCatalog.Stack stack)
+    {
+        string name = RecipeBookCatalog.ItemName(stack.itemId);
+        if (stack.level > 1)
+        {
+            name = $"{name} lv{stack.level}";
+        }
+
+        if (stack.count > 1)
+        {
+            name = $"{name} x{stack.count}";
+        }
+
+        return name;
+    }
+
+    private static string FormatStackBadge(RecipeBookCatalog.Stack stack)
+    {
+        if (stack.level > 1 && stack.count > 1)
+        {
+            return $"lv{stack.level}\nx{stack.count}";
+        }
+
+        if (stack.level > 1)
+        {
+            return $"lv{stack.level}";
+        }
+
+        if (stack.count > 1)
+        {
+            return $"x{stack.count}";
+        }
+
+        return string.Empty;
+    }
+
+    private void ScrollToRecipe(int recipeIndex)
+    {
+        if (recipeScroll == null || recipeRowRects.Count <= 1)
+        {
+            return;
+        }
+
+        int clamped = Mathf.Clamp(recipeIndex, 0, recipeRowRects.Count - 1);
+        recipeScroll.verticalNormalizedPosition = 1f - (clamped / (float)(recipeRowRects.Count - 1));
     }
 
     private void EnsureUiHierarchy()
@@ -322,7 +554,7 @@ public class RecipeBookUI : MonoBehaviour
         headerRect.sizeDelta = new Vector2(0f, 56f);
         headerRect.anchoredPosition = Vector2.zero;
         var headerText = TmpUiStyle.Create(headerObject, TmpUiStyle.Role.Title, TextAlignmentOptions.MidlineLeft, true);
-        headerText.fontSize = 22f;
+        headerText.fontSize = 28f;
         headerText.color = Ink;
         headerText.text = "레시피북";
         var headerTextRect = headerText.rectTransform;
@@ -333,7 +565,6 @@ public class RecipeBookUI : MonoBehaviour
 
         CreateCloseButton(panelObject.transform);
 
-        // 책 펼침면 배경 (마인크래프트 책&깃펜 느낌의 양피지 프레임)
         var bookAreaObject = new GameObject("BookArea");
         bookAreaObject.transform.SetParent(panelObject.transform, false);
         var bookAreaRect = bookAreaObject.AddComponent<RectTransform>();
@@ -345,14 +576,14 @@ public class RecipeBookUI : MonoBehaviour
         UiPanelFrame.Apply(bookAreaImage, UiPanelFrame.Kind.Parchment, 0.9f);
         bookAreaImage.raycastTarget = true;
 
-        leftPageText = CreatePage(bookAreaObject.transform, "LeftPage", new Vector2(0f, 0f), new Vector2(0.5f, 1f), new Vector2(24f, 18f), new Vector2(-14f, -18f));
-        rightPageText = CreatePage(bookAreaObject.transform, "RightPage", new Vector2(0.5f, 0f), new Vector2(1f, 1f), new Vector2(14f, 18f), new Vector2(-24f, -18f));
+        CreateChapterPane(bookAreaObject.transform);
+        CreateRecipePane(bookAreaObject.transform);
 
         var spineObject = new GameObject("Spine");
         spineObject.transform.SetParent(bookAreaObject.transform, false);
         var spineRect = spineObject.AddComponent<RectTransform>();
-        spineRect.anchorMin = new Vector2(0.5f, 0f);
-        spineRect.anchorMax = new Vector2(0.5f, 1f);
+        spineRect.anchorMin = new Vector2(0.28f, 0f);
+        spineRect.anchorMax = new Vector2(0.28f, 1f);
         spineRect.pivot = new Vector2(0.5f, 0.5f);
         spineRect.sizeDelta = new Vector2(3f, 0f);
         spineRect.anchoredPosition = Vector2.zero;
@@ -363,34 +594,100 @@ public class RecipeBookUI : MonoBehaviour
         CreateNavBar(panelObject.transform);
     }
 
-    private static TMP_Text CreatePage(
-        Transform parent,
-        string name,
-        Vector2 anchorMin,
-        Vector2 anchorMax,
-        Vector2 offsetMin,
-        Vector2 offsetMax)
+    private void CreateChapterPane(Transform parent)
     {
-        var pageObject = new GameObject(name);
-        pageObject.transform.SetParent(parent, false);
-        var pageRect = pageObject.AddComponent<RectTransform>();
-        pageRect.anchorMin = anchorMin;
-        pageRect.anchorMax = anchorMax;
-        pageRect.offsetMin = offsetMin;
-        pageRect.offsetMax = offsetMax;
+        var paneObject = new GameObject("ChapterPane");
+        paneObject.transform.SetParent(parent, false);
+        var paneRect = paneObject.AddComponent<RectTransform>();
+        paneRect.anchorMin = new Vector2(0f, 0f);
+        paneRect.anchorMax = new Vector2(0.28f, 1f);
+        paneRect.offsetMin = new Vector2(16f, 16f);
+        paneRect.offsetMax = new Vector2(-10f, -16f);
 
-        TMP_Text text = TmpUiStyle.Create(pageObject, TmpUiStyle.Role.Body, TextAlignmentOptions.TopLeft, true);
-        text.fontSize = 24f;
-        text.color = Ink;
-        text.textWrappingMode = TextWrappingModes.Normal;
-        text.overflowMode = TextOverflowModes.Truncate;
-        text.lineSpacing = 12f;
-        // 페이지당 항목 수를 이미 여유 있게 계산해뒀으니, 자동 축소는 줄바꿈 넘칠 때 대비한 보험 정도로만 둔다.
-        text.enableAutoSizing = true;
-        text.fontSizeMin = 18f;
-        text.fontSizeMax = 24f;
-        text.text = string.Empty;
-        return text;
+        var viewportObject = new GameObject("Viewport");
+        viewportObject.transform.SetParent(paneObject.transform, false);
+        var viewportRect = viewportObject.AddComponent<RectTransform>();
+        viewportRect.anchorMin = Vector2.zero;
+        viewportRect.anchorMax = Vector2.one;
+        viewportRect.offsetMin = Vector2.zero;
+        viewportRect.offsetMax = Vector2.zero;
+        viewportObject.AddComponent<RectMask2D>();
+        Image viewportImage = viewportObject.AddComponent<Image>();
+        viewportImage.color = new Color(1f, 1f, 1f, 0.01f);
+
+        var contentObject = new GameObject("Content");
+        contentObject.transform.SetParent(viewportObject.transform, false);
+        chapterContentRect = contentObject.AddComponent<RectTransform>();
+        chapterContentRect.anchorMin = new Vector2(0f, 1f);
+        chapterContentRect.anchorMax = new Vector2(1f, 1f);
+        chapterContentRect.pivot = new Vector2(0.5f, 1f);
+        chapterContentRect.sizeDelta = Vector2.zero;
+        var layout = contentObject.AddComponent<VerticalLayoutGroup>();
+        layout.spacing = 6f;
+        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+        var fitter = contentObject.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        var scroll = paneObject.AddComponent<ScrollRect>();
+        scroll.viewport = viewportRect;
+        scroll.content = chapterContentRect;
+        scroll.horizontal = false;
+        scroll.vertical = true;
+        scroll.movementType = ScrollRect.MovementType.Clamped;
+    }
+
+    private void CreateRecipePane(Transform parent)
+    {
+        var paneObject = new GameObject("RecipePane");
+        paneObject.transform.SetParent(parent, false);
+        var paneRect = paneObject.AddComponent<RectTransform>();
+        paneRect.anchorMin = new Vector2(0.28f, 0f);
+        paneRect.anchorMax = Vector2.one;
+        paneRect.offsetMin = new Vector2(14f, 16f);
+        paneRect.offsetMax = new Vector2(-16f, -16f);
+
+        var viewportObject = new GameObject("Viewport");
+        viewportObject.transform.SetParent(paneObject.transform, false);
+        var viewportRect = viewportObject.AddComponent<RectTransform>();
+        viewportRect.anchorMin = Vector2.zero;
+        viewportRect.anchorMax = Vector2.one;
+        viewportRect.offsetMin = Vector2.zero;
+        viewportRect.offsetMax = Vector2.zero;
+        viewportObject.AddComponent<RectMask2D>();
+        Image viewportImage = viewportObject.AddComponent<Image>();
+        viewportImage.color = new Color(1f, 1f, 1f, 0.01f);
+
+        var contentObject = new GameObject("Content");
+        contentObject.transform.SetParent(viewportObject.transform, false);
+        recipeContentRect = contentObject.AddComponent<RectTransform>();
+        recipeContentRect.anchorMin = new Vector2(0f, 1f);
+        recipeContentRect.anchorMax = new Vector2(1f, 1f);
+        recipeContentRect.pivot = new Vector2(0.5f, 1f);
+        recipeContentRect.sizeDelta = Vector2.zero;
+        var layout = contentObject.AddComponent<VerticalLayoutGroup>();
+        layout.spacing = 8f;
+        layout.padding = new RectOffset(4, 4, 4, 4);
+        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+        var fitter = contentObject.AddComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        recipeScroll = paneObject.AddComponent<ScrollRect>();
+        recipeScroll.viewport = viewportRect;
+        recipeScroll.content = recipeContentRect;
+        recipeScroll.horizontal = false;
+        recipeScroll.vertical = true;
+        recipeScroll.movementType = ScrollRect.MovementType.Clamped;
+        recipeScroll.scrollSensitivity = 24f;
     }
 
     private void CreateNavBar(Transform parent)
@@ -405,9 +702,9 @@ public class RecipeBookUI : MonoBehaviour
         indicatorRect.anchorMax = new Vector2(0.5f, 0f);
         indicatorRect.pivot = new Vector2(0.5f, 0f);
         indicatorRect.anchoredPosition = new Vector2(0f, 18f);
-        indicatorRect.sizeDelta = new Vector2(160f, 32f);
+        indicatorRect.sizeDelta = new Vector2(320f, 32f);
         pageIndicatorText = TmpUiStyle.Create(indicatorObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.Center, true);
-        pageIndicatorText.fontSize = 18f;
+        pageIndicatorText.fontSize = 22f;
         pageIndicatorText.color = Ink;
         pageIndicatorText.text = "1 / 1";
     }

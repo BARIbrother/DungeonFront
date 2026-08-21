@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
   id: HandmadeAssembler_1
   displayName: "\uC218\uB3D9 \uC81C\uC791\uB300"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: a8b9c0d1e2f34567890123456789abcd, type: 3}
   category: 0
   enchantmentSlotCount: 0
   machineTypeId: HandmadeAssembler

@@ -114,6 +114,6 @@ MonoBehaviour:
     length: 0
     entries: []
   currentRecipe: {fileID: 0}
-  AvailableRecipes: {fileID: 0}
+  AvailableRecipes: {fileID: 11400000, guid: b0c1d2e3f4a543219876543210fedc05, type: 2}
   selectedRecipe: {fileID: 0}
-  workSpeed: 1
+  workSpeed: 10

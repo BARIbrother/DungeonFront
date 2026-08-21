@@ -15,6 +15,8 @@ public class EnchantingMachine : Machine, IFactoryProduction
         ApplySelectedRecipe();
     }
 
+    public override bool UsesMana() => true;
+
     public void TickCompleteProduction()
     {
         if (!CompleteProductionTick())

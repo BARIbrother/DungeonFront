@@ -51,12 +51,16 @@ public abstract class Machine : MonoBehaviour
     protected bool hasActiveWip;
     private bool isBroken;
 
+    // 마나 제작기·마법 부여대만 쓴다. 정수가 들어오면 충전되고 레시피가 소모한다.
+    protected int manaAmount;
+    protected int manaCapacity = 2000;
+
     // SetBroken 틴트 전 원래 SpriteRenderer 색.
     private Color? defaultSpriteColor;
     private static readonly Color BrokenTintColor = new Color(1f, 0.35f, 0.35f, 1f);
 
-    // 1틱(또는 수작업 1클릭)마다 더해지는 진행도.
-    public int workSpeed = 1;
+    // 1틱(또는 수작업 1클릭)마다 더해지는 진행도. 티어 1=10, 티어 2=15, 티어 3=20.
+    public int workSpeed = 10;
 
     public bool IsBroken => isBroken;
 
@@ -64,12 +68,60 @@ public abstract class Machine : MonoBehaviour
 
     public virtual bool PutintoInputPort(ItemEntry IE)
     {
-        if (IE == null || IE.item == null || IE.count <= 0 || inputPort == null)
+        if (IE == null || IE.item == null || IE.count <= 0)
+        {
+            return false;
+        }
+
+        if (TryAbsorbEssence(IE))
+        {
+            return true;
+        }
+
+        if (ManaEssence.IsEssence(IE.item) || inputPort == null)
         {
             return false;
         }
 
         return inputPort.TryAddToRecipeInput(IE, currentRecipe);
+    }
+
+    // 마나 제작기·마법 부여대: 정수는 재료 칸에 쌓지 않고 마나량으로 바꾼다.
+    public virtual bool UsesMana() => false;
+
+    public virtual bool AcceptsManaEssence() => UsesMana();
+
+    public int ManaAmount => manaAmount;
+
+    public int ManaCapacity => manaCapacity;
+
+    protected bool TryAbsorbEssence(ItemEntry entry)
+    {
+        if (!UsesMana() || entry == null || entry.item == null || entry.count <= 0)
+        {
+            return false;
+        }
+
+        if (!ManaEssence.TryGetValue(entry.item, out int unit))
+        {
+            return false;
+        }
+
+        int add = unit * entry.count;
+        if (add <= 0)
+        {
+            return false;
+        }
+
+        // 가득 차 있으면 정수를 받지 않는다. 한도를 넘는 양은 버리고 한도까지만 채운다.
+        if (manaAmount >= manaCapacity)
+        {
+            return false;
+        }
+
+        int room = manaCapacity - manaAmount;
+        manaAmount += add < room ? add : room;
+        return true;
     }
 
     public virtual bool TakeoutOutputPort(ItemEntry IE)
@@ -338,6 +390,12 @@ public abstract class Machine : MonoBehaviour
             return;
         }
 
+        int recipeManaCost = currentRecipe.GetManaCost();
+        if (UsesMana() && manaAmount < recipeManaCost)
+        {
+            return;
+        }
+
         if (outputPort == null || !outputPort.CanFit(currentRecipe.outputEntryList))
         {
             return;
@@ -346,6 +404,11 @@ public abstract class Machine : MonoBehaviour
         if (!inputPort.TryConsume(currentRecipe.inputEntryList))
         {
             return;
+        }
+
+        if (UsesMana() && recipeManaCost > 0)
+        {
+            manaAmount -= recipeManaCost;
         }
 
         hasActiveWip = true;
@@ -387,7 +450,22 @@ public abstract class Machine : MonoBehaviour
     // 생산 중 재료는 포트에 남지 않고 hasActiveWip + currentRecipe로만 존재한다.
     protected virtual void RefundActiveWipToPlayerInventory()
     {
-        if (!hasActiveWip || currentRecipe?.inputEntryList?.entries == null)
+        if (!hasActiveWip || currentRecipe == null)
+        {
+            return;
+        }
+
+        int recipeManaCost = currentRecipe.GetManaCost();
+        if (UsesMana() && recipeManaCost > 0)
+        {
+            manaAmount += recipeManaCost;
+            if (manaAmount > manaCapacity)
+            {
+                manaAmount = manaCapacity;
+            }
+        }
+
+        if (currentRecipe.inputEntryList?.entries == null)
         {
             return;
         }
@@ -395,6 +473,11 @@ public abstract class Machine : MonoBehaviour
         foreach (ItemEntry input in currentRecipe.inputEntryList.entries)
         {
             if (input == null || input.item == null || input.count <= 0)
+            {
+                continue;
+            }
+
+            if (ManaEssence.IsEssence(input.item))
             {
                 continue;
             }
@@ -696,6 +779,11 @@ public abstract class Machine : MonoBehaviour
         for (int i = 0; i < savedItems.Count; i++)
         {
             ItemEntry entry = savedItems[i];
+            if (TryAbsorbEssence(entry))
+            {
+                continue;
+            }
+
             if (!inputPort.TryAddToRecipeInput(entry, currentRecipe))
             {
                 ReturnEntryToPlayerInventory(entry);
@@ -727,6 +815,11 @@ public abstract class Machine : MonoBehaviour
             return;
         }
 
+        if (ManaEssence.IsEssence(entry.item))
+        {
+            return;
+        }
+
         var inventory = playerInventory != null
             ? playerInventory
             : FindAnyObjectByType<PlayerInventory>();
@@ -754,6 +847,11 @@ public abstract class Machine : MonoBehaviour
                 continue;
             }
 
+            if (ManaEssence.IsEssence(entry.item))
+            {
+                continue;
+            }
+
             AddToPlayerInventory(new ItemEntry { item = entry.item.Clone(), count = entry.count });
             entry.item = null;
             entry.count = 0;
@@ -762,6 +860,16 @@ public abstract class Machine : MonoBehaviour
 
     protected void AddToPlayerInventory(ItemEntry entry)
     {
+        if (entry == null || entry.item == null || entry.count <= 0)
+        {
+            return;
+        }
+
+        if (ManaEssence.IsEssence(entry.item))
+        {
+            return;
+        }
+
         var inventory = playerInventory != null
             ? playerInventory
             : FindAnyObjectByType<PlayerInventory>();

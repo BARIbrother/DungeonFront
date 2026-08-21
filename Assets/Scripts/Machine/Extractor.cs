@@ -92,7 +92,7 @@ public class Extractor : Machine
             return;
         }
 
-        if (!IsConnectedToWarehouse())
+        if (!IsConnectedToCompatibleStorage())
         {
             return;
         }
@@ -103,15 +103,25 @@ public class Extractor : Machine
             return;
         }
 
-        PlayerInventory inventory = PlayerInventory.GetOrFind();
-        if (inventory == null || inventory.GetCount(pickedItem) <= 0)
+        if (ManaEssence.IsEssence(pickedItem))
         {
-            return;
+            if (!TryExtractEssenceFromStorage())
+            {
+                return;
+            }
         }
-
-        if (inventory.Remove(pickedItem, 1) <= 0)
+        else
         {
-            return;
+            PlayerInventory inventory = PlayerInventory.GetOrFind();
+            if (inventory == null || inventory.GetCount(pickedItem) <= 0)
+            {
+                return;
+            }
+
+            if (inventory.Remove(pickedItem, 1) <= 0)
+            {
+                return;
+            }
         }
 
         facingBelt.ReceiveItem(new ItemEntry
@@ -123,13 +133,39 @@ public class Extractor : Machine
 
     public bool IsConnectedToWarehouse()
     {
-        GridManager gridManager = GetGridManager();
-        if (gridManager == null)
+        return GetStorageBehind() is WarehouseMachine;
+    }
+
+    private bool IsConnectedToCompatibleStorage()
+    {
+        Machine behind = GetStorageBehind();
+        if (ManaEssence.IsEssence(pickedItem))
+        {
+            return behind is ManaStorageMachine;
+        }
+
+        return behind is WarehouseMachine;
+    }
+
+    private bool TryExtractEssenceFromStorage()
+    {
+        if (GetStorageBehind() is not ManaStorageMachine storage)
         {
             return false;
         }
 
-        return gridManager.GetMachineAt(GridAnchor - flowDirection) is WarehouseMachine;
+        return storage.TryExtractItem(pickedItem, 1);
+    }
+
+    private Machine GetStorageBehind()
+    {
+        GridManager gridManager = GetGridManager();
+        if (gridManager == null)
+        {
+            return null;
+        }
+
+        return gridManager.GetMachineAt(GridAnchor - flowDirection);
     }
 
     private ConveyerBelt GetFacingBelt()

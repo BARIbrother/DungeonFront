@@ -11,7 +11,7 @@ public static class MachineAssetGenerator
     private const string MachineDefFolder = "Assets/ItemDefinition/MachineDef";
     private const string ContractsFolder = "Assets/Data/Contracts/Machines";
     private const string DatabasePath = "Assets/ItemDefinition/MachineDef/MachineDatabase.asset";
-    private const string AutoGenerateSessionKey = "DungeonFront.MachineAssetGenerator.AutoDone";
+    private const string AutoGenerateSessionKey = "DungeonFront.MachineAssetGenerator.AutoDone.Tiers23";
 
     private static readonly Color AssemblerTint = new Color(0.75f, 0.85f, 0.75f, 1f);
     private static readonly Color ManaTint = new Color(0.55f, 0.7f, 1f, 1f);
@@ -134,6 +134,49 @@ public static class MachineAssetGenerator
             typeof(ManaStorageMachine),
             ManaStorageTint);
 
+        const int WorkSpeedT1 = 10;
+        const int WorkSpeedT2 = 15;
+        const int WorkSpeedT3 = 20;
+
+        SetPrefabWorkSpeed(minerPrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(smelterPrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(assemblerTemplate, WorkSpeedT1);
+        SetPrefabWorkSpeed(handmadeTemplate, WorkSpeedT1);
+        SetPrefabWorkSpeed(manaExtractorPrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(enchantingPrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(manaHandmadePrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(altarPrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(foundryPrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(extractorPrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(warehousePrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(manaStoragePrefab, WorkSpeedT1);
+        SetPrefabWorkSpeed(beltPrefab, WorkSpeedT1);
+
+        GameObject miner2Prefab = CloneTieredPrefab(
+            minerPrefab, $"{PrefabFolder}/Miner_2_machine.prefab", "Miner_2_machine",
+            typeof(MinerMachine), WorkSpeedT2);
+        GameObject miner3Prefab = CloneTieredPrefab(
+            minerPrefab, $"{PrefabFolder}/Miner_3_machine.prefab", "Miner_3_machine",
+            typeof(MinerMachine), WorkSpeedT3);
+        GameObject smelter2Prefab = CloneTieredPrefab(
+            smelterPrefab, $"{PrefabFolder}/Smelter_2_machine.prefab", "Smelter_2_machine",
+            typeof(SmelterMachine), WorkSpeedT2);
+        GameObject smelter3Prefab = CloneTieredPrefab(
+            smelterPrefab, $"{PrefabFolder}/Smelter_3_machine.prefab", "Smelter_3_machine",
+            typeof(SmelterMachine), WorkSpeedT3);
+        GameObject assembler2Prefab = CloneTieredPrefab(
+            assemblerTemplate, $"{PrefabFolder}/Assembler_2_machine.prefab", "Assembler_2_machine",
+            typeof(AssemblerMachine), WorkSpeedT2);
+        GameObject assembler3Prefab = CloneTieredPrefab(
+            assemblerTemplate, $"{PrefabFolder}/Assembler_3_machine.prefab", "Assembler_3_machine",
+            typeof(AssemblerMachine), WorkSpeedT3);
+        GameObject manaAssembler2Prefab = CloneTieredPrefab(
+            manaHandmadePrefab, $"{PrefabFolder}/ManaAssembler_2_machine.prefab", "ManaAssembler_2_machine",
+            typeof(ManaAssemblerMachine), WorkSpeedT2);
+        GameObject manaAssembler3Prefab = CloneTieredPrefab(
+            manaHandmadePrefab, $"{PrefabFolder}/ManaAssembler_3_machine.prefab", "ManaAssembler_3_machine",
+            typeof(ManaAssemblerMachine), WorkSpeedT3);
+
         DeleteObsoleteMachineDefs();
 
         var defs = new List<ItemDef_Machine>
@@ -151,6 +194,14 @@ public static class MachineAssetGenerator
             UpsertMachineDef("ManaStorage_1", "ManaStorage", "마나 저장소", false, manaStoragePrefab),
             UpsertMachineDef("ConveyerBelt_1", "ConveyerBelt", "컨베이어 벨트", false, beltPrefab),
             UpsertMachineDef("Extractor_1", "Extractor", "추출기", false, extractorPrefab),
+            UpsertMachineDef("Miner_2", "Miner", "심층 채굴기", false, miner2Prefab),
+            UpsertMachineDef("Miner_3", "Miner", "암반 채굴기", false, miner3Prefab),
+            UpsertMachineDef("Smelter_2", "Smelter", "더 좋은 용광로", false, smelter2Prefab),
+            UpsertMachineDef("Smelter_3", "Smelter", "고열 용광로", false, smelter3Prefab),
+            UpsertMachineDef("Assembler_2", "Assembler", "고속 제작기", false, assembler2Prefab),
+            UpsertMachineDef("Assembler_3", "Assembler", "대형 제작기", false, assembler3Prefab),
+            UpsertMachineDef("ManaAssembler_2", "ManaAssembler", "정교한 마나제작기", false, manaAssembler2Prefab),
+            UpsertMachineDef("ManaAssembler_3", "ManaAssembler", "의식 세공기", false, manaAssembler3Prefab),
         };
 
         MachineDatabase database = AssetDatabase.LoadAssetAtPath<MachineDatabase>(DatabasePath);
@@ -181,6 +232,7 @@ public static class MachineAssetGenerator
         SessionState.SetBool(AutoGenerateSessionKey, true);
         MachineArtBinder.Bind();
         ExtractorArtBinder.Bind();
+        RecipePoolBinder.Bind();
         Debug.Log($"[MachineAssetGenerator] 완료: Prefab·SO {defs.Count}종, MachineDatabase, Contracts 4종.");
     }
 
@@ -312,6 +364,100 @@ public static class MachineAssetGenerator
         }
 
         return AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+    }
+
+    // 상위 티어 Prefab. 하위 템플릿을 복사한 뒤 workSpeed와 스프라이트만 맞춘다.
+    private static GameObject CloneTieredPrefab(
+        GameObject template,
+        string assetPath,
+        string objectName,
+        System.Type machineType,
+        int workSpeed)
+    {
+        if (template == null)
+        {
+            Debug.LogError($"[MachineAssetGenerator] 티어 Prefab 템플릿이 없습니다: {objectName}");
+            return null;
+        }
+
+        string templatePath = AssetDatabase.GetAssetPath(template);
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+        if (existing == null)
+        {
+            AssetDatabase.CopyAsset(templatePath, assetPath);
+        }
+
+        GameObject root = PrefabUtility.LoadPrefabContents(assetPath);
+        try
+        {
+            root.name = objectName;
+
+            Machine oldMachine = root.GetComponent<Machine>();
+            if (oldMachine != null && oldMachine.GetType() != machineType)
+            {
+                Object.DestroyImmediate(oldMachine);
+            }
+
+            if (root.GetComponent<Machine>() == null)
+            {
+                root.AddComponent(machineType);
+            }
+
+            Machine machine = root.GetComponent<Machine>();
+            if (machine != null)
+            {
+                SerializedObject so = new SerializedObject(machine);
+                so.FindProperty("workSpeed").intValue = workSpeed;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            SpriteRenderer spriteRenderer = root.GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                MachineArtBinder.TryApplyArt(spriteRenderer, objectName);
+            }
+
+            PrefabUtility.SaveAsPrefabAsset(root, assetPath);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+
+        return AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+    }
+
+    private static void SetPrefabWorkSpeed(GameObject prefab, int workSpeed)
+    {
+        if (prefab == null)
+        {
+            return;
+        }
+
+        string assetPath = AssetDatabase.GetAssetPath(prefab);
+        if (string.IsNullOrEmpty(assetPath))
+        {
+            return;
+        }
+
+        GameObject root = PrefabUtility.LoadPrefabContents(assetPath);
+        try
+        {
+            Machine machine = root.GetComponent<Machine>();
+            if (machine == null)
+            {
+                return;
+            }
+
+            SerializedObject so = new SerializedObject(machine);
+            so.FindProperty("workSpeed").intValue = workSpeed;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            PrefabUtility.SaveAsPrefabAsset(root, assetPath);
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
     }
 
     private static ItemDef_Machine UpsertMachineDef(

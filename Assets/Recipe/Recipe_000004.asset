@@ -29,4 +29,4 @@ MonoBehaviour:
         level: 1
         enchantmentIds: []
       count: 8
-  recipeTime: 10
+  recipeTime: 100

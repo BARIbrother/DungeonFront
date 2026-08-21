@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class ConveyerBelt : Machine
 {
-    public const int TicksPerCell = 10;
+    // 1칸을 지나는 틱 수. 1초 = TickManager.TicksPerSecond와 같다.
+    public static int TicksPerCell => (int)TickManager.TicksPerSecond;
 
     [System.Serializable]
     public struct DirectionalSprite

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8454ec19a32541c59096c671d07e9c39, type: 3}
+  m_Name: RecipePool_ManaExtractor
+  m_EditorClassIdentifier: Assembly-CSharp::RecipePool
+  recipes:
+  - {fileID: 11400000, guid: e69e3d24ce0043f0a9bad6f1ae24c954, type: 2}
+  - {fileID: 11400000, guid: cad6e6e037124503948ee240e04532b0, type: 2}
+  - {fileID: 11400000, guid: 0632ff5b1f9f4a37a2765627aab7b9c8, type: 2}
+  - {fileID: 11400000, guid: 4ee298c4ac0f47d1bcf77c3a31938999, type: 2}

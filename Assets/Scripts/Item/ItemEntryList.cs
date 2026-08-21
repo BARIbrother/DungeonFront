@@ -43,6 +43,12 @@ public class ItemEntryList
                 continue;
             }
 
+            // 정수는 재료 칸이 아니라 마나량으로 소모한다.
+            if (ManaEssence.IsEssence(requiredEntry.item))
+            {
+                continue;
+            }
+
             if (i >= entries.Length)
             {
                 return false;
@@ -120,6 +126,11 @@ public class ItemEntryList
                 continue;
             }
 
+            if (ManaEssence.IsEssence(requiredEntry.item))
+            {
+                continue;
+            }
+
             ItemEntry portEntry = entries[i];
             portEntry.count -= requiredEntry.count;
             if (portEntry.count <= 0)
@@ -184,6 +195,11 @@ public class ItemEntryList
             return false;
         }
 
+        if (ManaEssence.IsEssence(item.item))
+        {
+            return false;
+        }
+
         if (recipe?.inputEntryList?.entries == null)
         {
             return TryAdd(item);
@@ -194,6 +210,7 @@ public class ItemEntryList
         {
             ItemEntry required = recipe.inputEntryList.entries[i];
             if (required == null || required.item == null
+                || ManaEssence.IsEssence(required.item)
                 || !item.item.SatisfiesRecipeRequirement(required.item))
             {
                 continue;

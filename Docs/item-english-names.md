@@ -151,11 +151,11 @@ minimum required level; machines accept the same definition at that level or hig
 
 ## recipeTime (tick) design
 
-For 1:1 item chains, lower step is half the upper step so balanced factories land near **1 lower : 2 upper**.
+1초 = 10틱. 진행도 단위는 10배라 T1 `workSpeed`=10, 제련 `recipeTime`=100이면 예전과 같이 1초다. For 1:1 item chains, lower step is half the upper step so balanced factories land near **1 lower : 2 upper**.
 
-- Smelt / basic refine: **10**
-- Parts from bars (plate/rod): **20**
-- Iron equipment: **40**
-- Alloy plate/rod: **40**; alloy gear: **80**
-- Greysteel plate/rod: **80**; greysteel gear: **160**
-- Ritual / altar endgame: **160–320**
+- Smelt / basic refine: **100**
+- Parts from bars (plate/rod): **200**
+- Iron equipment: **400**
+- Alloy plate/rod: **400**; alloy gear: **800**
+- Greysteel plate/rod: **800**; greysteel gear: **1600**
+- Ritual / altar endgame: **1600–3200**

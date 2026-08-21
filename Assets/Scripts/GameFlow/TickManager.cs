@@ -6,11 +6,15 @@ public class TickManager : MonoBehaviour
 {
     public static int ProductionPhaseTicks => UnlockManager.Instance != null
         ? UnlockManager.Instance.GetProductionTicks()
-        : 1800;
+        : 3 * TicksPerMinute;
+
+    // 1초 = 10틱. 진행도 단위만 10배라 T1 workSpeed=10, T2=15, T3=20이 정수다.
+    public const float TicksPerSecond = 10f;
+    public const int TicksPerMinute = 600;
 
     public static TickManager Instance { get; private set; }
 
-    [SerializeField] private float ticksPerSecond = 10f;
+    [SerializeField] private float ticksPerSecond = TicksPerSecond;
 
     private readonly List<Machine> machinesOnGrid = new();
     private readonly List<ConveyerBelt> beltsOnGrid = new();
@@ -69,7 +73,8 @@ public class TickManager : MonoBehaviour
         }
 
         Instance = this;
-        tickInterval = 1f / ticksPerSecond;
+        ticksPerSecond = TicksPerSecond;
+        tickInterval = 1f / TicksPerSecond;
     }
 
     private void Start()

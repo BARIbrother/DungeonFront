@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 창고. outputPort는 막고, input으로 들어온 아이템은 즉시 플레이어 인벤으로 옮긴다.
+// 마나 저장소와 입고 경로는 같다. 일반 아이템만 받고 정수는 거절한다.
 public class WarehouseMachine : Machine
 {
     public override Vector2Int GetFootprintSize() => new Vector2Int(2, 1);
@@ -27,6 +28,11 @@ public class WarehouseMachine : Machine
     public override bool PutintoInputPort(ItemEntry IE)
     {
         if (IsBroken || IE == null || IE.item == null || IE.count <= 0)
+        {
+            return false;
+        }
+
+        if (ManaEssence.IsEssence(IE.item))
         {
             return false;
         }

@@ -341,7 +341,7 @@ public class UnlockManager : MonoBehaviour
 
     public int GetProductionTicks()
     {
-        return GetProductionMinutes() * 600;
+        return GetProductionMinutes() * TickManager.TicksPerMinute;
     }
 
     public float GetProductionSeconds()

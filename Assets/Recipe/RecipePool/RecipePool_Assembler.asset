@@ -13,4 +13,13 @@ MonoBehaviour:
   m_Name: RecipePool_Assembler
   m_EditorClassIdentifier: Assembly-CSharp::RecipePool
   recipes:
+  - {fileID: 11400000, guid: 579a800da2db4e518fd5215faa7fecd7, type: 2}
+  - {fileID: 11400000, guid: 754c4d3966ee4fc494e2e62de31c09a6, type: 2}
   - {fileID: 11400000, guid: 7a4bcc1d64f1f7c409bc3f5ac00c3802, type: 2}
+  - {fileID: 11400000, guid: 59ef0c8380984fa4a22f6196c60bb1b2, type: 2}
+  - {fileID: 11400000, guid: 8b8d0af96d7a4f66bc3e24cee2a9527b, type: 2}
+  - {fileID: 11400000, guid: 3ea44d7409584c27aa78b6d16ea1abca, type: 2}
+  - {fileID: 11400000, guid: dc4b2425d6ff43ba892a15c16240748f, type: 2}
+  - {fileID: 11400000, guid: 709e350efea14ae394eff377178b2be9, type: 2}
+  - {fileID: 11400000, guid: a2bb8a114e404c7cb03ae3b1fdd1778a, type: 2}
+  - {fileID: 11400000, guid: ba02d7ed0a644ff892f3d1f7441df150, type: 2}

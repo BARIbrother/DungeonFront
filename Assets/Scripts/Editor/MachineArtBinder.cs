@@ -18,8 +18,16 @@ public class MachineArtBinder : AssetPostprocessor
         $"{ArtFolder}/foundry.png",
         $"{ArtFolder}/enchanting.png",
         $"{ArtFolder}/mana_handmade.png",
+        $"{ArtFolder}/mana_handmade_2.png",
+        $"{ArtFolder}/mana_handmade_3.png",
         $"{ArtFolder}/mana_extractor.png",
         $"{ArtFolder}/assembler_placeholder.png",
+        $"{ArtFolder}/assembler_2.png",
+        $"{ArtFolder}/assembler_3.png",
+        $"{ArtFolder}/miner_2.png",
+        $"{ArtFolder}/miner_3.png",
+        $"{ArtFolder}/furnace_2.png",
+        $"{ArtFolder}/furnace_3.png",
     };
 
     private static readonly Dictionary<string, string> PrefabByArtPath = new()
@@ -30,8 +38,16 @@ public class MachineArtBinder : AssetPostprocessor
         { $"{ArtFolder}/foundry.png", $"{PrefabFolder}/Foundry_machine.prefab" },
         { $"{ArtFolder}/enchanting.png", $"{PrefabFolder}/Enchanting_machine.prefab" },
         { $"{ArtFolder}/mana_handmade.png", $"{PrefabFolder}/ManaHandmade_machine.prefab" },
+        { $"{ArtFolder}/mana_handmade_2.png", $"{PrefabFolder}/ManaAssembler_2_machine.prefab" },
+        { $"{ArtFolder}/mana_handmade_3.png", $"{PrefabFolder}/ManaAssembler_3_machine.prefab" },
         { $"{ArtFolder}/mana_extractor.png", $"{PrefabFolder}/ManaExtractor_machine.prefab" },
         { $"{ArtFolder}/assembler_placeholder.png", $"{PrefabFolder}/Assembler_machine.prefab" },
+        { $"{ArtFolder}/assembler_2.png", $"{PrefabFolder}/Assembler_2_machine.prefab" },
+        { $"{ArtFolder}/assembler_3.png", $"{PrefabFolder}/Assembler_3_machine.prefab" },
+        { $"{ArtFolder}/miner_2.png", $"{PrefabFolder}/Miner_2_machine.prefab" },
+        { $"{ArtFolder}/miner_3.png", $"{PrefabFolder}/Miner_3_machine.prefab" },
+        { $"{ArtFolder}/furnace_2.png", $"{PrefabFolder}/Smelter_2_machine.prefab" },
+        { $"{ArtFolder}/furnace_3.png", $"{PrefabFolder}/Smelter_3_machine.prefab" },
     };
 
     private static readonly Dictionary<string, string> DefIdByArtPath = new()
@@ -42,8 +58,16 @@ public class MachineArtBinder : AssetPostprocessor
         { $"{ArtFolder}/foundry.png", "Foundry_1" },
         { $"{ArtFolder}/enchanting.png", "Enchanting_1" },
         { $"{ArtFolder}/mana_handmade.png", "ManaHandmade_1" },
+        { $"{ArtFolder}/mana_handmade_2.png", "ManaAssembler_2" },
+        { $"{ArtFolder}/mana_handmade_3.png", "ManaAssembler_3" },
         { $"{ArtFolder}/mana_extractor.png", "ManaExtractor_1" },
         { $"{ArtFolder}/assembler_placeholder.png", "Assembler_1" },
+        { $"{ArtFolder}/assembler_2.png", "Assembler_2" },
+        { $"{ArtFolder}/assembler_3.png", "Assembler_3" },
+        { $"{ArtFolder}/miner_2.png", "Miner_2" },
+        { $"{ArtFolder}/miner_3.png", "Miner_3" },
+        { $"{ArtFolder}/furnace_2.png", "Smelter_2" },
+        { $"{ArtFolder}/furnace_3.png", "Smelter_3" },
     };
 
     [InitializeOnLoadMethod]

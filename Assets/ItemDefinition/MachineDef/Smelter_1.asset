@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
   id: Smelter_1
   displayName: "\uC6A9\uAD11\uB85C"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 29f22b577bdf49c479c4c084397a3c7c, type: 3}
   category: 0
   enchantmentSlotCount: 0
   machineTypeId: Smelter

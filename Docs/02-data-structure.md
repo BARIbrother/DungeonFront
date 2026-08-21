@@ -305,9 +305,9 @@ public class SaveData
 
 | 상수 | 값 | 저장 |
 |------|-----|------|
-| `TicksPerSecond` | 10 | 코드 상수 |
-| `ProductionPhaseTicks` | 3000 | 코드 상수 |
-| `productionTick` | 0~3000 | 런타임·(선택) 세이브 |
+| `TicksPerSecond` | 10 | 코드 상수 (`TickManager.TicksPerSecond`) |
+| `ProductionPhaseTicks` | 분 × 600 (3분=1800) | 코드 (`UnlockManager.GetProductionTicks`) |
+| `productionTick` | 0~하루 틱 | 런타임·(선택) 세이브 |
 
 - 레시피 `durationTicks`는 **정적 SO**에만 둔다.
 

@@ -93,6 +93,7 @@ public static class ItemIconResolver
         { "iron_roof_frame", "iron_roof_frame_icon" },
         { "greatsword_blade", "greatsword_blade_icon" },
         { "executioner_greatsword", "executioner_greatsword_icon" },
+        { "executor_greatsword", "executioner_greatsword_icon" },
         { "ritual_iron_greatsword", "ritual_iron_greatsword_icon" },
         { "war_stained_executor_greatsword", "war_stained_executioner_greatsword_icon" },
         { "war_stained_executioner_greatsword", "war_stained_executioner_greatsword_icon" },

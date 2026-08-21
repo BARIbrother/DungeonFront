@@ -73,16 +73,12 @@ public static class MachineCraftCatalog
             Item("greysteel_ingot", 8), Item("concrete", 4)),
     };
 
-    // 마나 제작기·자동 제작대는 개발 중이므로 지급·제작하지 않는다.
+    // 자동 제작기 1티어는 수동 제작대를 쓴다.
     public static bool IsObtainable(string machineDefId)
     {
         return machineDefId switch
         {
             "Assembler_1" => false,
-            "Assembler_2" => false,
-            "Assembler_3" => false,
-            "ManaAssembler_2" => false,
-            "ManaAssembler_3" => false,
             _ => !string.IsNullOrEmpty(machineDefId),
         };
     }
