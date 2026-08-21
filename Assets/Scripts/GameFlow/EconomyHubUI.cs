@@ -138,6 +138,12 @@ public sealed class EconomyHubUI : MonoBehaviour
             {
                 continue;
             }
+
+            if (entry.IsMachine && !MachineCraftCatalog.IsObtainable(entry.machineDefId))
+            {
+                continue;
+            }
+
             CreateEntry(entry);
         }
     }

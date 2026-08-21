@@ -142,7 +142,8 @@ public class MachineGrantUI : MonoBehaviour
         for (int i = 0; i < machines.Count; i++)
         {
             ItemDef_Machine def = machines[i];
-            if (def == null || string.IsNullOrEmpty(def.id))
+            if (def == null || string.IsNullOrEmpty(def.id)
+                || !MachineCraftCatalog.IsObtainable(def.id))
             {
                 continue;
             }
@@ -224,7 +225,8 @@ public class MachineGrantUI : MonoBehaviour
 
     private void OnMachineButtonClicked(ItemDef_Machine definition)
     {
-        if (!isOpen || playerInventory == null || definition == null || definition.machinePrefab == null)
+        if (!isOpen || playerInventory == null || definition == null || definition.machinePrefab == null
+            || !MachineCraftCatalog.IsObtainable(definition.id))
         {
             return;
         }

@@ -4,6 +4,9 @@ using UnityEngine.Tilemaps;
 // 구역 스탬프 mask 계산 · Locked 셀 → 스탬프 타일 조회.
 public static class TreeZoneStampPicker
 {
+    // 스탬프를 칸 단위로 잘라 붙이는 처리는 잠시 끈다.
+    public static bool Enabled => false;
+
     public static bool TryPick(
         int x,
         int y,
@@ -13,6 +16,10 @@ public static class TreeZoneStampPicker
         out TileBase tile)
     {
         tile = null;
+        if (!Enabled)
+        {
+            return false;
+        }
         if (grid == null || stamps == null || !grid.IsInBounds(x, y))
         {
             return false;

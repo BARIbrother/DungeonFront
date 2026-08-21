@@ -238,6 +238,11 @@ public class MachineCraftUI : MonoBehaviour
         for (int i = 0; i < MachineCraftCatalog.All.Length; i++)
         {
             MachineCraftCatalog.Recipe recipe = MachineCraftCatalog.All[i];
+            if (!MachineCraftCatalog.IsObtainable(recipe.machineDefId))
+            {
+                continue;
+            }
+
             ItemDef_Machine definition = machineDatabase.Get(recipe.machineDefId);
             if (definition == null || definition.machinePrefab == null)
             {

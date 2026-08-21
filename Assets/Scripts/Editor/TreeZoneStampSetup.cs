@@ -2,9 +2,10 @@
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
-// ZoneTemplates/stamp_XX.keys.txt → TreeZoneStampSet 스프라이트 배열·씬 연결.
+// stamp_XX.png를 16×16 슬라이스로 잘라 TreeZoneStampSet에 연결한다.
 public static class TreeZoneStampSetup
 {
     private const string ScenePath = "Assets/Scenes/ProductionScene.unity";
@@ -12,6 +13,39 @@ public static class TreeZoneStampSetup
     private const string TemplateFolder = "Assets/Art/Background/Tiles/Tree/ZoneTemplates";
     private const string TileFolder = "Assets/Art/Background/Tiles/Tree";
     private const float Ppu = 32f;
+    private const int StampCellPixels = 32;
+
+    private const string LockedZonePath = "Assets/Art/Background/Tiles/Tree/ZoneTemplates/locked_zone.png";
+
+    [InitializeOnLoadMethod]
+    private static void ConfigureLockedZoneSprite()
+    {
+        EditorApplication.delayCall += () =>
+        {
+            var importer = AssetImporter.GetAtPath(LockedZonePath) as TextureImporter;
+            if (importer == null)
+            {
+                return;
+            }
+
+            if (importer.textureType == TextureImporterType.Sprite
+                && importer.spriteImportMode == SpriteImportMode.Single
+                && Mathf.Approximately(importer.spritePixelsPerUnit, Ppu)
+                && importer.filterMode == FilterMode.Point)
+            {
+                return;
+            }
+
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.spritePixelsPerUnit = Ppu;
+            importer.filterMode = FilterMode.Point;
+            importer.mipmapEnabled = false;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.alphaIsTransparency = true;
+            importer.SaveAndReimport();
+        };
+    }
 
     [MenuItem("DungeonFront/Ensure Tree Zone Stamps")]
     public static void EnsureFromMenu()
@@ -27,7 +61,12 @@ public static class TreeZoneStampSetup
     public static void Ensure()
     {
         ConfigureTileFolderSprites();
+        BindStampSheets(wireScene: true);
+    }
 
+    // stamp_XX.png를 16×16칸으로 잘라 TreeZoneStampSet에 연결한다.
+    public static void BindStampSheets(bool wireScene)
+    {
         TreeZoneStampSet set = AssetDatabase.LoadAssetAtPath<TreeZoneStampSet>(StampSetPath);
         if (set == null)
         {
@@ -44,41 +83,68 @@ public static class TreeZoneStampSetup
         int missing = 0;
         for (int mask = 0; mask < TreeZoneStampSet.MaskCount; mask++)
         {
-            string keyPath = $"{TemplateFolder}/stamp_{mask:00}.keys.txt";
-            if (!File.Exists(keyPath))
+            string stampPath = $"{TemplateFolder}/stamp_{mask:00}.png";
+            ConfigureStampSheetImporter(stampPath);
+            if (!TryAssignStampSheet(set, mask, stampPath))
             {
-                Debug.LogWarning($"[TreeZoneStampSetup] 키 파일 없음: {keyPath} (Tools/build_zone_stamp.py 실행)");
-                missing++;
-                continue;
-            }
-
-            string[] lines = File.ReadAllLines(keyPath);
-            for (int ly = 0; ly < TreeZoneStampSet.ZoneSize; ly++)
-            {
-                string[] parts = ly < lines.Length
-                    ? lines[ly].Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries)
-                    : System.Array.Empty<string>();
-                for (int lx = 0; lx < TreeZoneStampSet.ZoneSize; lx++)
-                {
-                    int index = mask * TreeZoneStampSet.CellsPerStamp + ly * TreeZoneStampSet.ZoneSize + lx;
-                    string key = lx < parts.Length ? parts[lx].Trim() : "mid_0_0";
-                    string pngPath = $"{TileFolder}/{key}.png";
-                    ConfigureSliceImporter(pngPath);
-                    set.stampSprites[index] = AssetDatabase.LoadAssetAtPath<Sprite>(pngPath);
-                    if (set.stampSprites[index] == null)
-                    {
-                        missing++;
-                    }
-                }
+                missing += TreeZoneStampSet.CellsPerStamp;
             }
         }
 
         set.RebuildTiles();
         EditorUtility.SetDirty(set);
-        WireScene(set);
+        if (wireScene)
+        {
+            WireScene(set);
+        }
+
         AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-        Debug.Log($"[TreeZoneStampSetup] TreeZoneStampSet 연결 완료 (missing refs≈{missing})");
+        Debug.Log($"[TreeZoneStampSetup] TreeZoneStampSet 연결 완료 (missing cells≈{missing})");
+    }
+
+    private static bool TryAssignStampSheet(TreeZoneStampSet set, int mask, string stampPath)
+    {
+        Object[] assets = AssetDatabase.LoadAllAssetsAtPath(stampPath);
+        if (assets == null || assets.Length == 0)
+        {
+            return false;
+        }
+
+        int assigned = 0;
+        for (int ly = 0; ly < TreeZoneStampSet.ZoneSize; ly++)
+        {
+            for (int lx = 0; lx < TreeZoneStampSet.ZoneSize; lx++)
+            {
+                int index = mask * TreeZoneStampSet.CellsPerStamp + ly * TreeZoneStampSet.ZoneSize + lx;
+                string sliceName = StampSliceName(mask, lx, ly);
+                Sprite sprite = FindSprite(assets, sliceName);
+                set.stampSprites[index] = sprite;
+                if (sprite != null)
+                {
+                    assigned++;
+                }
+            }
+        }
+
+        return assigned > 0;
+    }
+
+    private static Sprite FindSprite(Object[] assets, string sliceName)
+    {
+        for (int i = 0; i < assets.Length; i++)
+        {
+            if (assets[i] is Sprite sprite && sprite.name == sliceName)
+            {
+                return sprite;
+            }
+        }
+
+        return null;
+    }
+
+    private static string StampSliceName(int mask, int localX, int localY)
+    {
+        return $"stamp_{mask:00}_{localX}_{localY}";
     }
 
     private static void ConfigureTileFolderSprites()
@@ -92,11 +158,99 @@ public static class TreeZoneStampSetup
         foreach (string guid in guids)
         {
             string path = AssetDatabase.GUIDToAssetPath(guid);
-            if (path.EndsWith(".png"))
+            if (!path.EndsWith(".png") || path.Replace('\\', '/').Contains("/ZoneTemplates/"))
             {
-                ConfigureSliceImporter(path);
+                continue;
+            }
+
+            ConfigureSliceImporter(path);
+        }
+    }
+
+    private static void ConfigureStampSheetImporter(string pngPath)
+    {
+        var importer = AssetImporter.GetAtPath(pngPath) as TextureImporter;
+        if (importer == null)
+        {
+            return;
+        }
+
+        SpriteRect[] sheet = BuildStampSpriteSheet(pngPath, importer);
+        if (!NeedsStampConfigure(importer, sheet))
+        {
+            return;
+        }
+
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Multiple;
+        importer.spritePixelsPerUnit = Ppu;
+        importer.filterMode = FilterMode.Point;
+        importer.mipmapEnabled = false;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.alphaIsTransparency = true;
+        importer.npotScale = TextureImporterNPOTScale.None;
+        SpriteSheetImporterUtil.SetSpriteRects(importer, sheet);
+        importer.SaveAndReimport();
+    }
+
+    private static bool NeedsStampConfigure(TextureImporter importer, SpriteRect[] sheet)
+    {
+        if (importer.textureType != TextureImporterType.Sprite
+            || importer.spriteImportMode != SpriteImportMode.Multiple
+            || !Mathf.Approximately(importer.spritePixelsPerUnit, Ppu)
+            || importer.filterMode != FilterMode.Point)
+        {
+            return true;
+        }
+
+        SpriteRect[] current = SpriteSheetImporterUtil.GetSpriteRects(importer);
+        if (current.Length != sheet.Length)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < sheet.Length; i++)
+        {
+            if (current[i] == null || current[i].name != sheet[i].name)
+            {
+                return true;
             }
         }
+
+        return false;
+    }
+
+    private static SpriteRect[] BuildStampSpriteSheet(string pngPath, TextureImporter importer)
+    {
+        int mask = 0;
+        string fileName = Path.GetFileNameWithoutExtension(pngPath);
+        if (fileName.StartsWith("stamp_") && int.TryParse(fileName.Substring("stamp_".Length), out int parsed))
+        {
+            mask = parsed;
+        }
+
+        int zone = TreeZoneStampSet.ZoneSize;
+        SpriteRect[] existing = SpriteSheetImporterUtil.GetSpriteRects(importer);
+        var rects = new SpriteRect[zone * zone];
+        int i = 0;
+        for (int ly = 0; ly < zone; ly++)
+        {
+            for (int lx = 0; lx < zone; lx++)
+            {
+                string sliceName = StampSliceName(mask, lx, ly);
+                rects[i++] = SpriteSheetImporterUtil.CreateRect(
+                    sliceName,
+                    new Rect(
+                        lx * StampCellPixels,
+                        ly * StampCellPixels,
+                        StampCellPixels,
+                        StampCellPixels),
+                    new Vector2(0.5f, 0.5f),
+                    SpriteSheetImporterUtil.FindExistingId(existing, sliceName));
+            }
+        }
+
+        return rects;
     }
 
     private static void ConfigureSliceImporter(string pngPath)

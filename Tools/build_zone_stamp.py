@@ -19,9 +19,13 @@ ROOT = r"d:\Unity\Projects\DungeonFront"
 TILE = os.path.join(ROOT, "Assets", "Art", "Background", "Tiles", "Tree")
 OUT = os.path.join(TILE, "ZoneTemplates")
 PREV = os.path.join(ROOT, "Assets", "Art", "Background", "_preview")
+LOCKED_SRC = ""
+LOCKED_256 = os.path.join(OUT, "locked_zone.png")
 CELL = 32
 ZONE = 16
 N, S, E, W = 1, 2, 4, 8
+
+_locked_cells: dict[tuple[int, int], Image.Image] | None = None
 
 
 def load_tile(prefix: str, tx: int, ty: int) -> Image.Image:
@@ -29,9 +33,51 @@ def load_tile(prefix: str, tx: int, ty: int) -> Image.Image:
     return Image.open(path).convert("RGBA")
 
 
+def find_locked_source() -> str:
+    if LOCKED_SRC and os.path.isfile(LOCKED_SRC):
+        return LOCKED_SRC
+
+    home_assets = os.path.join(
+        os.path.expanduser("~"),
+        ".cursor",
+        "projects",
+        "d-Unity-Projects-DungeonFront",
+        "assets",
+    )
+    if os.path.isdir(home_assets):
+        for name in os.listdir(home_assets):
+            if "grasstile_imsi" in name and name.endswith(".png"):
+                return os.path.join(home_assets, name)
+
+    if os.path.isfile(LOCKED_256):
+        return LOCKED_256
+
+    raise FileNotFoundError("locked grass source PNG not found")
+
+
+def load_locked_cells() -> dict[tuple[int, int], Image.Image]:
+    global _locked_cells
+    if _locked_cells is not None:
+        return _locked_cells
+
+    os.makedirs(OUT, exist_ok=True)
+    src = Image.open(find_locked_source()).convert("RGBA")
+    img256 = src.resize((256, 256), Image.Resampling.NEAREST)
+    img256.save(LOCKED_256)
+    img512 = img256.resize((512, 512), Image.Resampling.NEAREST)
+    cells: dict[tuple[int, int], Image.Image] = {}
+    for ly in range(ZONE):
+        for lx in range(ZONE):
+            # ly=0 is south (image bottom). PIL y=0 is top.
+            py = (ZONE - 1 - ly) * CELL
+            cells[(lx, ly)] = img512.crop((lx * CELL, py, lx * CELL + CELL, py + CELL))
+    _locked_cells = cells
+    return cells
+
+
 def mid_tile(lx: int, ly: int) -> tuple[str, Image.Image]:
-    key = f"mid_{lx % 2}_{ly % 2}"
-    return key, load_tile("mid", lx % 2, ly % 2)
+    key = f"locked_{lx}_{ly}"
+    return key, load_locked_cells()[(lx, ly)]
 
 
 def build_stamp(mask: int) -> tuple[list[list[str]], Image.Image]:

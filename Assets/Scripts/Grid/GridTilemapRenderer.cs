@@ -20,11 +20,15 @@ public class GridTilemapRenderer : MonoBehaviour
     [SerializeField] private TreeZoneStampSet treeZoneStampSet;
     [SerializeField] private Sprite floorSprite;
     [SerializeField] private Sprite[] floorDecorationSprites;
+    [SerializeField] private Sprite lockedZoneSprite;
 
     private Dictionary<GridCellType, TileBase> tileLookup;
     private TileBase floorTile;
     private TileBase[] floorDecorationTiles;
     private ZoneManager zoneManager;
+    private Transform lockedZoneRoot;
+    private readonly Dictionary<Vector2Int, Transform> lockedZoneOverlays = new();
+    private const int LockedTilesPerAxis = 2;
 
     // 타일 lookup을 구성하고 gridManager·tilemap 참조를 찾는다.
     private void Awake()
@@ -54,6 +58,7 @@ public class GridTilemapRenderer : MonoBehaviour
         EnsureTreeZoneStampSet();
         EnsureFloorTile();
         EnsureFloorDecorationTiles();
+        EnsureLockedZoneSprite();
     }
 
     private void EnsureFloorTile()
@@ -168,6 +173,19 @@ public class GridTilemapRenderer : MonoBehaviour
 #if UNITY_EDITOR
         treeZoneStampSet = UnityEditor.AssetDatabase.LoadAssetAtPath<TreeZoneStampSet>(
             "Assets/Data/TreeZoneStampSet.asset");
+#endif
+    }
+
+    private void EnsureLockedZoneSprite()
+    {
+        if (lockedZoneSprite != null)
+        {
+            return;
+        }
+
+#if UNITY_EDITOR
+        lockedZoneSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
+            "Assets/Art/Background/Tiles/Tree/ZoneTemplates/locked_zone.png");
 #endif
     }
 
@@ -311,6 +329,7 @@ public class GridTilemapRenderer : MonoBehaviour
 
         tilemap.SetTilesBlock(new BoundsInt(0, 0, 0, width, height, 1), block);
         SyncExteriorUnknownTiles();
+        SyncLockedZoneOverlays();
         tilemap.CompressBounds();
         tilemap.RefreshAllTiles();
 
@@ -331,16 +350,7 @@ public class GridTilemapRenderer : MonoBehaviour
 
         int width = gridManager.Width;
         int height = gridManager.Height;
-        int pad = ZoneManager.ZoneSize;
-
-        Camera cam = Camera.main;
-        if (cam != null && cam.orthographic)
-        {
-            float cellSize = Mathf.Max(0.0001f, gridManager.CellSize);
-            int cameraPad = Mathf.CeilToInt(
-                Mathf.Max(cam.orthographicSize, cam.orthographicSize * cam.aspect) / cellSize) + 1;
-            pad = Mathf.Max(pad, cameraPad);
-        }
+        int pad = GetExteriorPadCells();
 
         // 이전보다 얇아질 수 있어, 여유 있게 옛 외곽을 지운 뒤 다시 깐다.
         int clearPad = pad + ZoneManager.ZoneSize;
@@ -356,61 +366,192 @@ public class GridTilemapRenderer : MonoBehaviour
                 tilemap.SetTile(new Vector3Int(x, y, 0), null);
             }
         }
+    }
 
-        for (int y = -pad; y < height + pad; y++)
+    // 미해금(·맵 밖) 구역마다 16×16 이미지를 한 장씩 올린다. 칸 단위 슬라이스는 쓰지 않는다.
+    private void SyncLockedZoneOverlays()
+    {
+        EnsureLockedZoneSprite();
+        if (gridManager == null)
         {
-            for (int x = -pad; x < width + pad; x++)
+            return;
+        }
+
+        if (lockedZoneSprite == null)
+        {
+            ClearLockedZoneOverlays();
+            return;
+        }
+
+        if (lockedZoneRoot == null)
+        {
+            var rootObject = new GameObject("LockedZoneOverlays");
+            rootObject.transform.SetParent(transform, false);
+            lockedZoneRoot = rootObject.transform;
+        }
+
+        int pad = GetExteriorPadCells();
+        int zonePad = Mathf.Max(1, Mathf.CeilToInt(pad / (float)ZoneManager.ZoneSize));
+        var needed = new HashSet<Vector2Int>();
+        for (int zoneY = -zonePad; zoneY < ZoneManager.ZonesY + zonePad; zoneY++)
+        {
+            for (int zoneX = -zonePad; zoneX < ZoneManager.ZonesX + zonePad; zoneX++)
             {
-                if (x >= 0 && x < width && y >= 0 && y < height)
+                if (IsZoneUsingLockedOverlay(zoneX, zoneY))
                 {
-                    continue;
+                    needed.Add(new Vector2Int(zoneX, zoneY));
                 }
+            }
+        }
 
-                tilemap.SetTile(new Vector3Int(x, y, 0), ResolveExteriorUnknownTile(x, y));
+        List<Vector2Int> toRemove = new List<Vector2Int>();
+        foreach (KeyValuePair<Vector2Int, Transform> pair in lockedZoneOverlays)
+        {
+            if (!needed.Contains(pair.Key))
+            {
+                toRemove.Add(pair.Key);
+            }
+        }
+
+        for (int i = 0; i < toRemove.Count; i++)
+        {
+            Vector2Int key = toRemove[i];
+            if (lockedZoneOverlays.TryGetValue(key, out Transform overlay) && overlay != null)
+            {
+                Destroy(overlay.gameObject);
+            }
+
+            lockedZoneOverlays.Remove(key);
+        }
+
+        foreach (Vector2Int zone in needed)
+        {
+            PlaceLockedZoneOverlay(zone);
+        }
+    }
+
+    private bool IsZoneUsingLockedOverlay(int zoneX, int zoneY)
+    {
+        bool inMap = zoneX >= 0
+            && zoneX < ZoneManager.ZonesX
+            && zoneY >= 0
+            && zoneY < ZoneManager.ZonesY;
+        if (!inMap)
+        {
+            return true;
+        }
+
+        if (zoneManager != null)
+        {
+            return !zoneManager.IsZoneUnlocked(zoneX, zoneY);
+        }
+
+        return !(zoneX == ZoneManager.CenterZoneX && zoneY == ZoneManager.CenterZoneY);
+    }
+
+    private void PlaceLockedZoneOverlay(Vector2Int zone)
+    {
+        if (!lockedZoneOverlays.TryGetValue(zone, out Transform overlayRoot) || overlayRoot == null)
+        {
+            var overlayObject = new GameObject($"LockedZone_{zone.x}_{zone.y}");
+            overlayObject.transform.SetParent(lockedZoneRoot, false);
+            overlayRoot = overlayObject.transform;
+            lockedZoneOverlays[zone] = overlayRoot;
+        }
+
+        int tileCells = ZoneManager.ZoneSize / LockedTilesPerAxis;
+        Vector2 spriteSize = lockedZoneSprite.bounds.size;
+        if (spriteSize.x < 0.0001f || spriteSize.y < 0.0001f)
+        {
+            return;
+        }
+
+        float tileWorld = tileCells * gridManager.CellSize;
+        float scaleX = tileWorld / spriteSize.x;
+        float scaleY = tileWorld / spriteSize.y;
+        int sortingLayer = GetTilemapSortingLayerId();
+        int sortingOrder = GetTilemapSortingOrder() - 1;
+
+        int childIndex = 0;
+        for (int tileY = 0; tileY < LockedTilesPerAxis; tileY++)
+        {
+            for (int tileX = 0; tileX < LockedTilesPerAxis; tileX++)
+            {
+                SpriteRenderer renderer = GetOrCreateOverlayTile(overlayRoot, childIndex);
+                childIndex++;
+
+                renderer.sprite = lockedZoneSprite;
+                renderer.color = Color.white;
+                renderer.drawMode = SpriteDrawMode.Simple;
+                renderer.sortingLayerID = sortingLayer;
+                renderer.sortingOrder = sortingOrder;
+                renderer.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+
+                int minX = zone.x * ZoneManager.ZoneSize + tileX * tileCells;
+                int minY = zone.y * ZoneManager.ZoneSize + tileY * tileCells;
+                Vector3 minCell = gridManager.GridToWorld(minX, minY);
+                Vector3 maxCell = gridManager.GridToWorld(
+                    minX + tileCells - 1,
+                    minY + tileCells - 1);
+                renderer.transform.position = (minCell + maxCell) * 0.5f;
             }
         }
     }
 
-    private TileBase ResolveExteriorUnknownTile(int x, int y)
+    private static SpriteRenderer GetOrCreateOverlayTile(Transform parent, int index)
     {
-        // 맵 밖은 미해금 구역과 같은 숲 스탬프(mask=0)를 우선한다.
-        if (treeZoneStampSet != null)
+        if (index < parent.childCount)
         {
-            TileBase stamped = treeZoneStampSet.GetTile(
-                0,
-                Mod(x, TreeZoneStampSet.ZoneSize),
-                Mod(y, TreeZoneStampSet.ZoneSize));
-            if (stamped != null)
+            SpriteRenderer existing = parent.GetChild(index).GetComponent<SpriteRenderer>();
+            if (existing != null)
             {
-                return stamped;
+                return existing;
             }
         }
 
-        if (treeBorderTileSet != null)
-        {
-            TileBase mid = treeBorderTileSet.GetTile(
-                TreeBorderTileKind.Mid,
-                Mod(x, 2),
-                Mod(y, 2));
-            if (mid != null)
-            {
-                return mid;
-            }
-        }
-
-        tileLookup.TryGetValue(GridCellType.Locked, out TileBase locked);
-        return locked;
+        var tileObject = new GameObject($"Tile_{index}");
+        tileObject.transform.SetParent(parent, false);
+        return tileObject.AddComponent<SpriteRenderer>();
     }
 
-    private static int Mod(int value, int period)
+    private void ClearLockedZoneOverlays()
     {
-        if (period <= 0)
+        foreach (KeyValuePair<Vector2Int, Transform> pair in lockedZoneOverlays)
         {
-            return 0;
+            if (pair.Value != null)
+            {
+                Destroy(pair.Value.gameObject);
+            }
         }
 
-        int result = value % period;
-        return result < 0 ? result + period : result;
+        lockedZoneOverlays.Clear();
+    }
+
+    private int GetTilemapSortingLayerId()
+    {
+        TilemapRenderer tilemapRenderer = tilemap != null ? tilemap.GetComponent<TilemapRenderer>() : null;
+        return tilemapRenderer != null ? tilemapRenderer.sortingLayerID : 0;
+    }
+
+    private int GetTilemapSortingOrder()
+    {
+        TilemapRenderer tilemapRenderer = tilemap != null ? tilemap.GetComponent<TilemapRenderer>() : null;
+        return tilemapRenderer != null ? tilemapRenderer.sortingOrder : 0;
+    }
+
+    private int GetExteriorPadCells()
+    {
+        int pad = ZoneManager.ZoneSize;
+        Camera cam = Camera.main;
+        if (cam != null && cam.orthographic)
+        {
+            float cellSize = Mathf.Max(0.0001f, gridManager.CellSize);
+            int cameraPad = Mathf.CeilToInt(
+                Mathf.Max(cam.orthographicSize, cam.orthographicSize * cam.aspect) / cellSize) + 1;
+            pad = Mathf.Max(pad, cameraPad);
+        }
+
+        return pad;
     }
 
     // 단일 셀 변경 시 Tilemap 타일을 갱신한다. 숲 경계는 인접 Locked 셀도 함께 갱신한다.
@@ -422,36 +563,6 @@ public class GridTilemapRenderer : MonoBehaviour
         }
 
         ApplyTile(coord.x, coord.y, cell);
-
-        if (treeBorderTileSet == null || gridManager == null)
-        {
-            return;
-        }
-
-        int margin = TreeBorderTilePicker.EdgeDepth + TreeBorderTilePicker.FringeDepth + 2;
-        for (int dy = -margin; dy <= margin; dy++)
-        {
-            int ny = coord.y + dy;
-            if (ny < 0 || ny >= gridManager.Height)
-            {
-                continue;
-            }
-
-            for (int dx = -margin; dx <= margin; dx++)
-            {
-                int nx = coord.x + dx;
-                if (nx < 0 || nx >= gridManager.Width)
-                {
-                    continue;
-                }
-
-                GridCell neighbor = gridManager.GetCell(nx, ny);
-                if (neighbor.Type == GridCellType.Locked)
-                {
-                    ApplyTile(nx, ny, neighbor);
-                }
-            }
-        }
     }
 
     // (x, y) 셀의 GridCellType·숲 경계 규칙에 맞는 Tile Asset을 Tilemap에 설정한다.
@@ -470,36 +581,8 @@ public class GridTilemapRenderer : MonoBehaviour
 
         if (cell.Type == GridCellType.Locked)
         {
-            if (treeZoneStampSet != null
-                && TreeZoneStampPicker.TryPick(
-                    x,
-                    y,
-                    gridManager,
-                    zoneManager,
-                    treeZoneStampSet,
-                    out TileBase stamped))
-            {
-                return stamped;
-            }
-
-            if (treeBorderTileSet != null
-                && TreeBorderTilePicker.TryPick(
-                    x,
-                    y,
-                    gridManager.Width,
-                    gridManager.Height,
-                    gridManager,
-                    out TreeBorderTilePicker.Selection selection))
-            {
-                TileBase treeTile = treeBorderTileSet.GetTile(
-                    selection.Kind,
-                    selection.LocalX,
-                    selection.LocalY);
-                if (treeTile != null)
-                {
-                    return treeTile;
-                }
-            }
+            // 미해금 구역은 칸 타일 대신 16×16 오버레이 이미지를 쓴다.
+            return null;
         }
 
         tileLookup.TryGetValue(cell.Type, out TileBase tile);

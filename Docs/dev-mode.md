@@ -172,7 +172,6 @@ Day 1 / Prepare / Gold 100 / Rep 10 / Active 0 / TestMode=ON
 | **T** | 틱/생산 시작 |
 | **F** | Production 강제 종료 |
 | **1** | 기계 지급 UI |
-| **0** | 철광석 노드 배치 토글 |
 | **G** | 게임오버 강제 |
 
 제작 포트 원클릭·레시피 전체 해금은 Dev Mode 2차 범위입니다.

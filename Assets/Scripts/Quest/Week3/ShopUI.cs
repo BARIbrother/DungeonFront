@@ -130,6 +130,11 @@ public class ShopUI : MonoBehaviour
 
             if (entry.IsMachine)
             {
+                if (!MachineCraftCatalog.IsObtainable(entry.machineDefId))
+                {
+                    continue;
+                }
+
                 MachineCraftCatalog.Recipe unlockRecipe = MachineCraftCatalog.Get(entry.machineDefId);
                 if (unlockRecipe == null || !MachineCraftService.IsTechUnlocked(unlockRecipe))
                 {

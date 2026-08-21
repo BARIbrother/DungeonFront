@@ -37,6 +37,8 @@ public static class MachineCraftCatalog
 
         RecipeOf("ConveyerBelt_1", "m_conveyor_1", 5,
             Item("iron_plate", 2), Item("iron_rod", 1)),
+        RecipeOf("Extractor_1", "m_conveyor_1", 8,
+            Item("iron_plate", 4), Item("iron_rod", 2)),
 
         RecipeOf("Miner_2", "m_drill_2", 30,
             Item("iron_plate", 8), Item("iron_rod", 4)),
@@ -70,6 +72,20 @@ public static class MachineCraftCatalog
         RecipeOf("Altar_1", "m_crafter_3", 150,
             Item("greysteel_ingot", 8), Item("concrete", 4)),
     };
+
+    // 마나 제작기·자동 제작대는 개발 중이므로 지급·제작하지 않는다.
+    public static bool IsObtainable(string machineDefId)
+    {
+        return machineDefId switch
+        {
+            "Assembler_1" => false,
+            "Assembler_2" => false,
+            "Assembler_3" => false,
+            "ManaAssembler_2" => false,
+            "ManaAssembler_3" => false,
+            _ => !string.IsNullOrEmpty(machineDefId),
+        };
+    }
 
     public static Recipe Get(string machineDefId)
     {

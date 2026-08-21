@@ -212,6 +212,15 @@ public abstract class Machine : MonoBehaviour
     // 기계 UI에서 인벤 ↔ 포트 넣고 빼기를 지원하는지.
     public virtual bool SupportsInventoryTransferUi() => true;
 
+    // 기계 UI에서 글로벌 인벤 아이템 하나를 고르는지. 추출기 등.
+    public virtual bool SupportsItemPickerUi() => false;
+
+    public virtual Item GetPickedItem() => null;
+
+    public virtual void SetPickedItem(Item item)
+    {
+    }
+
     // 물류 페이즈 훅. 컨베이어 등이 override한다.
     public virtual void TickLogistics()
     {
@@ -456,7 +465,7 @@ public abstract class Machine : MonoBehaviour
             return;
         }
 
-        if (SupportsRecipeSelectionUi() || SupportsInventoryTransferUi())
+        if (SupportsRecipeSelectionUi() || SupportsInventoryTransferUi() || SupportsItemPickerUi())
         {
             MachineRecipeUI.ShowFor(this);
             return;

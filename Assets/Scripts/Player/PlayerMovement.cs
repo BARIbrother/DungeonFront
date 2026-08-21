@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using System.Collections;
 
@@ -20,8 +19,6 @@ public class PlayerMovement : MonoBehaviour
 
     public MachineDatabase MachineDatabase => machineDatabase;
 
-    // 0키로 철광석 노드 배치 모드를 토글한다.
-    private bool isResourceNodePlacementMode;
     // 초당 이동 픽셀 수
     [SerializeField] private float pixelsPerSecond = 144f;
     // 픽셀당 월드 유닛 (GridManager PixelsPerUnit 기본값)
@@ -148,22 +145,11 @@ public class PlayerMovement : MonoBehaviour
 
         if (keyboard != null)
         {
-            if (keyboard.digit0Key.wasPressedThisFrame)
-            {
-                isResourceNodePlacementMode = !isResourceNodePlacementMode;
-                Debug.Log($"[PlayerMovement] 철광석 노드 배치 모드: {(isResourceNodePlacementMode ? "ON" : "OFF")}");
-            }
-
             // F: 생산 즉시 종료 (Space는 수리·수작업)
             if (keyboard.fKey.wasPressedThisFrame)
             {
                 TryForceEndProduction();
             }
-        }
-
-        if (isResourceNodePlacementMode)
-        {
-            TryPlaceResourceNodeAtMouse();
         }
 
         // TEMP: 모션 검수용. 기계 없이 스페이스만 눌러도 수리 모션을 재생한다.
@@ -230,7 +216,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Locked·노드 칸을 뚫지 않도록 플레이어 월드 좌표를 보정한다. 막히면 축별 미끄러짐을 시도한다.
+    // Locked·기계 코어를 뚫지 않도록 플레이어 월드 좌표를 보정한다. 막히면 축별 미끄러짐을 시도한다.
     private Vector3 ResolveWalkablePosition(Vector3 next)
     {
         next = ClampWorldPositionWithCollision(next);
@@ -276,16 +262,10 @@ public class PlayerMovement : MonoBehaviour
         return worldPosition;
     }
 
-    // 중심 칸만 Floor(또는 컨베이어)면 이동 가능하다.
-    // 모서리까지 막으면 기계 옆에 끼었을 때 빠져나오기 어렵다.
+    // 중심 좌표만 본다. 기계는 footprint 가장자리를 비워 인접 기계 사이로 지나갈 수 있다.
     private bool IsWalkableWorld(Vector3 worldPosition)
     {
-        return IsWalkablePoint(worldPosition);
-    }
-
-    private bool IsWalkablePoint(Vector3 worldPosition)
-    {
-        return gridManager.IsWalkable(gridManager.WorldToGrid(worldPosition));
+        return gridManager.IsWalkableWorld(worldPosition);
     }
 
     private float GetWalkCollisionHalfExtent()
@@ -649,43 +629,6 @@ public class PlayerMovement : MonoBehaviour
         if (spriteRenderer != null)
         {
             spriteRenderer.flipX = flipSpriteX;
-        }
-    }
-
-    // 0키 배치 모드에서 마우스가 가리키는 그리드 칸에 철광석 노드를 놓는다.
-    private void TryPlaceResourceNodeAtMouse()
-    {
-        if (gridManager == null)
-        {
-            return;
-        }
-
-        Mouse mouse = Mouse.current;
-        if (mouse == null || !mouse.leftButton.wasPressedThisFrame)
-        {
-            return;
-        }
-
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-        {
-            return;
-        }
-
-        Camera camera = Camera.main;
-        if (camera == null)
-        {
-            return;
-        }
-
-        Vector3 screen = mouse.position.ReadValue();
-        screen.z = -camera.transform.position.z;
-        Vector3 mouseWorld = camera.ScreenToWorldPoint(screen);
-        mouseWorld.z = 0f;
-
-        Vector2Int gridCoord = gridManager.WorldToGrid(mouseWorld);
-        if (gridManager.TryPlaceResourceNode(gridCoord))
-        {
-            Debug.Log($"[PlayerMovement] 철광석 노드 배치 성공: ({gridCoord.x}, {gridCoord.y})");
         }
     }
 

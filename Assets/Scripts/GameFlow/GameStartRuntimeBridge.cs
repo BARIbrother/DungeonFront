@@ -12,7 +12,7 @@ public sealed class GameStartRuntimeBridge : MonoBehaviour
 
     private static readonly string[] StartingMachineIds =
     {
-        "Miner_1", "Smelter_1", "Assembler_1", "Warehouse_1"
+        "Miner_1", "Smelter_1", "HandmadeAssembler_1", "Warehouse_1"
     };
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]

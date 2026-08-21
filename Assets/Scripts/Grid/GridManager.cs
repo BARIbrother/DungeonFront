@@ -12,6 +12,10 @@ public class GridManager : MonoBehaviour
     [SerializeField] private int tilePixelSize = 32;
     [SerializeField] private float pixelsPerUnit = 32f;
     [SerializeField] private Vector2 tilePivot = new Vector2(0.5f, 0.5f);
+    // 인접 기계 사이로 지나갈 수 있도록 footprint 충돌을 안쪽으로 줄인다 (칸 단위).
+    [SerializeField]
+    [Range(0.05f, 0.45f)]
+    private float walkBlockInsetCells = 0.22f;
 
     // 자원 노드 Prefab (32×32px 스프라이트 = 그리드 1칸 footprint)
     [SerializeField] private GameObject resourceNodePrefab;
@@ -125,6 +129,85 @@ public class GridManager : MonoBehaviour
     public bool IsWalkable(Vector2Int coord)
     {
         return IsWalkable(coord.x, coord.y);
+    }
+
+    // 월드 좌표 기준 이동 가능 여부. 기계·노드는 footprint 가장자리를 비워
+    // 맞닿은 칸 사이로 지나갈 수 있게 한다.
+    public bool IsWalkableWorld(Vector3 worldPosition)
+    {
+        Vector2Int coord = WorldToGrid(worldPosition);
+        if (!IsInBounds(coord.x, coord.y))
+        {
+            return false;
+        }
+
+        GridCell cell = GetCell(coord);
+        if (cell.Type != GridCellType.Floor)
+        {
+            return false;
+        }
+
+        if (!cell.IsOccupied || cell.OccupantKind == OccupantKind.Belt)
+        {
+            return true;
+        }
+
+        if (TryGetWalkBlockFootprint(coord, out Vector2Int anchor, out Vector2Int footprint))
+        {
+            return !IsInsideWalkBlock(worldPosition, anchor, footprint);
+        }
+
+        return false;
+    }
+
+    private bool TryGetWalkBlockFootprint(Vector2Int coord, out Vector2Int anchor, out Vector2Int footprint)
+    {
+        Machine machine = GetMachineAt(coord);
+        if (machine != null)
+        {
+            anchor = machine.GridAnchor;
+            footprint = machine.GetFootprintSize();
+            if (footprint.x < 1)
+            {
+                footprint.x = 1;
+            }
+
+            if (footprint.y < 1)
+            {
+                footprint.y = 1;
+            }
+
+            return true;
+        }
+
+        anchor = coord;
+        footprint = Vector2Int.one;
+        return true;
+    }
+
+    private bool IsInsideWalkBlock(Vector3 worldPosition, Vector2Int anchor, Vector2Int footprint)
+    {
+        float cellHalf = CellSize * 0.5f;
+        float inset = walkBlockInsetCells * CellSize;
+        Vector3 minCell = GridToWorld(anchor.x, anchor.y);
+        Vector3 maxCell = GridToWorld(
+            anchor.x + footprint.x - 1,
+            anchor.y + footprint.y - 1);
+
+        float minX = minCell.x - cellHalf + inset;
+        float maxX = maxCell.x + cellHalf - inset;
+        float minY = minCell.y - cellHalf + inset;
+        float maxY = maxCell.y + cellHalf - inset;
+
+        if (maxX <= minX || maxY <= minY)
+        {
+            return true;
+        }
+
+        return worldPosition.x > minX
+            && worldPosition.x < maxX
+            && worldPosition.y > minY
+            && worldPosition.y < maxY;
     }
 
     // (x, y) 셀 데이터를 반환한다. 범위 밖이면 default를 반환한다.
@@ -582,6 +665,10 @@ public class GridManager : MonoBehaviour
         {
             placedBelt.SetFlowDirection(beltFlowDirection.Value);
         }
+        else if (beltFlowDirection.HasValue && machine is Extractor placedExtractor)
+        {
+            placedExtractor.SetFlowDirection(beltFlowDirection.Value);
+        }
 
         // 배치 직후 기계별 초기화 훅 호출 (예: 드릴의 전용 레시피 자동 설정).
         machine.InitializeMachine();
@@ -759,10 +846,13 @@ public class GridManager : MonoBehaviour
                 continue;
             }
 
-            Vector2Int upstreamCoord = belt.GridAnchor - belt.FlowDirection;
-            Vector2Int downstreamCoord = belt.GridAnchor + belt.FlowDirection;
-            if (FootprintContainsCoord(anchor, footprintSize, upstreamCoord)
-                || FootprintContainsCoord(anchor, footprintSize, downstreamCoord))
+            Vector2Int beltAnchor = belt.GridAnchor;
+            bool adjacentToFootprint =
+                beltAnchor.x >= anchor.x - 1
+                && beltAnchor.x < anchor.x + footprintSize.x + 1
+                && beltAnchor.y >= anchor.y - 1
+                && beltAnchor.y < anchor.y + footprintSize.y + 1;
+            if (adjacentToFootprint)
             {
                 belt.RefreshNeighbors(this);
             }

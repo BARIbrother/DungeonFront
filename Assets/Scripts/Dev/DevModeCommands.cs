@@ -271,7 +271,8 @@ public static class DevModeCommands
         for (int i = 0; i < machines.Count; i++)
         {
             ItemDef_Machine definition = machines[i];
-            if (definition == null || definition.machinePrefab == null)
+            if (definition == null || definition.machinePrefab == null
+                || !MachineCraftCatalog.IsObtainable(definition.id))
             {
                 continue;
             }

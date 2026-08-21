@@ -15,7 +15,6 @@
 | **1** | 기계 제작 UI | `PlayerMovement` |
 | Shift+1 | 기계 지급 치트 | `PlayerMovement` |
 | **2** | 구역 해금 UI | `PlayerMovement` |
-| **0** | 철광석 노드 배치 모드 | `PlayerMovement` |
 | **R** | 컨베이어 회전 (배치 중) | `PlacementController` |
 | **Space** | 대화 다음 줄 / 튜토리얼 닫기(건너뛰기 확인). 대화·튜토 중에는 수리 모션 없음 | `DialogueUI`, `TutorialPanelUI` |
 | **P** 홀드 1초 | 대화 스킵 | `DialogueUI` |

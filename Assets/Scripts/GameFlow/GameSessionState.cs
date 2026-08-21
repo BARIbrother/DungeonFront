@@ -223,7 +223,7 @@ public class GameSessionState : MonoBehaviour
         inventory.machines.Add(new MachineInstanceState
         {
             instanceId = Guid.NewGuid().ToString(),
-            machineDefId = "Assembler_1",
+            machineDefId = "HandmadeAssembler_1",
             placement = MachinePlacement.InInventory
         });
 

@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 6811559096708372985, guid: 832b6d9bed5580647a8ca0f747074be9, type: 3}
+  m_Sprite: {fileID: 8126146888386770879, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -116,4 +116,33 @@ MonoBehaviour:
   currentRecipe: {fileID: 0}
   AvailableRecipes: {fileID: 0}
   selectedRecipe: {fileID: 0}
+  workSpeed: 1
   flowDirection: {x: 1, y: 0}
+  receiveDirection: {x: -1, y: 0}
+  directionalSprites:
+  - id: conv_ltr
+    sprite: {fileID: 8126146888386770879, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_rtl
+    sprite: {fileID: 7405012237453322844, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_utd
+    sprite: {fileID: 4161659484306526790, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_dtu
+    sprite: {fileID: -1147604777692569735, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_ltu
+    sprite: {fileID: 9085572942314532367, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_ltd
+    sprite: {fileID: -7844159265219391718, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_rtu
+    sprite: {fileID: 2608187654970449311, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_rtd
+    sprite: {fileID: 7161246577685027437, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_utl
+    sprite: {fileID: -4115865080765608889, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_utr
+    sprite: {fileID: 8171826092044486922, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_dtl
+    sprite: {fileID: -4529027427790054627, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  - id: conv_dtr
+    sprite: {fileID: 7418277330448862966, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
+  upstreamMachine: {fileID: 0}
+  downstreamMachine: {fileID: 0}

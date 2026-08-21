@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
   id: ConveyerBelt_1
   displayName: "\uCEE8\uBCA0\uC774\uC5B4 \uBCA8\uD2B8"
-  icon: {fileID: 0}
+  icon: {fileID: 8126146888386770879, guid: 972f9a9224c64ec41af82fdade3d5c88, type: 3}
   category: 0
   enchantmentSlotCount: 0
   machineTypeId: ConveyerBelt

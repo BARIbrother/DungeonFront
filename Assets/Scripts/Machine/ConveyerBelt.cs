@@ -4,22 +4,39 @@ public class ConveyerBelt : Machine
 {
     public const int TicksPerCell = 10;
 
+    [System.Serializable]
+    public struct DirectionalSprite
+    {
+        public string id;
+        public Sprite sprite;
+    }
+
     [SerializeField] private Vector2Int flowDirection = Vector2Int.right;
+    [SerializeField] private Vector2Int receiveDirection = Vector2Int.left;
+    [SerializeField] private DirectionalSprite[] directionalSprites;
 
     private ItemEntry heldItem;
     private int cellProgressTicks;
     private ConveyerBeltItemView itemView;
     private GridManager cachedGridManager;
+    private SpriteRenderer beltRenderer;
+    private SpriteRenderer[] turnOverlays;
     // 디버깅용. flowDirection 기준 이전(입구) 기계. RefreshNeighbors가 갱신한다.
     [SerializeField] private Machine upstreamMachine;
     // 디버깅용. flowDirection 기준 다음(출구) 기계. RefreshNeighbors가 갱신한다.
     [SerializeField] private Machine downstreamMachine;
 
+    public const int MaxTurnReceives = 2;
+
+    private static readonly Vector2Int[] TurnReceiveScratch = new Vector2Int[MaxTurnReceives];
+
     public Vector2Int FlowDirection => flowDirection;
+
+    public Vector2Int ReceiveDirection => receiveDirection;
 
     public override bool SupportsInventoryTransferUi() => false;
 
-    // 배치 시 R키 회전 등으로 flowDirection을 설정한다. 스프라이트도 같은 각도로 돌린다.
+    // 보내는 방향을 설정한다. 이 벨트가 가리키는 목표 벨트 텍스처도 다시 맞춘다.
     public void SetFlowDirection(Vector2Int direction)
     {
         if (direction == Vector2Int.zero)
@@ -28,9 +45,33 @@ public class ConveyerBelt : Machine
         }
 
         flowDirection = direction;
-        transform.rotation = Quaternion.Euler(0f, 0f, GetVisualRotationZ(direction));
+        receiveDirection = ConveyorBeltArt.StraightReceive(direction);
+        transform.rotation = Quaternion.identity;
         RefreshNeighborMachinesFromGrid();
+        ApplyBeltVisual();
+        RefreshAdjacentBeltVisuals();
         TickManager.Instance?.MarkBeltOrderDirty();
+    }
+
+    public void SetDirectionalSprites(DirectionalSprite[] sprites)
+    {
+        directionalSprites = sprites;
+        ApplyBeltVisual();
+    }
+
+    public Sprite GetSpriteForDirections(Vector2Int send, Vector2Int? receive = null)
+    {
+        Vector2Int receiveDir = receive ?? ConveyorBeltArt.StraightReceive(send);
+        string id = ConveyorBeltArt.SpriteId(receiveDir, send);
+        Sprite sprite = FindDirectionalSprite(id);
+        if (sprite != null)
+        {
+            return sprite;
+        }
+
+        return FindDirectionalSprite(ConveyorBeltArt.SpriteId(
+            ConveyorBeltArt.StraightReceive(send),
+            send));
     }
 
     // 시계 방향으로 한 칸 회전한 flowDirection을 반환한다.
@@ -57,32 +98,6 @@ public class ConveyerBelt : Machine
         }
 
         return Vector2Int.right;
-    }
-
-    // 오른쪽을 가리키는 스프라이트를 flowDirection에 맞게 돌릴 Z 각도.
-    public static float GetVisualRotationZ(Vector2Int direction)
-    {
-        if (direction == Vector2Int.right)
-        {
-            return 0f;
-        }
-
-        if (direction == Vector2Int.down)
-        {
-            return -90f;
-        }
-
-        if (direction == Vector2Int.left)
-        {
-            return 180f;
-        }
-
-        if (direction == Vector2Int.up)
-        {
-            return 90f;
-        }
-
-        return 0f;
     }
 
     public bool HasHeldItem => heldItem != null && heldItem.item != null && heldItem.count > 0;
@@ -118,6 +133,15 @@ public class ConveyerBelt : Machine
         outputPort.length = 1;
         inputPort.Resize();
         outputPort.Resize();
+
+        if (receiveDirection == Vector2Int.zero)
+        {
+            receiveDirection = ConveyorBeltArt.StraightReceive(flowDirection);
+        }
+
+        beltRenderer = GetComponent<SpriteRenderer>();
+        transform.rotation = Quaternion.identity;
+        ApplyBeltVisual();
 
         itemView = GetComponent<ConveyerBeltItemView>();
         if (itemView == null)
@@ -187,6 +211,8 @@ public class ConveyerBelt : Machine
         upstreamMachine = upstream != null && upstream is not ConveyerBelt ? upstream : null;
 
         downstreamMachine = gridManager.GetMachineAt(downstreamCoord);
+        receiveDirection = ResolveReceiveDirection(gridManager, GridAnchor, flowDirection);
+        ApplyBeltVisual();
     }
 
     // pull/push 직전에 flowDirection 기준 이웃 기계 캐시를 그리드에서 다시 읽는다.
@@ -206,6 +232,26 @@ public class ConveyerBelt : Machine
         Machine upstream = gridManager.GetMachineAt(upstreamCoord);
         upstreamMachine = upstream != null && upstream is not ConveyerBelt ? upstream : null;
         downstreamMachine = gridManager.GetMachineAt(downstreamCoord);
+        receiveDirection = ResolveReceiveDirection(gridManager, GridAnchor, flowDirection);
+        ApplyBeltVisual();
+    }
+
+    private void RefreshAdjacentBeltVisuals()
+    {
+        GridManager gridManager = GetGridManager();
+        if (gridManager == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < ConveyorBeltArt.Cardinals.Length; i++)
+        {
+            Vector2Int neighbor = GridAnchor + ConveyorBeltArt.Cardinals[i];
+            if (gridManager.GetMachineAt(neighbor) is ConveyerBelt other && other != this)
+            {
+                other.RefreshNeighbors(gridManager);
+            }
+        }
     }
 
     public void ClearNeighbors()
@@ -268,7 +314,7 @@ public class ConveyerBelt : Machine
         return GetItemVisualWorldPosition() ?? GetItemWorldPosition(NormalizedProgress);
     }
 
-    // normalizedProgress 0=입구, 1=출구에 해당하는 월드 좌표.
+    // normalizedProgress 0=입구, 1=출구에 해당하는 월드 좌표. 코너면 중심을 꺾는다.
     public Vector3 GetItemWorldPosition(float normalizedProgress)
     {
         GridManager gridManager = GetGridManager();
@@ -278,9 +324,19 @@ public class ConveyerBelt : Machine
         }
 
         Vector3 center = gridManager.GetFootprintCenterWorld(GridAnchor, GetFootprintSize());
-        Vector3 flowWorld = GetFlowWorldDirection(gridManager);
-        float offset = (normalizedProgress - 0.5f) * gridManager.CellSize;
-        return center + flowWorld * offset;
+        float half = gridManager.CellSize * 0.5f;
+        Vector2Int receive = receiveDirection == Vector2Int.zero
+            ? ConveyorBeltArt.StraightReceive(flowDirection)
+            : receiveDirection;
+        Vector3 entry = center + ToWorldDirection(gridManager, receive) * half;
+        Vector3 exit = center + ToWorldDirection(gridManager, flowDirection) * half;
+        float t = Mathf.Clamp01(normalizedProgress);
+        if (t <= 0.5f)
+        {
+            return Vector3.Lerp(entry, center, t * 2f);
+        }
+
+        return Vector3.Lerp(center, exit, (t - 0.5f) * 2f);
     }
 
     public float GetCellSize()
@@ -371,19 +427,179 @@ public class ConveyerBelt : Machine
         return cachedGridManager;
     }
 
-    private Vector3 GetFlowWorldDirection(GridManager gridManager)
+    // 직각으로 들어오는 피더의 입구 방향을 모은다. 순서는 위 → 오른쪽 → 아래 → 왼쪽.
+    public static int CollectTurnReceiveDirections(
+        GridManager gridManager,
+        Vector2Int anchor,
+        Vector2Int send,
+        Vector2Int[] into)
     {
-        Vector3 localFlow = gridManager.Plane == GridPlane.XY
-            ? new Vector3(flowDirection.x, flowDirection.y, 0f)
-            : new Vector3(flowDirection.x, 0f, flowDirection.y);
+        if (gridManager == null || into == null || into.Length == 0)
+        {
+            return 0;
+        }
 
-        Vector3 worldFlow = gridManager.transform.TransformDirection(localFlow);
-        if (worldFlow.sqrMagnitude <= Mathf.Epsilon)
+        int count = 0;
+        for (int i = 0; i < ConveyorBeltArt.Cardinals.Length && count < into.Length; i++)
+        {
+            Vector2Int from = ConveyorBeltArt.Cardinals[i];
+            Vector2Int feederSend = -from;
+            if (!ConveyorBeltArt.IsTurnFeed(feederSend, send))
+            {
+                continue;
+            }
+
+            if (gridManager.GetMachineAt(anchor + from) is ConveyerBelt feeder
+                && feeder.FlowDirection == feederSend)
+            {
+                into[count] = from;
+                count++;
+                continue;
+            }
+
+            if (gridManager.GetMachineAt(anchor + from) is Extractor extractor
+                && extractor.FlowDirection == feederSend)
+            {
+                into[count] = from;
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    // 아이템 경로용 입구. 직각 피더가 있으면 그중 첫 번째, 없으면 직진.
+    public static Vector2Int ResolveReceiveDirection(
+        GridManager gridManager,
+        Vector2Int anchor,
+        Vector2Int send)
+    {
+        int count = CollectTurnReceiveDirections(gridManager, anchor, send, TurnReceiveScratch);
+        if (count > 0)
+        {
+            return TurnReceiveScratch[0];
+        }
+
+        return ConveyorBeltArt.StraightReceive(send);
+    }
+
+    private void ApplyBeltVisual()
+    {
+        if (beltRenderer == null)
+        {
+            beltRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        if (beltRenderer == null)
+        {
+            return;
+        }
+
+        Vector2Int straight = ConveyorBeltArt.StraightReceive(flowDirection);
+        Sprite baseSprite = GetSpriteForDirections(flowDirection, straight);
+        if (baseSprite != null)
+        {
+            beltRenderer.sprite = baseSprite;
+            beltRenderer.color = Color.white;
+        }
+
+        transform.rotation = Quaternion.identity;
+
+        int turnCount = 0;
+        GridManager gridManager = GetGridManager();
+        if (gridManager != null && gridManager.GetMachineAt(GridAnchor) == this)
+        {
+            turnCount = CollectTurnReceiveDirections(
+                gridManager,
+                GridAnchor,
+                flowDirection,
+                TurnReceiveScratch);
+        }
+
+        ApplyTurnOverlays(turnCount, TurnReceiveScratch);
+    }
+
+    private void ApplyTurnOverlays(int turnCount, Vector2Int[] receives)
+    {
+        if (turnOverlays == null)
+        {
+            turnOverlays = new SpriteRenderer[MaxTurnReceives];
+        }
+
+        for (int i = 0; i < MaxTurnReceives; i++)
+        {
+            bool active = i < turnCount;
+            SpriteRenderer overlay = turnOverlays[i];
+            if (!active)
+            {
+                if (overlay != null)
+                {
+                    overlay.enabled = false;
+                }
+
+                continue;
+            }
+
+            if (overlay == null)
+            {
+                overlay = CreateTurnOverlay(i);
+                turnOverlays[i] = overlay;
+            }
+
+            Sprite sprite = GetSpriteForDirections(flowDirection, receives[i]);
+            overlay.sprite = sprite;
+            overlay.color = Color.white;
+            overlay.drawMode = SpriteDrawMode.Simple;
+            overlay.sortingLayerID = beltRenderer.sortingLayerID;
+            overlay.sortingOrder = beltRenderer.sortingOrder + 1 + i;
+            overlay.transform.localPosition = Vector3.zero;
+            overlay.transform.localRotation = Quaternion.identity;
+            overlay.transform.localScale = Vector3.one;
+            overlay.enabled = sprite != null;
+        }
+    }
+
+    private SpriteRenderer CreateTurnOverlay(int index)
+    {
+        var overlayObject = new GameObject($"TurnOverlay_{index}");
+        overlayObject.transform.SetParent(transform, false);
+        SpriteRenderer overlay = overlayObject.AddComponent<SpriteRenderer>();
+        overlay.color = Color.white;
+        overlay.drawMode = SpriteDrawMode.Simple;
+        return overlay;
+    }
+
+    private Sprite FindDirectionalSprite(string id)
+    {
+        if (directionalSprites == null || string.IsNullOrEmpty(id))
+        {
+            return null;
+        }
+
+        for (int i = 0; i < directionalSprites.Length; i++)
+        {
+            if (directionalSprites[i].id == id && directionalSprites[i].sprite != null)
+            {
+                return directionalSprites[i].sprite;
+            }
+        }
+
+        return null;
+    }
+
+    private static Vector3 ToWorldDirection(GridManager gridManager, Vector2Int direction)
+    {
+        Vector3 local = gridManager.Plane == GridPlane.XY
+            ? new Vector3(direction.x, direction.y, 0f)
+            : new Vector3(direction.x, 0f, direction.y);
+
+        Vector3 world = gridManager.transform.TransformDirection(local);
+        if (world.sqrMagnitude <= Mathf.Epsilon)
         {
             return Vector3.right;
         }
 
-        return worldFlow.normalized;
+        return world.normalized;
     }
 
     private static string DescribeItemEntry(ItemEntry entry)

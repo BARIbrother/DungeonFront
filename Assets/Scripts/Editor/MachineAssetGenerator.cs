@@ -113,6 +113,13 @@ public static class MachineAssetGenerator
             typeof(FoundryMachine),
             FoundryTint);
 
+        GameObject extractorPrefab = EnsureClonedPrefab(
+            beltPrefab,
+            $"{PrefabFolder}/Extractor_machine.prefab",
+            "Extractor_machine",
+            typeof(Extractor),
+            StorageTint);
+
         GameObject warehousePrefab = EnsureClonedPrefab(
             assemblerTemplate,
             $"{PrefabFolder}/Warehouse_machine.prefab",
@@ -143,6 +150,7 @@ public static class MachineAssetGenerator
             UpsertMachineDef("Warehouse_1", "Warehouse", "창고", true, warehousePrefab),
             UpsertMachineDef("ManaStorage_1", "ManaStorage", "마나 저장소", false, manaStoragePrefab),
             UpsertMachineDef("ConveyerBelt_1", "ConveyerBelt", "컨베이어 벨트", false, beltPrefab),
+            UpsertMachineDef("Extractor_1", "Extractor", "추출기", false, extractorPrefab),
         };
 
         MachineDatabase database = AssetDatabase.LoadAssetAtPath<MachineDatabase>(DatabasePath);
@@ -172,6 +180,7 @@ public static class MachineAssetGenerator
         AssetDatabase.Refresh();
         SessionState.SetBool(AutoGenerateSessionKey, true);
         MachineArtBinder.Bind();
+        ExtractorArtBinder.Bind();
         Debug.Log($"[MachineAssetGenerator] 완료: Prefab·SO {defs.Count}종, MachineDatabase, Contracts 4종.");
     }
 

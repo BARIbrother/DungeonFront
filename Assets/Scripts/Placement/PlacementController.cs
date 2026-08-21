@@ -143,7 +143,7 @@ public class PlacementController : MonoBehaviour
             return;
         }
 
-        if (keyboard != null && keyboard.rKey.wasPressedThisFrame && IsSelectedConveyerBelt())
+        if (keyboard != null && keyboard.rKey.wasPressedThisFrame && IsSelectedRotatableMachine())
         {
             pendingBeltFlowDirection = ConveyerBelt.RotateFlowDirectionClockwise(pendingBeltFlowDirection);
         }
@@ -160,7 +160,7 @@ public class PlacementController : MonoBehaviour
         }
 
         Vector3 mouseWorld = GetMouseWorldPosition();
-        Vector2Int? beltFlowDirection = IsSelectedConveyerBelt() ? pendingBeltFlowDirection : null;
+        Vector2Int? beltFlowDirection = IsSelectedRotatableMachine() ? pendingBeltFlowDirection : null;
         Machine prefabMachine = selectedMachine.definition.machinePrefab.GetComponent<Machine>();
         Vector2Int placeAnchor = prefabMachine != null
             ? gridManager.GetAnchorForCenteredFootprint(mouseWorld, prefabMachine.GetFootprintSize())
@@ -317,7 +317,7 @@ public class PlacementController : MonoBehaviour
             gridManager,
             selectedMachine.definition.machinePrefab,
             GetMouseWorldPosition(),
-            IsSelectedConveyerBelt() ? pendingBeltFlowDirection : null);
+            IsSelectedRotatableMachine() ? pendingBeltFlowDirection : null);
     }
 
     // PlacementUI에서 기계 종류 버튼 클릭 시 호출한다.
@@ -454,9 +454,16 @@ public class PlacementController : MonoBehaviour
         return world;
     }
 
-    private bool IsSelectedConveyerBelt()
+    private bool IsSelectedRotatableMachine()
     {
-        return selectedMachine?.definition?.machinePrefab?.GetComponent<ConveyerBelt>() != null;
+        GameObject prefab = selectedMachine?.definition?.machinePrefab;
+        if (prefab == null)
+        {
+            return false;
+        }
+
+        return prefab.GetComponent<ConveyerBelt>() != null
+            || prefab.GetComponent<Extractor>() != null;
     }
 
     private void ResetPendingBeltFlowDirection()
@@ -467,8 +474,10 @@ public class PlacementController : MonoBehaviour
     // 컨베이어 연속 배치 시 회전을 유지하고, 다른 종류 선택 시에만 초기화한다.
     private void ResetPendingBeltFlowDirectionIfNeeded(ItemDef_Machine newDefinition)
     {
-        bool newIsBelt = newDefinition?.machinePrefab?.GetComponent<ConveyerBelt>() != null;
-        if (!newIsBelt || !IsSelectedConveyerBelt())
+        bool newIsRotatable = newDefinition?.machinePrefab != null
+            && (newDefinition.machinePrefab.GetComponent<ConveyerBelt>() != null
+                || newDefinition.machinePrefab.GetComponent<Extractor>() != null);
+        if (!newIsRotatable || !IsSelectedRotatableMachine())
         {
             ResetPendingBeltFlowDirection();
         }

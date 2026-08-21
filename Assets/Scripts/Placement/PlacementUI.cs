@@ -403,12 +403,12 @@ public class PlacementUI : MonoBehaviour
         countRect.anchorMin = new Vector2(1f, 0f);
         countRect.anchorMax = new Vector2(1f, 0f);
         countRect.pivot = new Vector2(1f, 0f);
-        countRect.anchoredPosition = new Vector2(-6f, 16f);
-        countRect.sizeDelta = new Vector2(52f, 24f);
+        countRect.anchoredPosition = new Vector2(-6f, 28f);
+        countRect.sizeDelta = new Vector2(64f, 32f);
         label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        label.fontSize = 16;
+        label.fontSize = 24;
         label.alignment = TextAnchor.LowerRight;
-        label.color = Color.white;
+        label.color = Color.black;
         string displayName = !string.IsNullOrEmpty(definition.displayName)
             ? definition.displayName
             : definition.id;
@@ -490,8 +490,8 @@ public class PlacementUI : MonoBehaviour
         countRect.anchorMin = new Vector2(1f, 0f);
         countRect.anchorMax = new Vector2(1f, 0f);
         countRect.pivot = new Vector2(1f, 0f);
-        countRect.anchoredPosition = new Vector2(-6f, 16f);
-        countRect.sizeDelta = new Vector2(52f, 24f);
+        countRect.anchoredPosition = new Vector2(-6f, 28f);
+        countRect.sizeDelta = new Vector2(64f, 32f);
         countObject.AddComponent<Text>();
 
         GameObject highlight = UiNoteBookSlot.CreateSelectHighlight(buttonObject.transform, slotSize);

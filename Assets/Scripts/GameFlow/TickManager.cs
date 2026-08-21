@@ -234,6 +234,17 @@ public class TickManager : MonoBehaviour
             }
         }
 
+        for (int i = 0; i < machinesOnGrid.Count; i++)
+        {
+            Machine machine = machinesOnGrid[i];
+            if (machine == null || machine is ConveyerBelt)
+            {
+                continue;
+            }
+
+            machine.TickLogistics();
+        }
+
         for (int i = 0; i < beltsOnGrid.Count; i++)
         {
             beltsOnGrid[i].TickLogistics();

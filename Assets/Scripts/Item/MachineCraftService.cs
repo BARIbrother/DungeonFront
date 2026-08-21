@@ -56,6 +56,11 @@ public static class MachineCraftService
     public static bool TryCraft(string machineDefId, out string error, ItemDef_Machine definition = null)
     {
         error = null;
+        if (!MachineCraftCatalog.IsObtainable(machineDefId))
+        {
+            return Fail("지금은 만들 수 없는 기계입니다.", out error);
+        }
+
         MachineCraftCatalog.Recipe recipe = MachineCraftCatalog.Get(machineDefId);
         if (recipe == null)
         {

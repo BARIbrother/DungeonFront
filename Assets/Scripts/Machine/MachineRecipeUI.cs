@@ -50,7 +50,9 @@ public class MachineRecipeUI : MonoBehaviour
             return;
         }
 
-        if (!machine.SupportsRecipeSelectionUi() && !machine.SupportsInventoryTransferUi())
+        if (!machine.SupportsRecipeSelectionUi()
+            && !machine.SupportsInventoryTransferUi()
+            && !machine.SupportsItemPickerUi())
         {
             return;
         }
@@ -198,7 +200,11 @@ public class MachineRecipeUI : MonoBehaviour
 
         WarmItemCacheFromMachine();
 
-        if (targetMachine.SupportsRecipeSelectionUi())
+        if (targetMachine.SupportsItemPickerUi())
+        {
+            CreateExtractItemButton();
+        }
+        else if (targetMachine.SupportsRecipeSelectionUi())
         {
             CreateCurrentRecipeButton();
             CreateProgressBar();
@@ -234,6 +240,8 @@ public class MachineRecipeUI : MonoBehaviour
             hash = hash * 31 + (selected != null && selected.id != null
                 ? selected.id.GetHashCode()
                 : 0);
+            Item picked = targetMachine.GetPickedItem();
+            hash = hash * 31 + HashItemState(picked);
             hash = hash * 31 + (targetMachine.HasActiveWip ? 1 : 0);
             hash = HashPort(hash, targetMachine.inputPort);
             hash = HashPort(hash, targetMachine.outputPort);
@@ -315,6 +323,7 @@ public class MachineRecipeUI : MonoBehaviour
 
         Recipe selected = targetMachine.GetSelectedRecipe();
         RegisterRecipeItems(selected);
+        RegisterItem(targetMachine.GetPickedItem());
 
         RecipePool pool = targetMachine.GetAvailableRecipes();
         if (pool?.recipes == null)
@@ -354,6 +363,140 @@ public class MachineRecipeUI : MonoBehaviour
                 itemManager.Register(entry.item.definition);
             }
         }
+    }
+
+    private void RegisterItem(Item item)
+    {
+        if (itemManager == null || item?.definition == null)
+        {
+            return;
+        }
+
+        itemManager.Register(item.definition);
+    }
+
+    private void CreateExtractItemButton()
+    {
+        Item selected = targetMachine.GetPickedItem();
+        PlayerInventory inventory = GetInventory();
+        int owned = selected != null && inventory != null ? inventory.GetCount(selected) : 0;
+
+        var buttonObject = new GameObject("ExtractItem");
+        buttonObject.transform.SetParent(contentListRect, false);
+        float slotRowHeight = 160f * UiScale;
+        var layoutElement = buttonObject.AddComponent<LayoutElement>();
+        layoutElement.minHeight = slotRowHeight;
+        layoutElement.preferredHeight = slotRowHeight;
+        layoutElement.flexibleHeight = 1f;
+
+        var buttonImage = buttonObject.AddComponent<Image>();
+        buttonImage.color = new Color(0f, 0f, 0f, 0f);
+
+        var button = buttonObject.AddComponent<Button>();
+        button.targetGraphic = buttonImage;
+        button.onClick.AddListener(ToggleRecipePicker);
+        UiButtonStyle.Apply(button);
+
+        var slot = new GameObject("Slot");
+        slot.transform.SetParent(buttonObject.transform, false);
+        var slotRect = slot.AddComponent<RectTransform>();
+        slotRect.anchorMin = new Vector2(0.5f, 0.5f);
+        slotRect.anchorMax = new Vector2(0.5f, 0.5f);
+        slotRect.pivot = new Vector2(0.5f, 0.5f);
+        slotRect.anchoredPosition = Vector2.zero;
+        float slotSize = 96f * UiScale;
+        slotRect.sizeDelta = new Vector2(slotSize, slotSize);
+        AddInventorySlotFrame(slot.transform, slotSize);
+        if (selected != null)
+        {
+            CreateItemIconVisual(slot.transform, selected, owned, slotSize);
+        }
+
+        dynamicRows.Add(buttonObject);
+    }
+
+    private void RebuildExtractItemPicker()
+    {
+        PlayerInventory inventory = GetInventory();
+        if (inventory == null)
+        {
+            CreatePickerInfoLabel("인벤토리를 찾을 수 없습니다.");
+            return;
+        }
+
+        List<ItemEntry> owned = inventory.GetOwnedItemEntries();
+        Item selected = targetMachine.GetPickedItem();
+
+        var rowObject = new GameObject("InventoryGrid");
+        rowObject.transform.SetParent(recipePickerListRect, false);
+        var layoutElement = rowObject.AddComponent<LayoutElement>();
+        layoutElement.minHeight = 120f * UiScale;
+
+        const int inventoryColumns = 4;
+        const float gridSpacing = 8f;
+        float cell = GetInventoryGridCellSize(inventoryColumns, gridSpacing);
+        var grid = rowObject.AddComponent<GridLayoutGroup>();
+        grid.cellSize = new Vector2(cell, cell);
+        grid.spacing = new Vector2(gridSpacing, gridSpacing);
+        grid.padding = new RectOffset(2, 2, 2, 2);
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = inventoryColumns;
+        grid.childAlignment = TextAnchor.UpperLeft;
+
+        bool any = false;
+        for (int i = 0; i < owned.Count; i++)
+        {
+            ItemEntry ownedEntry = owned[i];
+            Item item = ownedEntry?.item;
+            if (item == null || item.Category == ItemCategory.Currency || ownedEntry.count <= 0)
+            {
+                continue;
+            }
+
+            any = true;
+            Item pickItem = item;
+            bool isSelected = selected != null && selected.CanStackWith(item);
+            CreateItemIconButton(
+                rowObject.transform,
+                pickItem,
+                ownedEntry.count,
+                cell,
+                () => OnExtractItemPicked(pickItem));
+            if (isSelected)
+            {
+                Image image = rowObject.transform.GetChild(rowObject.transform.childCount - 1)
+                    .GetComponent<Image>();
+                if (image != null)
+                {
+                    image.color = new Color(0.35f, 0.55f, 0.85f, 0.35f);
+                }
+            }
+        }
+
+        if (!any)
+        {
+            Destroy(rowObject);
+            CreatePickerInfoLabel("꺼낼 아이템이 없습니다.");
+            return;
+        }
+
+        int rows = Mathf.CeilToInt(rowObject.transform.childCount / (float)inventoryColumns);
+        layoutElement.minHeight = rows * (cell + gridSpacing) + grid.padding.vertical;
+        layoutElement.preferredHeight = layoutElement.minHeight;
+        recipePickerRows.Add(rowObject);
+    }
+
+    private void OnExtractItemPicked(Item item)
+    {
+        if (targetMachine == null || item == null)
+        {
+            return;
+        }
+
+        targetMachine.SetPickedItem(item);
+        recipePickerOpen = false;
+        SetRecipePickerVisible(false);
+        RebuildContent();
     }
 
     private void CreateCurrentRecipeButton()
@@ -482,7 +625,7 @@ public class MachineRecipeUI : MonoBehaviour
 
     private void ToggleRecipePicker()
     {
-        if (!targetMachine.SupportsRecipeSelectionUi())
+        if (!targetMachine.SupportsRecipeSelectionUi() && !targetMachine.SupportsItemPickerUi())
         {
             return;
         }
@@ -510,6 +653,12 @@ public class MachineRecipeUI : MonoBehaviour
         ClearRecipePickerRows();
         if (recipePickerListRect == null || targetMachine == null)
         {
+            return;
+        }
+
+        if (targetMachine.SupportsItemPickerUi())
+        {
+            RebuildExtractItemPicker();
             return;
         }
 
