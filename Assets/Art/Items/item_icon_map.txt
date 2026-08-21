@@ -75,3 +75,27 @@
 # note: itemId `iron` maps to filename iron_ingot_icon.png (display: 철 주괴)
 # English prefixes: 흑강=darksteel, 백강=brightsteel, 진강=greysteel
 # _sheet.png rows: wood(+stick/paper) | iron | blackstone/darksteel | whitestone/brightsteel | greysteel | mana/manasteel | scroll/robe
+
+# --- dev2icon (moved from Assets/Music/dev2icon) ---
+제단	altar	altar_icon.png
+콘크리트	concrete	concrete_icon.png
+돌	stone	stone_icon.png
+마나	mana	mana_icon.png
+구조물 기둥	structure_pillar	structure_pillar_icon.png
+구조물 보	structure_beam	structure_beam_icon.png
+구조물 지붕	structure_roof	structure_roof_icon.png
+철 기둥 프레임	iron_pillar_frame	iron_pillar_frame_icon.png
+철 보 프레임	iron_beam_frame	iron_beam_frame_icon.png
+철 지붕 프레임	iron_roof_frame	iron_roof_frame_icon.png
+대검 날	greatsword_blade	greatsword_blade_icon.png
+처형자 대검	executioner_greatsword	executioner_greatsword_icon.png
+의식용 철 대검	ritual_iron_greatsword	ritual_iron_greatsword_icon.png
+전쟁으로 물든 처형자 대검	war_stained_executioner_greatsword	war_stained_executioner_greatsword_icon.png
+전쟁으로 물든 처형자 대검	war_stained_executor_greatsword	war_stained_executioner_greatsword_icon.png
+의식 두루마리	ritual_scroll	ritual_scroll_icon.png
+검의 의식	sword_ritual	sword_ritual_icon.png
+전쟁의 의식	war_ritual	war_ritual_icon.png
+던전 마스터 정수	dungeon_master_essence	dungeon_master_essence_icon.png
+하급 몬스터 마나 정수	low_monster_mana_essence	low_monster_mana_essence_icon.png
+중급 몬스터 마나 정수	mid_monster_mana_essence	mid_monster_mana_essence_icon.png
+상급 몬스터 마나 정수	high_monster_mana_essence	high_monster_mana_essence_icon.png

@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class GameOverController : MonoBehaviour
 {
@@ -130,6 +131,30 @@ public class GameOverController : MonoBehaviour
         IsGameOver = true;
         Debug.LogError($"[GameOver] {message}");
 
+        // 게임 진행은 즉시 멈추고, 패널만 효과음이 끝난 뒤 띄운다.
+        GamePauseService.RequestPause(PauseRequester);
+        StartCoroutine(ShowGameOverAfterSound(message));
+    }
+
+    private IEnumerator ShowGameOverAfterSound(string message)
+    {
+        AudioManager audio = AudioManager.Instance;
+        AudioCatalog.AudioEntry entry = audio != null && audio.Catalog != null
+            ? audio.Catalog.gameOver
+            : null;
+
+        if (audio != null)
+        {
+            audio.StopBgm();
+            audio.PlaySfx(entry);
+        }
+
+        float duration = audio != null ? audio.GetPlaybackDuration(entry) : 0f;
+        if (duration > 0f)
+        {
+            yield return new WaitForSecondsRealtime(duration);
+        }
+
         if (gameOverMessageText != null)
         {
             gameOverMessageText.text = message;
@@ -140,7 +165,6 @@ public class GameOverController : MonoBehaviour
             gameOverUI.SetActive(true);
         }
 
-        GamePauseService.RequestPause(PauseRequester);
     }
 
     public void ResetGameOver()

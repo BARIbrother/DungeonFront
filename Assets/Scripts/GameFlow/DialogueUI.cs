@@ -284,6 +284,12 @@ public sealed class DialogueUI : MonoBehaviour
             || Keyboard.current.enterKey.wasPressedThisFrame
             || Keyboard.current.numpadEnterKey.wasPressedThisFrame)
         {
+            AudioManager audio = AudioManager.Instance;
+            if (audio != null && audio.Catalog != null)
+            {
+                audio.PlaySfx(audio.Catalog.uiClick);
+            }
+
             Advance();
             if (!IsShowing)
             {
@@ -466,6 +472,7 @@ public sealed class DialogueUI : MonoBehaviour
         Stretch(blackScreen.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         Button blackoutButton = blackScreen.AddComponent<Button>();
         blackoutButton.transition = Selectable.Transition.None;
+        blackoutButton.gameObject.AddComponent<UiButtonSound>();
         blackoutButton.onClick.AddListener(Advance);
         blackoutText = CreateText("BlackoutText", blackScreen.transform, 36, TextAlignmentOptions.Center, Color.white);
         TmpUiStyle.Apply(blackoutText, TmpUiStyle.Role.Body);

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class QuestFailController : MonoBehaviour
 {
@@ -28,13 +29,32 @@ public class QuestFailController : MonoBehaviour
 
     public void TriggerGameOver()
     {
+        if (IsGameOver)
+        {
+            return;
+        }
+
         IsGameOver = true;
+        StartCoroutine(ShowPanelAfterGameOverSound());
+    }
+
+    private IEnumerator ShowPanelAfterGameOverSound()
+    {
+        AudioManager audio = AudioManager.Instance;
+        AudioCatalog.AudioEntry entry = audio != null && audio.Catalog != null
+            ? audio.Catalog.gameOver
+            : null;
+        float duration = audio != null ? audio.GetPlaybackDuration(entry) : 0f;
+
+        if (duration > 0f)
+        {
+            yield return new WaitForSecondsRealtime(duration);
+        }
+
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
         }
-
-        Debug.Log("필수 의뢰를 완료하지 못했습니다.", this);
     }
 
     public void ReturnToTitle()

@@ -72,8 +72,10 @@ public class QuestManager : MonoBehaviour
     {
         if (!CanAcceptQuest(quest))
         {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
         }
+        PlayCatalogSfx(audio => audio.Catalog.questAccept);
 
         int today = GameSessionState.Instance != null ? GameSessionState.Instance.day : 1;
         Quest acceptedQuest = CreateQuestInstance(quest, today);
@@ -149,6 +151,23 @@ public class QuestManager : MonoBehaviour
         Destroy(quest);
     }
 
+    private static void PlayCatalogSfx(Func<AudioManager, AudioCatalog.AudioEntry> selectClip)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectClip == null)
+        {
+            return;
+        }
+
+        AudioCatalog.AudioEntry entry = selectClip(audio);
+        if (entry == audio.Catalog.uiDeny || entry == audio.Catalog.questAccept)
+        {
+            UiButtonSound.SuppressClickSoundForCurrentFrame();
+        }
+
+        audio.PlaySfx(entry);
+    }
+
     // 의뢰 보상을 플레이어 인벤토리에 지급한다.
     public void givePlayerReward(Quest quest)
     {
@@ -175,6 +194,8 @@ public class QuestManager : MonoBehaviour
                 inventory.Add(entry);
             }
         }
+
+        PlayCatalogSfx(audio => audio.Catalog.coin);
     }
 
     // SO 원본을 변경하지 않도록 런타임 전용 인스턴스를 만든다.
@@ -389,7 +410,7 @@ public class QuestManager : MonoBehaviour
             return;
         }
 
-        GameSessionState.Instance.TryAcceptQuest(id, quest.title);
+        GameSessionState.Instance.TryAcceptQuest(id, quest.title, playAudio: false);
     }
 
     private static void RemoveQuestFromSession(Quest quest)

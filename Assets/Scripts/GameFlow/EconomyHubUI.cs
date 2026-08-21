@@ -229,6 +229,7 @@ public sealed class EconomyHubUI : MonoBehaviour
 
         if (economy == null || !economy.TrySpendGold(entry.price))
         {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return "골드가 부족합니다.";
         }
 
@@ -236,6 +237,7 @@ public sealed class EconomyHubUI : MonoBehaviour
         if (entry.item == null || inventory == null)
         {
             economy.AddGold(entry.price);
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return "구매 대상을 지급할 수 없습니다.";
         }
 
@@ -244,6 +246,7 @@ public sealed class EconomyHubUI : MonoBehaviour
             item = Item.FromDefinition(entry.item),
             count = entry.count
         });
+        PlayCatalogSfx(audio => audio.Catalog.coin);
         return $"{itemName} 구매 완료";
     }
 
@@ -328,10 +331,28 @@ public sealed class EconomyHubUI : MonoBehaviour
     {
         GameObject result = Panel(name, parent, new Color(0.25f, 0.45f, 0.72f));
         Button button = result.AddComponent<Button>();
+        button.gameObject.AddComponent<UiButtonSound>();
         TMP_Text text = Text("Label", result.transform, 18, TextAlignmentOptions.Center, Color.white);
         text.text = label;
         Stretch(text.rectTransform, Vector2.zero, Vector2.one);
         return button;
+    }
+
+    private static void PlayCatalogSfx(System.Func<AudioManager, AudioCatalog.AudioEntry> selectClip)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectClip == null)
+        {
+            return;
+        }
+
+        AudioCatalog.AudioEntry entry = selectClip(audio);
+        if (entry == audio.Catalog.uiDeny)
+        {
+            UiButtonSound.SuppressClickSoundForCurrentFrame();
+        }
+
+        audio.PlaySfx(entry);
     }
 
     private static void Stretch(RectTransform rect, Vector2 min, Vector2 max)

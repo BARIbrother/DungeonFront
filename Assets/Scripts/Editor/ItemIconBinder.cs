@@ -17,6 +17,7 @@ public static class ItemIconBinder
         { "iron", "iron_ingot_icon" },
         { "iron_bar", "iron_ingot_icon" },
         { "iron_ingot", "iron_ingot_icon" },
+        { "war_stained_executor_greatsword", "war_stained_executioner_greatsword_icon" },
     };
 
     [MenuItem("DungeonFront/Bind Completed Item Icons")]

@@ -72,14 +72,11 @@ public class GameSessionState : MonoBehaviour
     private float productionEndTime = 0f;
     // 생산 종료 요약 모달이 열린 동안 중복 EndProduction 호출을 막는다.
     private bool isEndingProduction;
-    // 1일차는 테스트 모드·연료 해금 여부와 무관하게 기획대로 3분(180초) 고정.
-    private float TargetProductionTime => day == 1
-        ? 180f
-        : isTestMode
-            ? 10f
-            : UnlockManager.Instance != null
-                ? UnlockManager.Instance.GetProductionSeconds()
-                : 180f;
+    public bool IsEndingProduction => isEndingProduction;
+    // 연료 해금에 따른 생산 시간(기본 3분). 일차·테스트 모드와 무관하게 동일하다.
+    private float TargetProductionTime => UnlockManager.Instance != null
+        ? UnlockManager.Instance.GetProductionSeconds()
+        : 180f;
     private string lastTimerText;
 
     public GamePhase Phase => phase;
@@ -235,6 +232,7 @@ public class GameSessionState : MonoBehaviour
         UpdateTimerUI();
         UpdateGoodsUI();
         ApplyUIState(phase);
+        ApplyPhaseAudio(phase, playTransitionSfx: false);
 
         OnNewGame?.Invoke();
     }
@@ -270,9 +268,11 @@ public class GameSessionState : MonoBehaviour
         }
 
         Debug.Log($"[GameSession] 페이즈 전환 완료 -> {phase}");
-        
+
+        // 전환 효과음을 먼저 재생한 뒤 종료/시작 UI를 갱신한다.
+        ApplyPhaseAudio(phase, playTransitionSfx: true);
         ApplyUIState(phase);
-        UpdateTimerUI(); 
+        UpdateTimerUI();
         
         // [체크리스트 명세 실행] 페이즈 변경 시 이벤트를 전파하여 외부 스크립트(Lead/Dev2 UI 등)가 감지하도록 함
         OnPhaseChanged?.Invoke(phase);
@@ -349,7 +349,13 @@ public class GameSessionState : MonoBehaviour
         }
     }
 
-    public bool TryAcceptQuest(int id, string name, bool isMandatory = false, int rewardReputation = 0, int durationDays = 1)
+    public bool TryAcceptQuest(
+        int id,
+        string name,
+        bool isMandatory = false,
+        int rewardReputation = 0,
+        int durationDays = 1,
+        bool playAudio = true)
     {
         if (quests.Exists(q => q.questId == id))
         {
@@ -361,6 +367,11 @@ public class GameSessionState : MonoBehaviour
         if (quests.Count >= 3)
         {
             Debug.LogWarning($"[의뢰 실패] 이미 최대치(3개)의 의뢰를 수락했습니다.");
+            if (playAudio)
+            {
+                PlayCatalogSfx(audio => audio.Catalog.uiDeny);
+            }
+
             return false; 
         }
 
@@ -369,8 +380,30 @@ public class GameSessionState : MonoBehaviour
         int calculatedDeadline = this.day + durationDays;
 
         quests.Add(new AcceptedQuestState(id, name, isMandatory, rewardReputation, calculatedDeadline));
+        if (playAudio)
+        {
+            PlayCatalogSfx(audio => audio.Catalog.questAccept);
+        }
+
         Debug.Log($"<color=cyan>[의뢰 수락] {name} (만료일: Day {calculatedDeadline}) 추가됨. (현재: {quests.Count}/3)</color>");
         return true;
+    }
+
+    private static void PlayCatalogSfx(Func<AudioManager, AudioCatalog.AudioEntry> selectClip)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectClip == null)
+        {
+            return;
+        }
+
+        AudioCatalog.AudioEntry entry = selectClip(audio);
+        if (entry == audio.Catalog.uiDeny || entry == audio.Catalog.questAccept)
+        {
+            UiButtonSound.SuppressClickSoundForCurrentFrame();
+        }
+
+        audio.PlaySfx(entry);
     }
 
     public void RemoveQuest(int id)
@@ -411,16 +444,14 @@ public class GameSessionState : MonoBehaviour
         switch (phase)
         {
             case GamePhase.Prepare:
-                next = $"Time Left: {TargetProductionTime:F1}s";
+                next = $"Time Left: {FormatMinutesSeconds(TargetProductionTime)}";
                 break;
             case GamePhase.Production:
-                // 0.1초 단위가 바뀔 때만 문자열을 갱신한다.
-                float remaining = ProductionRemainingSeconds;
-                float rounded = Mathf.Ceil(remaining * 10f) / 10f;
-                next = $"Producing: {rounded:F1}s";
+                // 초 단위가 바뀔 때만 문자열을 갱신한다.
+                next = $"Producing: {FormatMinutesSeconds(ProductionRemainingSeconds)}";
                 break;
             case GamePhase.Settlement:
-                next = "Production Complete: 0.0s";
+                next = "Production Complete: 0:00";
                 break;
             default:
                 return;
@@ -433,6 +464,15 @@ public class GameSessionState : MonoBehaviour
 
         lastTimerText = next;
         timerText.text = next;
+    }
+
+    // 남은 시간을 m:ss 형식으로 표시한다. 60초 미만도 0:ss.
+    private static string FormatMinutesSeconds(float totalSeconds)
+    {
+        int clamped = Mathf.Max(0, Mathf.CeilToInt(totalSeconds));
+        int minutes = clamped / 60;
+        int seconds = clamped % 60;
+        return $"{minutes}:{seconds:00}";
     }
 
     public void UpdateGoodsUI()
@@ -457,6 +497,7 @@ public class GameSessionState : MonoBehaviour
         UpdateTimerUI();
         UpdateGoodsUI();
         ApplyUIState(phase);
+        ApplyPhaseAudio(phase, playTransitionSfx: false);
         OnPhaseChanged?.Invoke(phase);
     }
 
@@ -495,6 +536,7 @@ public class GameSessionState : MonoBehaviour
         if (phase == next)
         {
             ApplyUIState(phase);
+            ApplyPhaseAudio(phase, playTransitionSfx: false);
             return;
         }
 
@@ -511,10 +553,40 @@ public class GameSessionState : MonoBehaviour
         }
 
         UpdateDayText();
+        ApplyPhaseAudio(phase, playTransitionSfx: true);
         ApplyUIState(phase);
         UpdateTimerUI();
         OnPhaseChanged?.Invoke(phase);
         Debug.Log($"[GameSession] ForcePhase -> {phase}");
+    }
+
+    private static void ApplyPhaseAudio(GamePhase currentPhase, bool playTransitionSfx)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null)
+        {
+            return;
+        }
+
+        switch (currentPhase)
+        {
+            case GamePhase.Prepare:
+                audio.PlayBgm(audio.Catalog.prepare);
+                break;
+
+            case GamePhase.Production:
+                if (playTransitionSfx)
+                {
+                    audio.PlaySfx(audio.Catalog.phaseStart);
+                }
+
+                audio.PlayBgm(audio.Catalog.production);
+                break;
+
+            case GamePhase.Settlement:
+                audio.StopBgm();
+                break;
+        }
     }
 
     // Dev Mode: 일차를 절대값으로 맞춘다.

@@ -59,34 +59,29 @@ public static class MachineCraftService
         MachineCraftCatalog.Recipe recipe = MachineCraftCatalog.Get(machineDefId);
         if (recipe == null)
         {
-            error = "구매 목록에 없는 기계입니다.";
-            return false;
+            return Fail("구매 목록에 없는 기계입니다.", out error);
         }
 
         if (GameSessionState.Instance != null
             && GameSessionState.Instance.phase != GamePhase.Prepare)
         {
-            error = "준비 단계에서만 기계를 만들 수 있습니다.";
-            return false;
+            return Fail("준비 단계에서만 기계를 만들 수 있습니다.", out error);
         }
 
         if (!IsTechUnlocked(recipe))
         {
-            error = FormatLockedMessage(recipe);
-            return false;
+            return Fail(FormatLockedMessage(recipe), out error);
         }
 
         PlayerInventory inventory = PlayerInventory.GetOrFind();
         if (inventory == null)
         {
-            error = "인벤토리를 찾을 수 없습니다.";
-            return false;
+            return Fail("인벤토리를 찾을 수 없습니다.", out error);
         }
 
         if (!HasItems(recipe, inventory))
         {
-            error = "재료가 부족합니다.";
-            return false;
+            return Fail("재료가 부족합니다.", out error);
         }
 
         Week3EconomyService economy = Object.FindAnyObjectByType<Week3EconomyService>();
@@ -95,28 +90,24 @@ public static class MachineCraftService
             : GameSessionState.Instance != null ? GameSessionState.Instance.gold : 0;
         if (gold < recipe.gold)
         {
-            error = "골드가 부족합니다.";
-            return false;
+            return Fail("골드가 부족합니다.", out error);
         }
 
         ItemDef_Machine machine = definition != null ? definition : FindMachine(machineDefId);
         if (machine == null || machine.machinePrefab == null)
         {
-            error = "기계 정의를 찾을 수 없습니다.";
-            return false;
+            return Fail("기계 정의를 찾을 수 없습니다.", out error);
         }
 
         if (!TrySpendGold(economy, recipe.gold))
         {
-            error = "골드가 부족합니다.";
-            return false;
+            return Fail("골드가 부족합니다.", out error);
         }
 
         if (!TrySpendItems(inventory, recipe))
         {
             RefundGold(economy, recipe.gold);
-            error = "재료가 부족합니다.";
-            return false;
+            return Fail("재료가 부족합니다.", out error);
         }
 
         int countBefore = inventory.Machines.Count;
@@ -125,11 +116,35 @@ public static class MachineCraftService
         {
             RefundGold(economy, recipe.gold);
             RefundItems(inventory, recipe);
-            error = "기계를 지급할 수 없습니다.";
-            return false;
+            return Fail("기계를 지급할 수 없습니다.", out error);
         }
 
+        PlayCatalogSfx(audio => audio.Catalog.coin);
         return true;
+    }
+
+    private static bool Fail(string message, out string error)
+    {
+        error = message;
+        PlayCatalogSfx(audio => audio.Catalog.uiDeny);
+        return false;
+    }
+
+    private static void PlayCatalogSfx(System.Func<AudioManager, AudioCatalog.AudioEntry> selectClip)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectClip == null)
+        {
+            return;
+        }
+
+        AudioCatalog.AudioEntry entry = selectClip(audio);
+        if (entry == audio.Catalog.uiDeny)
+        {
+            UiButtonSound.SuppressClickSoundForCurrentFrame();
+        }
+
+        audio.PlaySfx(entry);
     }
 
     public static string FormatLockedMessage(MachineCraftCatalog.Recipe recipe)

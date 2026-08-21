@@ -10,10 +10,13 @@ public class PlacementUI : MonoBehaviour
     [SerializeField] private float panelHeight = 168f;
     [SerializeField] private float pickupBarHeight = 40f;
     [SerializeField] private float slideSpeed = 900f;
+    // Expand 스케일에서 캔버스가 화면보다 커질 때 좌우·하단이 잘리지 않도록 안쪽으로 민다.
+    [SerializeField] private float screenEdgePad = 12f;
 
     private PlacementController placementController;
     private PlayerInventory playerInventory;
     private Canvas canvas;
+    private CanvasScaler canvasScaler;
     private RectTransform slideRootRect;
     private RectTransform panelRect;
     private RectTransform contentRect;
@@ -67,7 +70,7 @@ public class PlacementUI : MonoBehaviour
     public void SetVisible(bool visible, bool instant = false)
     {
         isVisible = visible;
-        targetAnchoredY = visible ? 0f : -slideHeight;
+        targetAnchoredY = visible ? screenEdgePad : -slideHeight;
 
         if (!visible)
         {
@@ -142,6 +145,8 @@ public class PlacementUI : MonoBehaviour
 
         if (canvas != null)
         {
+            ApplyCanvasFit();
+            ApplySlideRootLayout();
             return;
         }
 
@@ -150,9 +155,8 @@ public class PlacementUI : MonoBehaviour
         canvas = canvasObject.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 50;
-        canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        canvasObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920f, 1080f);
-        canvasObject.GetComponent<CanvasScaler>().screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
+        canvasScaler = canvasObject.AddComponent<CanvasScaler>();
+        ApplyCanvasFit();
         canvasObject.AddComponent<GraphicRaycaster>();
 
         slideHeight = panelHeight + pickupBarHeight;
@@ -160,10 +164,7 @@ public class PlacementUI : MonoBehaviour
         var slideRootObject = new GameObject("PlacementSlideRoot");
         slideRootObject.transform.SetParent(canvasObject.transform, false);
         slideRootRect = slideRootObject.AddComponent<RectTransform>();
-        slideRootRect.anchorMin = new Vector2(0f, 0f);
-        slideRootRect.anchorMax = new Vector2(1f, 0f);
-        slideRootRect.pivot = new Vector2(0.5f, 0f);
-        slideRootRect.sizeDelta = new Vector2(0f, slideHeight);
+        ApplySlideRootLayout();
         slideRootRect.anchoredPosition = new Vector2(0f, -slideHeight);
 
         var pickupBarObject = new GameObject("PickupBar");
@@ -251,6 +252,7 @@ public class PlacementUI : MonoBehaviour
         layout.childControlHeight = true;
         layout.childForceExpandWidth = false;
         layout.childForceExpandHeight = true;
+        layout.padding = new RectOffset(4, 4, 4, 4);
 
         var fitter = contentObject.AddComponent<ContentSizeFitter>();
         fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -264,6 +266,42 @@ public class PlacementUI : MonoBehaviour
         scroll.movementType = ScrollRect.MovementType.Clamped;
 
         CreateHoverTooltip(canvasObject.transform);
+    }
+
+    private void ApplyCanvasFit()
+    {
+        if (canvasScaler == null && canvas != null)
+        {
+            canvasScaler = canvas.GetComponent<CanvasScaler>();
+        }
+
+        if (canvasScaler == null)
+        {
+            return;
+        }
+
+        // Expand는 화면보다 큰 축이 잘린다. 가로·세로 모두 화면 안에 맞춘다.
+        canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        canvasScaler.referenceResolution = new Vector2(1920f, 1080f);
+        canvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        canvasScaler.matchWidthOrHeight = 0.5f;
+    }
+
+    private void ApplySlideRootLayout()
+    {
+        if (slideRootRect == null)
+        {
+            return;
+        }
+
+        slideHeight = panelHeight + pickupBarHeight;
+        float pad = Mathf.Max(0f, screenEdgePad);
+        slideRootRect.anchorMin = new Vector2(0f, 0f);
+        slideRootRect.anchorMax = new Vector2(1f, 0f);
+        slideRootRect.pivot = new Vector2(0.5f, 0f);
+        // sizeDelta.x 음수 = 좌우 여백. 하단은 visible 시 anchoredY = pad.
+        slideRootRect.sizeDelta = new Vector2(-pad * 2f, slideHeight);
+        targetAnchoredY = isVisible ? pad : -slideHeight;
     }
 
     private void CreateHoverTooltip(Transform parent)
@@ -361,16 +399,22 @@ public class PlacementUI : MonoBehaviour
         bool hasIcon = iconImage.sprite != null;
 
         Text label = buttonObject.transform.Find("Count").GetComponent<Text>();
+        RectTransform countRect = label.rectTransform;
+        countRect.anchorMin = new Vector2(1f, 0f);
+        countRect.anchorMax = new Vector2(1f, 0f);
+        countRect.pivot = new Vector2(1f, 0f);
+        countRect.anchoredPosition = new Vector2(-6f, 16f);
+        countRect.sizeDelta = new Vector2(52f, 24f);
         label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        label.fontSize = 14;
+        label.fontSize = 16;
         label.alignment = TextAnchor.LowerRight;
         label.color = Color.white;
         string displayName = !string.IsNullOrEmpty(definition.displayName)
             ? definition.displayName
             : definition.id;
         label.text = hasIcon ? $"x{count}" : $"{displayName}\nx{count}";
-        label.horizontalOverflow = HorizontalWrapMode.Wrap;
-        label.verticalOverflow = VerticalWrapMode.Truncate;
+        label.horizontalOverflow = HorizontalWrapMode.Overflow;
+        label.verticalOverflow = VerticalWrapMode.Overflow;
 
         Button button = buttonObject.GetComponent<Button>();
         button.targetGraphic = buttonImage;
@@ -442,10 +486,12 @@ public class PlacementUI : MonoBehaviour
         var countObject = new GameObject("Count");
         countObject.transform.SetParent(buttonObject.transform, false);
         var countRect = countObject.AddComponent<RectTransform>();
-        countRect.anchorMin = new Vector2(0f, 0f);
-        countRect.anchorMax = new Vector2(1f, 0.35f);
-        countRect.offsetMin = new Vector2(4f, 2f);
-        countRect.offsetMax = new Vector2(-4f, -2f);
+        // 하단 Mask에 잘리지 않도록 슬롯 안쪽 위로 올린다.
+        countRect.anchorMin = new Vector2(1f, 0f);
+        countRect.anchorMax = new Vector2(1f, 0f);
+        countRect.pivot = new Vector2(1f, 0f);
+        countRect.anchoredPosition = new Vector2(-6f, 16f);
+        countRect.sizeDelta = new Vector2(52f, 24f);
         countObject.AddComponent<Text>();
 
         GameObject highlight = UiNoteBookSlot.CreateSelectHighlight(buttonObject.transform, slotSize);

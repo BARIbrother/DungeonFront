@@ -310,6 +310,7 @@ public class GridTilemapRenderer : MonoBehaviour
         }
 
         tilemap.SetTilesBlock(new BoundsInt(0, 0, 0, width, height, 1), block);
+        SyncExteriorUnknownTiles();
         tilemap.CompressBounds();
         tilemap.RefreshAllTiles();
 
@@ -317,6 +318,99 @@ public class GridTilemapRenderer : MonoBehaviour
         {
             Debug.LogWarning("[GridTilemapRenderer] 배치된 타일이 0개입니다. Tile Asset에 Sprite가 있는지 확인하세요.", this);
         }
+    }
+
+    // 필드(그리드) 밖을 미확인 Locked 숲으로 채운다. 두께는 구역 1(=16칸)을 기준으로
+    // 카메라 시야 반경보다 얇지 않게 맞춘다.
+    private void SyncExteriorUnknownTiles()
+    {
+        if (tilemap == null || gridManager == null)
+        {
+            return;
+        }
+
+        int width = gridManager.Width;
+        int height = gridManager.Height;
+        int pad = ZoneManager.ZoneSize;
+
+        Camera cam = Camera.main;
+        if (cam != null && cam.orthographic)
+        {
+            float cellSize = Mathf.Max(0.0001f, gridManager.CellSize);
+            int cameraPad = Mathf.CeilToInt(
+                Mathf.Max(cam.orthographicSize, cam.orthographicSize * cam.aspect) / cellSize) + 1;
+            pad = Mathf.Max(pad, cameraPad);
+        }
+
+        // 이전보다 얇아질 수 있어, 여유 있게 옛 외곽을 지운 뒤 다시 깐다.
+        int clearPad = pad + ZoneManager.ZoneSize;
+        for (int y = -clearPad; y < height + clearPad; y++)
+        {
+            for (int x = -clearPad; x < width + clearPad; x++)
+            {
+                if (x >= 0 && x < width && y >= 0 && y < height)
+                {
+                    continue;
+                }
+
+                tilemap.SetTile(new Vector3Int(x, y, 0), null);
+            }
+        }
+
+        for (int y = -pad; y < height + pad; y++)
+        {
+            for (int x = -pad; x < width + pad; x++)
+            {
+                if (x >= 0 && x < width && y >= 0 && y < height)
+                {
+                    continue;
+                }
+
+                tilemap.SetTile(new Vector3Int(x, y, 0), ResolveExteriorUnknownTile(x, y));
+            }
+        }
+    }
+
+    private TileBase ResolveExteriorUnknownTile(int x, int y)
+    {
+        // 맵 밖은 미해금 구역과 같은 숲 스탬프(mask=0)를 우선한다.
+        if (treeZoneStampSet != null)
+        {
+            TileBase stamped = treeZoneStampSet.GetTile(
+                0,
+                Mod(x, TreeZoneStampSet.ZoneSize),
+                Mod(y, TreeZoneStampSet.ZoneSize));
+            if (stamped != null)
+            {
+                return stamped;
+            }
+        }
+
+        if (treeBorderTileSet != null)
+        {
+            TileBase mid = treeBorderTileSet.GetTile(
+                TreeBorderTileKind.Mid,
+                Mod(x, 2),
+                Mod(y, 2));
+            if (mid != null)
+            {
+                return mid;
+            }
+        }
+
+        tileLookup.TryGetValue(GridCellType.Locked, out TileBase locked);
+        return locked;
+    }
+
+    private static int Mod(int value, int period)
+    {
+        if (period <= 0)
+        {
+            return 0;
+        }
+
+        int result = value % period;
+        return result < 0 ? result + period : result;
     }
 
     // 단일 셀 변경 시 Tilemap 타일을 갱신한다. 숲 경계는 인접 Locked 셀도 함께 갱신한다.

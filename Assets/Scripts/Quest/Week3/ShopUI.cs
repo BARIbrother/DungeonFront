@@ -51,6 +51,7 @@ public class ShopUI : MonoBehaviour
         if (entry == null)
         {
             SetFeedback("구매 정보를 찾을 수 없습니다.");
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
         }
 
@@ -58,6 +59,7 @@ public class ShopUI : MonoBehaviour
             && GameSessionState.Instance.phase != GamePhase.Prepare)
         {
             SetFeedback("준비 단계에서만 구매할 수 있습니다.");
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
         }
 
@@ -77,6 +79,7 @@ public class ShopUI : MonoBehaviour
         if (economy == null || !economy.TrySpendGold(entry.price))
         {
             SetFeedback("골드가 부족합니다.");
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
         }
 
@@ -92,10 +95,12 @@ public class ShopUI : MonoBehaviour
         {
             economy.AddGold(entry.price);
             SetFeedback("구매 대상을 지급할 수 없습니다.");
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
         }
 
         SetFeedback($"{entry.displayName} 구매 완료");
+        PlayCatalogSfx(audio => audio.Catalog.coin);
         return true;
     }
 
@@ -134,6 +139,10 @@ public class ShopUI : MonoBehaviour
 
             Button row = Instantiate(rowPrefab, listRoot);
             row.gameObject.AddComponent<Week3GeneratedShopRow>();
+            if (row.GetComponent<UiButtonSound>() == null)
+            {
+                row.gameObject.AddComponent<UiButtonSound>();
+            }
             TMP_Text label = row.GetComponentInChildren<TMP_Text>();
             if (label != null)
             {
@@ -172,6 +181,23 @@ public class ShopUI : MonoBehaviour
         }
 
         Debug.Log($"[Shop] {message}", this);
+    }
+
+    private static void PlayCatalogSfx(System.Func<AudioManager, AudioCatalog.AudioEntry> selectClip)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectClip == null)
+        {
+            return;
+        }
+
+        AudioCatalog.AudioEntry entry = selectClip(audio);
+        if (entry == audio.Catalog.uiDeny)
+        {
+            UiButtonSound.SuppressClickSoundForCurrentFrame();
+        }
+
+        audio.PlaySfx(entry);
     }
 }
 

@@ -306,6 +306,93 @@ public class QuestSystemDebugPanel : MonoBehaviour
             shopUI?.TryPurchase("altar_1");
         }
         GUILayout.EndHorizontal();
+
+        DrawAudioDiagnostics();
+    }
+
+    private const string AudioVolumePrefsKey = "Settings.MasterVolume";
+
+    private void DrawAudioDiagnostics()
+    {
+        GUILayout.Space(8);
+        GUILayout.Label("<b>Audio</b>", RichLabel());
+
+        AudioManager audio = AudioManager.Instance;
+        AudioCatalog resolved = audio != null ? audio.Catalog : null;
+        bool hasManager = audio != null;
+        bool hasCatalog = resolved != null;
+        float prefsVolume = PlayerPrefs.GetFloat(AudioVolumePrefsKey, -1f);
+        string prefsText = prefsVolume < 0f ? "(없음→기본 1)" : prefsVolume.ToString("0.###");
+
+        GUILayout.Label(
+            $"Listener={AudioListener.volume:0.###} / Prefs[{AudioVolumePrefsKey}]={prefsText}",
+            RichLabel());
+        GUILayout.Label(
+            $"AudioManager={(hasManager ? "OK" : "NULL")} / Catalog={(hasCatalog ? "OK" : "NULL")}"
+            + (hasCatalog
+                ? $" / prepare={(resolved.prepare?.clip != null ? "clip" : "null")}"
+                  + $" / uiClick={(resolved.uiClick?.clip != null ? "clip" : "null")}"
+                : "  ← Manager가 NULL이면 씬 컴포넌트 Missing Script 가능"),
+            RichLabel());
+
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("강제 생성/복구"))
+        {
+            SetStatus(AudioManager.ForceRebuildCatalog());
+        }
+
+        if (GUILayout.Button("음량 Max(1)"))
+        {
+            AudioListener.volume = 1f;
+            PlayerPrefs.SetFloat(AudioVolumePrefsKey, 1f);
+            PlayerPrefs.Save();
+            SetStatus("AudioListener.volume=1, Prefs 저장");
+        }
+
+        if (GUILayout.Button("Prefs 삭제"))
+        {
+            PlayerPrefs.DeleteKey(AudioVolumePrefsKey);
+            PlayerPrefs.Save();
+            AudioListener.volume = 1f;
+            SetStatus("Settings.MasterVolume Prefs 삭제, Listener=1");
+        }
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("uiClick 테스트"))
+        {
+            AudioManager.EnsureExists();
+            audio = AudioManager.Instance;
+            resolved = audio != null ? audio.Catalog : null;
+            if (resolved?.uiClick?.clip == null)
+            {
+                SetStatus("uiClick 재생 실패: Catalog/clip 없음 → 강제 생성/복구 먼저");
+            }
+            else
+            {
+                audio.PlaySfx(resolved.uiClick);
+                SetStatus(
+                    $"uiClick PlaySfx 호출 (Listener={AudioListener.volume:0.###})");
+            }
+        }
+
+        if (GUILayout.Button("Prepare BGM"))
+        {
+            AudioManager.EnsureExists();
+            audio = AudioManager.Instance;
+            resolved = audio != null ? audio.Catalog : null;
+            if (resolved?.prepare?.clip == null)
+            {
+                SetStatus("Prepare BGM 실패: Catalog/clip 없음 → 강제 생성/복구 먼저");
+            }
+            else
+            {
+                audio.PlayBgm(resolved.prepare);
+                SetStatus(
+                    $"Prepare BGM Play 호출 (Listener={AudioListener.volume:0.###})");
+            }
+        }
+        GUILayout.EndHorizontal();
     }
 
     private void DrawQuestsTab()

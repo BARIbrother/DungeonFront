@@ -59,9 +59,21 @@ public class PerpetualQuestService : MonoBehaviour
         }
 
         GiveRewards(quest, multiplier, inventory);
+        PlayCatalogSfx(audio => audio.Catalog.coin);
         OnDelivered?.Invoke(quest, multiplier);
         Debug.Log($"[PerpetualQuest] {quest.title} x{multiplier} 납품 완료", quest);
         return true;
+    }
+
+    private static void PlayCatalogSfx(Func<AudioManager, AudioCatalog.AudioEntry> selectClip)
+    {
+        AudioManager audio = AudioManager.Instance;
+        if (audio == null || audio.Catalog == null || selectClip == null)
+        {
+            return;
+        }
+
+        audio.PlaySfx(selectClip(audio));
     }
 
     private void GiveRewards(Quest quest, int multiplier, PlayerInventory inventory)

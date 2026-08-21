@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -36,6 +37,12 @@ public class ProductionSummaryUI : MonoBehaviour
     {
         EnsureInstance();
         instance.Open(lines);
+    }
+
+    public static void ShowAfterSound(List<ProductionSummaryLine> lines, float delaySeconds)
+    {
+        EnsureInstance();
+        instance.StartCoroutine(instance.OpenAfterSound(lines, delaySeconds));
     }
 
     private static void EnsureInstance()
@@ -83,6 +90,16 @@ public class ProductionSummaryUI : MonoBehaviour
         RebuildLines(lines);
         isOpen = true;
         modalRoot.SetActive(true);
+    }
+
+    private IEnumerator OpenAfterSound(List<ProductionSummaryLine> lines, float delaySeconds)
+    {
+        if (delaySeconds > 0f)
+        {
+            yield return new WaitForSecondsRealtime(delaySeconds);
+        }
+
+        Open(lines);
     }
 
     private void Hide()
