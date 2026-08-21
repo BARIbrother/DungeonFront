@@ -36,8 +36,22 @@ public static class ItemIconBinder
         {
             string path = AssetDatabase.GUIDToAssetPath(guids[i]);
             ItemDefinition item = AssetDatabase.LoadAssetAtPath<ItemDefinition>(path);
-            if (item == null || string.IsNullOrEmpty(item.id) || item is ItemDef_Machine)
+            if (item == null || string.IsNullOrEmpty(item.id))
             {
+                continue;
+            }
+
+            if (item is ItemDef_Machine machine)
+            {
+                if (BindMachine(machine))
+                {
+                    bound++;
+                }
+                else
+                {
+                    skipped++;
+                }
+
                 continue;
             }
 
@@ -137,6 +151,57 @@ public static class ItemIconBinder
 
         stem = null;
         return false;
+    }
+
+    // 기계는 Art/Items 맵이 아니라 테크 트리 아이콘·프리팹 스프라이트를 SO.icon에 붙인다.
+    private static bool BindMachine(ItemDef_Machine machine)
+    {
+        Sprite sprite = MachineArtBinder.LoadArtSprite(machine.id);
+        if (sprite == null)
+        {
+            sprite = LoadEditorTechIcon(machine.id);
+        }
+
+        if (sprite == null)
+        {
+            sprite = GetPrefabSprite(machine.machinePrefab);
+        }
+
+        if (sprite == null || sprite.texture == null)
+        {
+            return false;
+        }
+
+        machine.icon = sprite;
+        EditorUtility.SetDirty(machine);
+        return true;
+    }
+
+    private static Sprite LoadEditorTechIcon(string machineDefId)
+    {
+        string techId = MachineIconResolver.ResolveTechIconId(machineDefId);
+        if (string.IsNullOrEmpty(techId))
+        {
+            return null;
+        }
+
+        return LoadSprite($"Assets/Resources/UI/TechTree/{techId}.png");
+    }
+
+    private static Sprite GetPrefabSprite(GameObject prefab)
+    {
+        if (prefab == null)
+        {
+            return null;
+        }
+
+        SpriteRenderer renderer = prefab.GetComponent<SpriteRenderer>();
+        if (renderer == null)
+        {
+            renderer = prefab.GetComponentInChildren<SpriteRenderer>();
+        }
+
+        return renderer != null ? renderer.sprite : null;
     }
 
     private static Sprite LoadSprite(string assetPath)

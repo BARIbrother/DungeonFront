@@ -4,7 +4,7 @@ using UnityEngine;
 // 창고. outputPort는 막고, input으로 들어온 아이템은 즉시 플레이어 인벤으로 옮긴다.
 public class WarehouseMachine : Machine
 {
-    public override Vector2Int GetFootprintSize() => new Vector2Int(2, 2);
+    public override Vector2Int GetFootprintSize() => new Vector2Int(2, 1);
 
     private void Awake()
     {

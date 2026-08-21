@@ -49,6 +49,7 @@ public class QuestSystemDebugPanel : MonoBehaviour
     private string grantItemId = "iron_ore";
     private string grantCountInput = "10";
     private string grantLevelInput = "1";
+    private string grantAllMachinesCountInput = "1";
     private string storyIdInput = "001E00001";
     private string jumpMainId = "00100002";
     private string lastStatus = string.Empty;
@@ -692,6 +693,21 @@ public class QuestSystemDebugPanel : MonoBehaviour
         {
             DevModeCommands.ClearInventoryItems();
             SetStatus("인벤 아이템 Clear");
+        }
+        GUILayout.EndHorizontal();
+
+        GUILayout.Space(4);
+        GUILayout.Label("<b>기계</b>", RichLabel());
+        GUILayout.BeginHorizontal();
+        GUILayout.Label("count", GUILayout.Width(50));
+        grantAllMachinesCountInput = GUILayout.TextField(grantAllMachinesCountInput, GUILayout.Width(60));
+        if (GUILayout.Button("모든 기계 지급"))
+        {
+            if (int.TryParse(grantAllMachinesCountInput, out int machineCount) && machineCount > 0)
+            {
+                int granted = DevModeCommands.GrantAllMachines(machineCount);
+                SetStatus($"모든 기계 지급 x{machineCount} → {granted}대");
+            }
         }
         GUILayout.EndHorizontal();
 

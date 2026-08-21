@@ -244,6 +244,48 @@ public static class DevModeCommands
         });
     }
 
+    // MachineDatabase의 prefab 있는 기계를 종류마다 count대씩 인벤에 넣는다.
+    public static int GrantAllMachines(int countPerMachine)
+    {
+        if (countPerMachine <= 0)
+        {
+            return 0;
+        }
+
+        PlayerInventory inventory = PlayerInventory.GetOrFind();
+        MachineDatabase database = ResolveMachineDatabase();
+        if (inventory == null || database == null)
+        {
+            Debug.LogWarning("[DevMode] PlayerInventory 또는 MachineDatabase가 없어 기계를 지급할 수 없습니다.");
+            return 0;
+        }
+
+        database.RebuildLookup();
+        IReadOnlyList<ItemDef_Machine> machines = database.All;
+        if (machines == null)
+        {
+            return 0;
+        }
+
+        int granted = 0;
+        for (int i = 0; i < machines.Count; i++)
+        {
+            ItemDef_Machine definition = machines[i];
+            if (definition == null || definition.machinePrefab == null)
+            {
+                continue;
+            }
+
+            for (int n = 0; n < countPerMachine; n++)
+            {
+                inventory.AddMachine(definition);
+                granted++;
+            }
+        }
+
+        return granted;
+    }
+
     public static void ClearInventoryItems()
     {
         PlayerInventory.GetOrFind()?.ClearItems();
@@ -572,6 +614,28 @@ public static class DevModeCommands
             length = entries.Length,
             entries = entries
         };
+    }
+
+    private static MachineDatabase ResolveMachineDatabase()
+    {
+        PlayerMovement movement = UnityEngine.Object.FindAnyObjectByType<PlayerMovement>();
+        if (movement != null && movement.MachineDatabase != null)
+        {
+            return movement.MachineDatabase;
+        }
+
+        MachineDatabase[] loaded = Resources.FindObjectsOfTypeAll<MachineDatabase>();
+        if (loaded != null && loaded.Length > 0)
+        {
+            return loaded[0];
+        }
+
+#if UNITY_EDITOR
+        return AssetDatabase.LoadAssetAtPath<MachineDatabase>(
+            "Assets/ItemDefinition/MachineDef/MachineDatabase.asset");
+#else
+        return null;
+#endif
     }
 
     private static ItemDefinition ResolveItemDefinition(string itemId)

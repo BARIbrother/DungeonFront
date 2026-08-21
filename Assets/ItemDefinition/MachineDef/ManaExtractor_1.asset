@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
   id: ManaExtractor_1
   displayName: "\uB9C8\uB098 \uCD94\uCD9C\uAE30"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 60afc269facb9d948b8f92d33fa0fea4, type: 3}
   category: 0
   enchantmentSlotCount: 0
   machineTypeId: ManaExtractor

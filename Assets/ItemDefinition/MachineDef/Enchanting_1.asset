@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
   id: Enchanting_1
   displayName: "\uB9C8\uBC95 \uBD80\uC5EC\uB300"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: e23237d31ed99c34e900c4fc4618a3bf, type: 3}
   category: 0
   enchantmentSlotCount: 0
   machineTypeId: Enchanting

@@ -3,7 +3,7 @@ using UnityEngine;
 // 주조소. 틱 생산 스텁 (거대 카테고리 레시피는 후속 연결).
 public class FoundryMachine : Machine, IFactoryProduction
 {
-    public override Vector2Int GetFootprintSize() => new Vector2Int(2, 2);
+    public override Vector2Int GetFootprintSize() => new Vector2Int(4, 2);
 
     private void Awake()
     {

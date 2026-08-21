@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
   id: Altar_1
   displayName: "\uC81C\uB2E8"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: aed4dd7798646a84da268d879574de50, type: 3}
   category: 0
   enchantmentSlotCount: 0
   machineTypeId: Altar

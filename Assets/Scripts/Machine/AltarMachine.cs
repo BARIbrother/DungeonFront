@@ -3,7 +3,7 @@ using UnityEngine;
 // 제단. 틱 생산 스텁 (의식 카테고리 레시피는 후속 연결).
 public class AltarMachine : Machine, IFactoryProduction
 {
-    public override Vector2Int GetFootprintSize() => new Vector2Int(2, 2);
+    public override Vector2Int GetFootprintSize() => new Vector2Int(4, 4);
 
     private void Awake()
     {

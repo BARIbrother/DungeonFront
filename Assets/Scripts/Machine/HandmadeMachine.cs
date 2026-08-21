@@ -8,13 +8,16 @@ public class HandmadeMachine : Machine
     private void Awake()
     {
         size = GetFootprintSize();
+        transform.localScale = Vector3.one;
 
         // 64x32 스프라이트(PPU 32) = 월드 2x1. footprint와 동일하게 클릭 콜라이더를 맞춘다.
-        if (GetComponent<Collider2D>() == null)
+        var boxCollider = GetComponent<BoxCollider2D>();
+        if (boxCollider == null)
         {
-            var boxCollider = gameObject.AddComponent<BoxCollider2D>();
-            boxCollider.size = new Vector2(size.x, size.y);
+            boxCollider = gameObject.AddComponent<BoxCollider2D>();
         }
+
+        boxCollider.size = new Vector2(size.x, size.y);
     }
 
     public override void InitializeMachine()

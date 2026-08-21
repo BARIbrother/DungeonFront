@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
   id: Foundry_1
   displayName: "\uC8FC\uC870\uC18C"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 45e009f15d4e38048b8e34cb490cc200, type: 3}
   category: 0
   enchantmentSlotCount: 0
   machineTypeId: Foundry

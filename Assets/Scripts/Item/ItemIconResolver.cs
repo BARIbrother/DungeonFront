@@ -249,7 +249,26 @@ public static class ItemIconResolver
 #endif
 
         Sprite fromResources = Resources.Load<Sprite>($"ItemIcons/{stem}");
-        return IsUsable(fromResources) ? fromResources : null;
+        if (IsUsable(fromResources))
+        {
+            return fromResources;
+        }
+
+        Sprite[] slices = Resources.LoadAll<Sprite>($"ItemIcons/{stem}");
+        if (slices == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < slices.Length; i++)
+        {
+            if (IsUsable(slices[i]))
+            {
+                return slices[i];
+            }
+        }
+
+        return null;
     }
 
 #if UNITY_EDITOR

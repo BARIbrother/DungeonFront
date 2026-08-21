@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-// 기계 인벤 아이콘은 별도 아이콘 에셋이 아니라 프리팹 SpriteRenderer 텍스처를 그대로 쓴다.
+// 기계 인벤 아이콘. SO icon → 프리팹 스프라이트 → 테크 트리 아이콘 순으로 찾는다.
 public static class MachineIconResolver
 {
     public const float InventoryIconMaxSize = 32f;
+    private const string TechIconResourcesRoot = "UI/TechTree";
 
     private static readonly Dictionary<string, Sprite> cache = new();
 
@@ -22,13 +23,63 @@ public static class MachineIconResolver
             return cached;
         }
 
-        Sprite sprite = GetPrefabSprite(definition.machinePrefab);
+        Sprite sprite = ItemIconResolver.IsUsable(definition.icon)
+            ? definition.icon
+            : null;
+        if (sprite == null)
+        {
+            sprite = GetPrefabSprite(definition.machinePrefab);
+        }
+
+        if (sprite == null)
+        {
+            sprite = LoadTechIcon(definition.id);
+        }
+
         if (ItemIconResolver.IsUsable(sprite))
         {
             cache[definition.id] = sprite;
+            if (!ItemIconResolver.IsUsable(definition.icon))
+            {
+                definition.icon = sprite;
+            }
         }
 
         return sprite;
+    }
+
+    // machineDefId에 대응하는 테크 트리 아이콘 리소스 id.
+    public static string ResolveTechIconId(string machineDefId)
+    {
+        if (string.IsNullOrEmpty(machineDefId))
+        {
+            return null;
+        }
+
+        // 제단은 대형 조립(m_crafter_3)으로 해금되지만 전용 아이콘이 있다.
+        if (machineDefId == "Altar_1")
+        {
+            return "m_altar_1";
+        }
+
+        if (machineDefId == "HandmadeAssembler_1")
+        {
+            return "m_crafter_1";
+        }
+
+        for (int i = 0; i < TechTreeCatalog.All.Length; i++)
+        {
+            TechTreeCatalog.Node node = TechTreeCatalog.All[i];
+            if (node != null
+                && node.machineDefId == machineDefId
+                && !string.IsNullOrEmpty(node.id))
+            {
+                return node.id;
+            }
+        }
+
+        MachineCraftCatalog.Recipe recipe = MachineCraftCatalog.Get(machineDefId);
+        return recipe != null ? recipe.requiredTechId : null;
     }
 
     // 32×32 박스 안에 가로·세로 동일 배율로 맞춘 UI 크기를 반환한다.
@@ -97,5 +148,36 @@ public static class MachineIconResolver
         }
 
         return renderer != null ? renderer.sprite : null;
+    }
+
+    private static Sprite LoadTechIcon(string machineDefId)
+    {
+        string techId = ResolveTechIconId(machineDefId);
+        if (string.IsNullOrEmpty(techId))
+        {
+            return null;
+        }
+
+        Sprite fromSlot = UiNoteBookSlot.GetTechIcon(techId);
+        if (ItemIconResolver.IsUsable(fromSlot))
+        {
+            return fromSlot;
+        }
+
+        Sprite[] sprites = Resources.LoadAll<Sprite>($"{TechIconResourcesRoot}/{techId}");
+        if (sprites == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < sprites.Length; i++)
+        {
+            if (ItemIconResolver.IsUsable(sprites[i]))
+            {
+                return sprites[i];
+            }
+        }
+
+        return null;
     }
 }

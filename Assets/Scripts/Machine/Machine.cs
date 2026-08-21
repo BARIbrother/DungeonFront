@@ -540,16 +540,25 @@ public abstract class Machine : MonoBehaviour
         return builder.Length > 0 ? builder.ToString() : "(없음)";
     }
 
-    // OnMouseUpAsButton용 BoxCollider2D가 없으면 footprint 크기에 맞춰 추가한다.
+    // OnMouseUpAsButton용 BoxCollider2D가 없으면 footprint 크기에 맞춰 추가하고,
+    // 이미 있으면 현재 footprint에 맞게 크기를 맞춘다.
     private void EnsureClickCollider()
     {
+        Vector2 footprint = GetFootprintSize();
+        var boxCollider = GetComponent<BoxCollider2D>();
+        if (boxCollider != null)
+        {
+            boxCollider.size = footprint;
+            return;
+        }
+
         if (GetComponent<Collider2D>() != null)
         {
             return;
         }
 
-        var boxCollider = gameObject.AddComponent<BoxCollider2D>();
-        boxCollider.size = new Vector2(size.x, size.y);
+        boxCollider = gameObject.AddComponent<BoxCollider2D>();
+        boxCollider.size = footprint;
     }
 
     public RecipePool GetAvailableRecipes() => AvailableRecipes;

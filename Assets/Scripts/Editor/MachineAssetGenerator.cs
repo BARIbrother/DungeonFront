@@ -133,11 +133,11 @@ public static class MachineAssetGenerator
         {
             UpsertMachineDef("Miner_1", "Miner", "채굴기", false, minerPrefab),
             UpsertMachineDef("Smelter_1", "Smelter", "용광로", false, smelterPrefab),
-            UpsertMachineDef("Assembler_1", "Assembler", "자동 제작기", false, assemblerTemplate),
+            UpsertMachineDef("Assembler_1", "Assembler", "마나 제작기", false, assemblerTemplate),
             UpsertMachineDef("HandmadeAssembler_1", "HandmadeAssembler", "수동 제작대", true, handmadeTemplate),
             UpsertMachineDef("ManaExtractor_1", "ManaExtractor", "마나 추출기", false, manaExtractorPrefab),
             UpsertMachineDef("Enchanting_1", "Enchanting", "마법 부여대", false, enchantingPrefab),
-            UpsertMachineDef("ManaHandmade_1", "ManaAssembler", "수동 마나 제작대", true, manaHandmadePrefab),
+            UpsertMachineDef("ManaHandmade_1", "ManaAssembler", "수동 마나 제작기", true, manaHandmadePrefab),
             UpsertMachineDef("Altar_1", "Altar", "제단", false, altarPrefab),
             UpsertMachineDef("Foundry_1", "Foundry", "주조소", false, foundryPrefab),
             UpsertMachineDef("Warehouse_1", "Warehouse", "창고", true, warehousePrefab),
@@ -171,6 +171,7 @@ public static class MachineAssetGenerator
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         SessionState.SetBool(AutoGenerateSessionKey, true);
+        MachineArtBinder.Bind();
         Debug.Log($"[MachineAssetGenerator] 완료: Prefab·SO {defs.Count}종, MachineDatabase, Contracts 4종.");
     }
 
@@ -211,6 +212,49 @@ public static class MachineAssetGenerator
         return AssetDatabase.LoadAssetAtPath<GameObject>(path);
     }
 
+    private static Sprite LoadMachineIcon(string machineDefId, GameObject prefab)
+    {
+        string techId = MachineIconResolver.ResolveTechIconId(machineDefId);
+        if (!string.IsNullOrEmpty(techId))
+        {
+            Sprite fromTech = LoadSpriteFromPath($"Assets/Resources/UI/TechTree/{techId}.png");
+            if (fromTech != null)
+            {
+                return fromTech;
+            }
+        }
+
+        if (prefab == null)
+        {
+            return null;
+        }
+
+        SpriteRenderer renderer = prefab.GetComponent<SpriteRenderer>();
+        if (renderer == null)
+        {
+            renderer = prefab.GetComponentInChildren<SpriteRenderer>();
+        }
+
+        return renderer != null ? renderer.sprite : null;
+    }
+
+    private static Sprite LoadSpriteFromPath(string assetPath)
+    {
+        Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+        if (assets != null)
+        {
+            for (int i = 0; i < assets.Length; i++)
+            {
+                if (assets[i] is Sprite sprite && sprite.texture != null)
+                {
+                    return sprite;
+                }
+            }
+        }
+
+        return AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+    }
+
     private static GameObject EnsureClonedPrefab(
         GameObject template,
         string assetPath,
@@ -245,7 +289,10 @@ public static class MachineAssetGenerator
             SpriteRenderer spriteRenderer = root.GetComponent<SpriteRenderer>();
             if (spriteRenderer != null)
             {
-                spriteRenderer.color = tint;
+                if (!MachineArtBinder.TryApplyArt(spriteRenderer, objectName))
+                {
+                    spriteRenderer.color = tint;
+                }
             }
 
             PrefabUtility.SaveAsPrefabAsset(root, assetPath);
@@ -279,6 +326,12 @@ public static class MachineAssetGenerator
         def.requiresManualWork = requiresManualWork;
         def.category = ItemCategory.Material;
         def.machinePrefab = prefab;
+        if (def.icon == null || def.icon.texture == null)
+        {
+            def.icon = MachineArtBinder.LoadArtSprite(machineDefId)
+                ?? LoadMachineIcon(machineDefId, prefab);
+        }
+
         EditorUtility.SetDirty(def);
         return def;
     }

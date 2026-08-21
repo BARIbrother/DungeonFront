@@ -411,14 +411,32 @@ public class GridManager : MonoBehaviour
         return zone.x == ZoneManager.CenterZoneX && zone.y == ZoneManager.CenterZoneY;
     }
 
-    // worldPosition이 가리키는 그리드 셀을 기준으로 footprint anchor(좌하단)를 반환한다.
+    // worldPosition에 기계 중심이 가장 가깝도록 footprint anchor(좌하단)를 반환한다.
     // 홀수 footprint는 셀 중심, 짝수 footprint는 그리드 경계(셀 교차점)에 맞춘다.
     public Vector2Int GetAnchorForCenteredFootprint(Vector3 worldPosition, Vector2Int footprintSize)
     {
-        Vector2Int gridCell = WorldToGrid(worldPosition);
+        Vector3 local = transform.InverseTransformPoint(worldPosition);
+        float cellSize = CellSize;
+        float axis1 = plane == GridPlane.XY ? local.y : local.z;
         return new Vector2Int(
-            gridCell.x - footprintSize.x / 2,
-            gridCell.y - footprintSize.y / 2);
+            GetAnchorForCenteredAxis(local.x / cellSize, footprintSize.x),
+            GetAnchorForCenteredAxis(axis1 / cellSize, footprintSize.y));
+    }
+
+    // 연속 셀 좌표에서 해당 축의 중심이 가장 가까운 footprint 시작 인덱스를 구한다.
+    private static int GetAnchorForCenteredAxis(float cells, int footprintAxis)
+    {
+        if (footprintAxis <= 0)
+        {
+            return Mathf.FloorToInt(cells);
+        }
+
+        if (footprintAxis % 2 == 1)
+        {
+            return Mathf.FloorToInt(cells) - footprintAxis / 2;
+        }
+
+        return Mathf.RoundToInt(cells) - footprintAxis / 2;
     }
 
     // anchor·footprintSize 영역의 배치 기준 월드 좌표를 반환한다.
