@@ -417,7 +417,8 @@ public class MachineRecipeUI : MonoBehaviour
         AddInventorySlotFrame(slot.transform, slotSize);
         if (selected != null)
         {
-            CreateItemIconVisual(slot.transform, selected, owned, slotSize);
+            int displayCount = WarehouseStock.IsInfinite(selected) ? -1 : owned;
+            CreateItemIconVisual(slot.transform, selected, displayCount, slotSize);
         }
 
         dynamicRows.Add(buttonObject);
@@ -452,11 +453,44 @@ public class MachineRecipeUI : MonoBehaviour
         grid.childAlignment = TextAnchor.UpperLeft;
 
         bool any = false;
+        for (int i = 0; i < WarehouseStock.InfiniteIds.Length; i++)
+        {
+            Item infiniteItem = ResolveItem(WarehouseStock.InfiniteIds[i]);
+            if (infiniteItem == null)
+            {
+                continue;
+            }
+
+            any = true;
+            Item pickItem = infiniteItem;
+            bool isSelected = selected != null && selected.CanStackWith(infiniteItem);
+            CreateItemIconButton(
+                rowObject.transform,
+                pickItem,
+                -1,
+                cell,
+                () => OnExtractItemPicked(pickItem));
+            if (isSelected)
+            {
+                Image image = rowObject.transform.GetChild(rowObject.transform.childCount - 1)
+                    .GetComponent<Image>();
+                if (image != null)
+                {
+                    image.color = new Color(0.35f, 0.55f, 0.85f, 0.35f);
+                }
+            }
+        }
+
         for (int i = 0; i < owned.Count; i++)
         {
             ItemEntry ownedEntry = owned[i];
             Item item = ownedEntry?.item;
             if (item == null || item.Category == ItemCategory.Currency || ownedEntry.count <= 0)
+            {
+                continue;
+            }
+
+            if (WarehouseStock.IsInfinite(item))
             {
                 continue;
             }
@@ -1200,7 +1234,7 @@ public class MachineRecipeUI : MonoBehaviour
         countText.raycastTarget = false;
         countText.horizontalOverflow = HorizontalWrapMode.Overflow;
         countText.verticalOverflow = VerticalWrapMode.Overflow;
-        countText.text = $"x{count}";
+        countText.text = count < 0 ? "∞" : $"x{count}";
     }
 
     private void AddRecipeEntryIcons(Transform parent, ItemEntryList list, int manaCost = 0)
@@ -1323,6 +1357,11 @@ public class MachineRecipeUI : MonoBehaviour
             }
 
             if (ManaEssence.IsEssence(item) && !targetMachine.AcceptsManaEssence())
+            {
+                continue;
+            }
+
+            if (WarehouseStock.IsInfinite(item))
             {
                 continue;
             }

@@ -110,7 +110,7 @@ public class Extractor : Machine
                 return;
             }
         }
-        else
+        else if (!WarehouseStock.IsInfinite(pickedItem))
         {
             PlayerInventory inventory = PlayerInventory.GetOrFind();
             if (inventory == null || inventory.GetCount(pickedItem) <= 0)
