@@ -160,7 +160,9 @@ public class QuestManager : MonoBehaviour
         }
 
         AudioCatalog.AudioEntry entry = selectClip(audio);
-        if (entry == audio.Catalog.uiDeny || entry == audio.Catalog.questAccept)
+        if (entry == audio.Catalog.uiDeny
+            || entry == audio.Catalog.questAccept
+            || entry == audio.Catalog.coin)
         {
             UiButtonSound.SuppressClickSoundForCurrentFrame();
         }

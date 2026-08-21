@@ -144,7 +144,7 @@ public static class MachineCraftService
         }
 
         AudioCatalog.AudioEntry entry = selectClip(audio);
-        if (entry == audio.Catalog.uiDeny)
+        if (entry == audio.Catalog.uiDeny || entry == audio.Catalog.coin)
         {
             UiButtonSound.SuppressClickSoundForCurrentFrame();
         }

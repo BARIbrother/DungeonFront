@@ -73,7 +73,13 @@ public class PerpetualQuestService : MonoBehaviour
             return;
         }
 
-        audio.PlaySfx(selectClip(audio));
+        AudioCatalog.AudioEntry entry = selectClip(audio);
+        if (entry == audio.Catalog.uiDeny || entry == audio.Catalog.coin)
+        {
+            UiButtonSound.SuppressClickSoundForCurrentFrame();
+        }
+
+        audio.PlaySfx(entry);
     }
 
     private void GiveRewards(Quest quest, int multiplier, PlayerInventory inventory)
