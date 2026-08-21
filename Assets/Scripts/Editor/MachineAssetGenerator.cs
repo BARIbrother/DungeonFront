@@ -408,6 +408,14 @@ public static class MachineAssetGenerator
             {
                 SerializedObject so = new SerializedObject(machine);
                 so.FindProperty("workSpeed").intValue = workSpeed;
+                // 자동 제작기 2·3은 가로 2 × 세로 1. 템플릿(티어 1)의 2×2를 덮어쓴다.
+                if (machineType == typeof(AssemblerMachine) && workSpeed > 10)
+                {
+                    SerializedProperty sizeProperty = so.FindProperty("size");
+                    sizeProperty.FindPropertyRelative("x").intValue = 2;
+                    sizeProperty.FindPropertyRelative("y").intValue = 1;
+                }
+
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
 
