@@ -75,6 +75,11 @@ public sealed class EconomyHubUI : MonoBehaviour
 
     private void SetVisible(bool nextVisible)
     {
+        if (nextVisible && !TutorialActionLock.Allows(TutorialActionLock.Action.OpenShop))
+        {
+            return;
+        }
+
         if (nextVisible && GameSessionState.Instance != null && GameSessionState.Instance.Phase != GamePhase.Prepare)
         {
             Debug.Log("[Shop] 상점은 준비 단계에서만 열 수 있습니다.");

@@ -108,7 +108,18 @@ public class PlacementController : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         if (keyboard != null && keyboard.bKey.wasPressedThisFrame)
         {
-            SetPlacementMode(!isPlacementMode);
+            bool next = !isPlacementMode;
+            if (next && !TutorialActionLock.Allows(TutorialActionLock.Action.OpenPlacement))
+            {
+                return;
+            }
+
+            if (!next && !TutorialActionLock.Allows(TutorialActionLock.Action.ClosePlacement))
+            {
+                return;
+            }
+
+            SetPlacementMode(next);
         }
 
         UpdatePlacementPreview();
@@ -178,6 +189,12 @@ public class PlacementController : MonoBehaviour
         }
 
         MachineInventoryEntry placing = selectedMachine;
+        if (!TutorialActionLock.AllowsPlacementOf(placing.definition != null ? placing.definition.id : null))
+        {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
+            return;
+        }
+
         if (gridManager.TryPlaceMachine(
             placing.definition.machinePrefab,
             mouseWorld,
@@ -246,6 +263,12 @@ public class PlacementController : MonoBehaviour
     public bool TryPickupMachine(Machine machine)
     {
         if (machine == null || gridManager == null || playerInventory == null)
+        {
+            PlayCatalogSfx(audio => audio.Catalog.uiDeny);
+            return false;
+        }
+
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.PickupMachine))
         {
             PlayCatalogSfx(audio => audio.Catalog.uiDeny);
             return false;
@@ -328,6 +351,11 @@ public class PlacementController : MonoBehaviour
             return;
         }
 
+        if (!TutorialActionLock.AllowsPlacementOf(definitionId))
+        {
+            return;
+        }
+
         SetPickupMode(false);
 
         MachineInventoryEntry machine = FindFirstMachineOfType(definitionId);
@@ -345,6 +373,11 @@ public class PlacementController : MonoBehaviour
     public void TogglePickupMode()
     {
         if (!isPlacementMode)
+        {
+            return;
+        }
+
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.PickupMachine))
         {
             return;
         }

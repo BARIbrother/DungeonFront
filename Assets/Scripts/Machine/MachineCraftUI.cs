@@ -53,6 +53,11 @@ public class MachineCraftUI : MonoBehaviour
             return;
         }
 
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.OpenMachineCraft))
+        {
+            return;
+        }
+
         inventory ??= PlayerInventory.GetOrFind();
         if (database == null || inventory == null)
         {
@@ -202,7 +207,7 @@ public class MachineCraftUI : MonoBehaviour
         playerInventory = inventory;
         machineDatabase.RebuildLookup();
         titleText.text = "기계 제작";
-        feedbackText.text = "테크 트리에서 해금한 기계를, 준비 단계에서 재료와 골드로 만듭니다.";
+        feedbackText.text = string.Empty;
         if (UnlockManager.Instance != null)
         {
             UnlockManager.Instance.OnUnlocksChanged -= HandleUnlocksChanged;

@@ -537,6 +537,11 @@ public abstract class Machine : MonoBehaviour
     // 클릭 완료 시 레시피 UI를 연다. OnMouseDown이면 손을 뗄 때 백드롭이 같은 입력을 받아 바로 닫힌다.
     private void OnMouseUpAsButton()
     {
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.InteractMachine))
+        {
+            return;
+        }
+
         if (ProductionSummaryUI.IsOpen || IsPointerOverUi() || IsPlacementInteractionBlockingClick())
         {
             return;

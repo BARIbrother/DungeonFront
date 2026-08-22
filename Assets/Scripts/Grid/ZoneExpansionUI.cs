@@ -39,7 +39,7 @@ public class ZoneExpansionUI : MonoBehaviour
         {
             instance.Hide();
         }
-        else
+        else if (TutorialActionLock.Allows(TutorialActionLock.Action.OpenZoneUnlock))
         {
             instance.Open();
         }
@@ -47,6 +47,11 @@ public class ZoneExpansionUI : MonoBehaviour
 
     public static void Show()
     {
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.OpenZoneUnlock))
+        {
+            return;
+        }
+
         EnsureInstance();
         instance.Open();
     }

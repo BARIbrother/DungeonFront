@@ -357,6 +357,10 @@ public class GameSessionState : MonoBehaviour
         int durationDays = 1,
         bool playAudio = true)
     {
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.AcceptQuest))
+        {
+            return false;
+        }
         if (quests.Exists(q => q.questId == id))
         {
             quests.RemoveAll(q => q.questId == id);
@@ -414,6 +418,11 @@ public class GameSessionState : MonoBehaviour
     public void StartProduction()
     {
         if (phase != GamePhase.Prepare) return;
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.StartProduction))
+        {
+            return;
+        }
+
         isEndingProduction = false;
         productionEndTime = Time.time + TargetProductionTime;
         SetPhase(GamePhase.Production);

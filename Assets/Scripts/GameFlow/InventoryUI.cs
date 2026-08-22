@@ -43,7 +43,7 @@ public class InventoryUI : MonoBehaviour
         {
             instance.Hide();
         }
-        else
+        else if (TutorialActionLock.Allows(TutorialActionLock.Action.OpenInventory))
         {
             instance.Open();
         }
@@ -51,6 +51,11 @@ public class InventoryUI : MonoBehaviour
 
     public static void Show()
     {
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.OpenInventory))
+        {
+            return;
+        }
+
         EnsureInstance();
         instance.Open();
     }

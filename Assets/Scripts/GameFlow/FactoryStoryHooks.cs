@@ -139,6 +139,12 @@ public class FactoryStoryHooks : MonoBehaviour
 
     private void Update()
     {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null && keyboard.f8Key.wasPressedThisFrame)
+        {
+            TutorialActionLock.ReleaseAll();
+        }
+
         // 씬 부트스트랩 순서가 달라질 수 있어 미연결 참조를 재시도한다.
         if (!sessionBound)
         {
@@ -283,6 +289,11 @@ public class FactoryStoryHooks : MonoBehaviour
         oreCountAtGateStart = 0;
         ingotCountAtGateStart = 0;
         ProductionEventManager.ResetBreakdownGate();
+        TutorialActionLock.Reset();
+        if (GameSessionState.Instance != null && GameSessionState.Instance.day == 1)
+        {
+            TutorialActionLock.SetTutorialActive(true);
+        }
     }
 
     private void HandlePhaseChanged(GamePhase phase)
@@ -297,6 +308,11 @@ public class FactoryStoryHooks : MonoBehaviour
         switch (phase)
         {
             case GamePhase.Prepare:
+                if (day != 1)
+                {
+                    TutorialActionLock.SetTutorialActive(false);
+                }
+
                 StoryEventBus.Raise($"OnPrepareEntered:{day}");
                 TryRaiseDay1Opening();
                 TryRaiseOnce("001E00006", day == 3);
@@ -312,12 +328,14 @@ public class FactoryStoryHooks : MonoBehaviour
                 {
                     activeGate = TutorialGate.None;
                     gateNextEventId = null;
+                    TutorialActionLock.SetGate(TutorialActionLock.Gate.None);
                     tutorialPanelPendingAfter004 = true;
                 }
 
                 break;
 
             case GamePhase.Settlement:
+                TutorialActionLock.SetTutorialActive(false);
                 StoryEventBus.Raise("OnProductionEnded");
 
                 // 기계 고장·수리 튜토리얼이 아직 진행 중이었다면(3분 내내 못 고쳤거나 등) 결산 대사와
@@ -326,6 +344,7 @@ public class FactoryStoryHooks : MonoBehaviour
                 {
                     activeGate = TutorialGate.None;
                     gateNextEventId = null;
+                    TutorialActionLock.SetGate(TutorialActionLock.Gate.None);
                 }
 
                 TryRaiseOnce("001E00005", day == 1);
@@ -477,6 +496,9 @@ public class FactoryStoryHooks : MonoBehaviour
                 // 기계 고장 안내 종료 — 스페이스바로 실제 수리를 마칠 때까지 대기한다.
                 BeginGate(TutorialGate.WaitMachineRepaired, "001E00025");
                 break;
+            case "001E00025":
+                TutorialActionLock.SetTutorialActive(false);
+                break;
         }
     }
 
@@ -492,6 +514,7 @@ public class FactoryStoryHooks : MonoBehaviour
         activeGate = gate;
         gateNextEventId = nextEventId;
         movementInputDetected = false;
+        TutorialActionLock.SetGate(ToLockGate(gate));
 
         // 게이트 시작 시점의 보유량을 기준선으로 잡아, 이미 갖고 있던 수량과 무관하게 "이번에 늘었는지"만 본다.
         if (gate == TutorialGate.WaitOreCollected)
@@ -515,7 +538,32 @@ public class FactoryStoryHooks : MonoBehaviour
         string nextEventId = gateNextEventId;
         activeGate = TutorialGate.None;
         gateNextEventId = null;
+        TutorialActionLock.SetGate(TutorialActionLock.Gate.None);
         TryRaiseOnce(nextEventId, true);
+    }
+
+    private static TutorialActionLock.Gate ToLockGate(TutorialGate gate)
+    {
+        return gate switch
+        {
+            TutorialGate.WaitMovementInput => TutorialActionLock.Gate.WaitMovementInput,
+            TutorialGate.WaitMinerPlacement => TutorialActionLock.Gate.WaitMinerPlacement,
+            TutorialGate.WaitPlacementModeClose => TutorialActionLock.Gate.WaitPlacementModeClose,
+            TutorialGate.WaitQuestWindowOpen => TutorialActionLock.Gate.WaitQuestWindowOpen,
+            TutorialGate.WaitMandatoryQuestAccept => TutorialActionLock.Gate.WaitMandatoryQuestAccept,
+            TutorialGate.WaitQuestWindowClose => TutorialActionLock.Gate.WaitQuestWindowClose,
+            TutorialGate.WaitRecipeBookOpen => TutorialActionLock.Gate.WaitRecipeBookOpen,
+            TutorialGate.WaitRecipeBookClose => TutorialActionLock.Gate.WaitRecipeBookClose,
+            TutorialGate.WaitTechTreeOpen => TutorialActionLock.Gate.WaitTechTreeOpen,
+            TutorialGate.WaitTechTreeClose => TutorialActionLock.Gate.WaitTechTreeClose,
+            TutorialGate.WaitProductionStarted => TutorialActionLock.Gate.WaitProductionStarted,
+            TutorialGate.WaitOreCollected => TutorialActionLock.Gate.WaitOreCollected,
+            TutorialGate.WaitSmelterPlacement => TutorialActionLock.Gate.WaitSmelterPlacement,
+            TutorialGate.WaitIronIngotCollected => TutorialActionLock.Gate.WaitIronIngotCollected,
+            TutorialGate.WaitMachineBroken => TutorialActionLock.Gate.WaitMachineBroken,
+            TutorialGate.WaitMachineRepaired => TutorialActionLock.Gate.WaitMachineRepaired,
+            _ => TutorialActionLock.Gate.None,
+        };
     }
 
     // 매 프레임 폴링이 필요한 게이트(이동·퀘스트창 열림/닫힘)를 여기서 확인한다.
@@ -659,6 +707,7 @@ public class FactoryStoryHooks : MonoBehaviour
             return;
         }
 
+        TutorialActionLock.SetTutorialActive(true);
         TryRaiseOnce("001E00001", true);
     }
 

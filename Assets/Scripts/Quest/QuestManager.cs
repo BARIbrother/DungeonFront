@@ -70,6 +70,20 @@ public class QuestManager : MonoBehaviour
     // availableQuestsToday에서 의뢰를 수락해 currentQuests로 옮긴다.
     public bool acceptQuest(Quest quest)
     {
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.AcceptQuest))
+        {
+            return false;
+        }
+
+        if (TutorialActionLock.IsRestricting)
+        {
+            bool isMandatory = QuestRuntimeRegistry.Get(quest)?.isMandatory ?? false;
+            if (!isMandatory)
+            {
+                return false;
+            }
+        }
+
         if (!CanAcceptQuest(quest))
         {
             PlayCatalogSfx(audio => audio.Catalog.uiDeny);

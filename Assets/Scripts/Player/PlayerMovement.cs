@@ -110,15 +110,17 @@ public class PlayerMovement : MonoBehaviour
             RecipeBookUI.Toggle();
         }
 
-        // 1: 기계 제작 UI 토글. Shift+1은 기존 지급 치트.
+        // 1: 기계 제작 UI 토글. Shift+1 지급 치트는 에디터 전용.
         if (keyboard != null
             && (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame))
         {
+#if UNITY_EDITOR
             if (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed)
             {
                 TryToggleMachineGrantUi();
             }
             else
+#endif
             {
                 TryToggleMachineCraftUi();
             }
@@ -135,7 +137,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         Vector2 input = Vector2.zero;
-        if (keyboard != null)
+        if (keyboard != null && TutorialActionLock.Allows(TutorialActionLock.Action.Move))
         {
             if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) input.x -= 1f;
             if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) input.x += 1f;
@@ -146,7 +148,8 @@ public class PlayerMovement : MonoBehaviour
         if (keyboard != null)
         {
             // F: 생산 즉시 종료 (Space는 수리·수작업)
-            if (keyboard.fKey.wasPressedThisFrame)
+            if (keyboard.fKey.wasPressedThisFrame
+                && TutorialActionLock.Allows(TutorialActionLock.Action.ForceEndProduction))
             {
                 TryForceEndProduction();
             }
@@ -297,10 +300,20 @@ public class PlayerMovement : MonoBehaviour
         Machine brokenTarget = FindNearestMachineWithinOneCell(machine => machine.IsBroken);
         if (brokenTarget != null)
         {
+            if (!TutorialActionLock.Allows(TutorialActionLock.Action.Repair))
+            {
+                return;
+            }
+
             // 고장은 애니 임팩트 프레임에 수리 적용. 휘두름음은 audio 쪽과 동일하게 재생.
             QueueRepairAtImpact(brokenTarget);
             PlayRepairMotion();
             PlayCatalogSfx(audio => audio.Catalog.hammerWhoosh);
+            return;
+        }
+
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.InteractMachine))
+        {
             return;
         }
 
@@ -678,7 +691,8 @@ public class PlayerMovement : MonoBehaviour
         MachineCraftUI.Toggle(machineDatabase, inventory);
     }
 
-    // MachineDatabase 목록으로 기계 지급 UI를 토글한다.
+#if UNITY_EDITOR
+    // MachineDatabase 목록으로 기계 지급 UI를 토글한다. 에디터 전용 치트.
     private void TryToggleMachineGrantUi()
     {
         if (machineDatabase == null)
@@ -696,6 +710,7 @@ public class PlayerMovement : MonoBehaviour
 
         MachineGrantUI.Toggle(machineDatabase, inventory);
     }
+#endif
 
     private PlayerInventory GetPlayerInventory()
     {

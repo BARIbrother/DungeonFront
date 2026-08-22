@@ -214,6 +214,11 @@ public class QuestWindowController : MonoBehaviour
             return;
         }
 
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.OpenQuest))
+        {
+            return;
+        }
+
         if (GameSessionState.Instance != null
             && GameSessionState.Instance.Phase != GamePhase.Prepare
             && GameSessionState.Instance.Phase != GamePhase.Settlement)
@@ -236,6 +241,11 @@ public class QuestWindowController : MonoBehaviour
 
     public void CloseQuestWindow()
     {
+        if (IsOpen && !TutorialActionLock.Allows(TutorialActionLock.Action.CloseQuest))
+        {
+            return;
+        }
+
         if (orderWindowPanel != null)
         {
             orderWindowPanel.SetActive(false);
@@ -983,6 +993,20 @@ public class QuestWindowController : MonoBehaviour
         if (selectedQuest == null || questManager == null)
         {
             return;
+        }
+
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.AcceptQuest))
+        {
+            return;
+        }
+
+        if (TutorialActionLock.IsRestricting)
+        {
+            bool isMandatory = QuestRuntimeRegistry.Get(selectedQuest)?.isMandatory ?? false;
+            if (!isMandatory)
+            {
+                return;
+            }
         }
 
         if (!questManager.acceptQuest(selectedQuest))

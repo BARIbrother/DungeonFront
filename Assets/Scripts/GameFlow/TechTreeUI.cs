@@ -193,7 +193,17 @@ public class TechTreeUI : MonoBehaviour
     {
         if (isOpen)
         {
+            if (!TutorialActionLock.Allows(TutorialActionLock.Action.CloseTechTree))
+            {
+                return;
+            }
+
             Hide();
+            return;
+        }
+
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.OpenTechTree))
+        {
             return;
         }
 
@@ -239,6 +249,11 @@ public class TechTreeUI : MonoBehaviour
 
     private void Open()
     {
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.OpenTechTree))
+        {
+            return;
+        }
+
         EnsureUiHierarchy();
         if (!graphBuilt)
         {
@@ -259,6 +274,11 @@ public class TechTreeUI : MonoBehaviour
 
     private void Hide()
     {
+        if (isOpen && !TutorialActionLock.Allows(TutorialActionLock.Action.CloseTechTree))
+        {
+            return;
+        }
+
         isOpen = false;
         if (modalRoot != null)
         {
@@ -842,6 +862,7 @@ public class TechTreeUI : MonoBehaviour
         {
             detailTitle.text = "기술을 고르세요";
             detailBody.text = "명예를 소모해 기계를 해금합니다.\n해금한 뒤에만 제작할 수 있습니다.";
+            ApplyDetailBodyInk(detailBody);
             detailCost.text = string.Empty;
             unlockButton.interactable = false;
             unlockLabel.text = "해금";
@@ -854,6 +875,7 @@ public class TechTreeUI : MonoBehaviour
         int honor = GetHonor();
         detailTitle.text = selectedNode.name;
         detailBody.text = BuildDetailBody(selectedNode, unlocked, canUnlock);
+        ApplyDetailBodyInk(detailBody);
         detailCost.text = FormatUnlockCost(selectedNode, unlocked, honor);
         if (unlocked)
         {
@@ -973,6 +995,19 @@ public class TechTreeUI : MonoBehaviour
         return text.ToString();
     }
 
+    // 오른쪽 설명은 밝은 양피지 위 검정 본문. 크림 아웃라인이 글자를 흐리지 않게 끈다.
+    private static void ApplyDetailBodyInk(TMP_Text text)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        text.color = Color.black;
+        text.outlineWidth = 0f;
+        text.outlineColor = Color.clear;
+    }
+
     private static bool HasLockedQuestGrantParent(TechTreeCatalog.Node node)
     {
         bool locked = false;
@@ -1056,6 +1091,11 @@ public class TechTreeUI : MonoBehaviour
 
     private void TryUnlockSelected()
     {
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.UnlockTech))
+        {
+            return;
+        }
+
         if (selectedNode == null)
         {
             if (selectedLegacyNode != null && UnlockManager.Instance != null)
@@ -1293,7 +1333,7 @@ public class TechTreeUI : MonoBehaviour
         bodyRect.sizeDelta = new Vector2(0f, 0f);
         detailBody = TmpUiStyle.Create(bodyObject, TmpUiStyle.Role.Body, TextAlignmentOptions.TopLeft, true);
         detailBody.fontSize = 18f;
-        detailBody.color = Color.black;
+        ApplyDetailBodyInk(detailBody);
         detailBody.textWrappingMode = TextWrappingModes.Normal;
         detailBody.overflowMode = TextOverflowModes.Overflow;
         var bodyFitter = bodyObject.AddComponent<ContentSizeFitter>();

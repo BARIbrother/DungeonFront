@@ -124,7 +124,17 @@ public class RecipeBookUI : MonoBehaviour
     {
         if (isOpen)
         {
+            if (!TutorialActionLock.Allows(TutorialActionLock.Action.CloseRecipeBook))
+            {
+                return;
+            }
+
             Hide();
+            return;
+        }
+
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.OpenRecipeBook))
+        {
             return;
         }
 
@@ -133,6 +143,11 @@ public class RecipeBookUI : MonoBehaviour
 
     private void Open()
     {
+        if (!TutorialActionLock.Allows(TutorialActionLock.Action.OpenRecipeBook))
+        {
+            return;
+        }
+
         EnsureUiHierarchy();
         currentChapter = 0;
         highlightRecipeIndex = -1;
@@ -143,6 +158,11 @@ public class RecipeBookUI : MonoBehaviour
 
     private void Hide()
     {
+        if (isOpen && !TutorialActionLock.Allows(TutorialActionLock.Action.CloseRecipeBook))
+        {
+            return;
+        }
+
         isOpen = false;
         if (modalRoot != null)
         {
