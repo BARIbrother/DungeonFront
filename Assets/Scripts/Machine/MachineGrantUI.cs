@@ -22,6 +22,7 @@ public class MachineGrantUI : MonoBehaviour
 
     public static bool IsOpen => instance != null && instance.isOpen;
 
+#if UNITY_EDITOR
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
@@ -33,6 +34,7 @@ public class MachineGrantUI : MonoBehaviour
         var systemObject = new GameObject("MachineGrantUISystem");
         systemObject.AddComponent<MachineGrantUI>();
     }
+#endif
 
     // MachineDatabase 목록 UI를 연다.
     public static void Show(MachineDatabase database, PlayerInventory inventory)

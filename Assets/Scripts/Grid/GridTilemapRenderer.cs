@@ -187,6 +187,19 @@ public class GridTilemapRenderer : MonoBehaviour
         lockedZoneSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
             "Assets/Art/Background/Tiles/Tree/ZoneTemplates/locked_zone.png");
 #endif
+        if (lockedZoneSprite == null)
+        {
+            lockedZoneSprite = Resources.Load<Sprite>("Tiles/locked_zone");
+        }
+
+        if (lockedZoneSprite == null)
+        {
+            Sprite[] slices = Resources.LoadAll<Sprite>("Tiles/locked_zone");
+            if (slices != null && slices.Length > 0)
+            {
+                lockedZoneSprite = slices[0];
+            }
+        }
     }
 
     // GridManager.CellChanged 이벤트를 구독한다.

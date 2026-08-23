@@ -1,19 +1,18 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 #endif
 
-// Dev Mode 패널 (F8). 에디터·개발 빌드에서만 동작한다.
+// Dev Mode 패널 (F8). 에디터 Play 모드에서만 동작한다.
 public class QuestSystemDebugPanel : MonoBehaviour
 {
     [Header("Dev Mode (F8)")]
     [FormerlySerializedAs("enableDebugPanel")]
     [SerializeField] private bool enableDevMode = true;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR
     private static QuestSystemDebugPanel instance;
 
     [SerializeField] private QuestManager questManager;
@@ -56,7 +55,7 @@ public class QuestSystemDebugPanel : MonoBehaviour
     private string smokeSummary = string.Empty;
 
     // QuestSystemRoot 프리팹은 GDC용으로 enableDevMode가 꺼져 있어 F8이 막힌다.
-    // 에디터·개발 빌드에서는 별도 패널을 띄워 F8을 연다.
+    // 에디터 Play 모드에서만 별도 패널을 띄워 F8을 연다.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
@@ -862,7 +861,7 @@ public class QuestSystemDebugPanel : MonoBehaviour
 #else
     private void Update()
     {
-        // 릴리스 플레이어 빌드에서는 Dev Mode를 끈다.
+        // 플레이어 빌드에서는 Dev Mode를 끈다.
     }
 #endif
 }

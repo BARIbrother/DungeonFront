@@ -36,8 +36,6 @@ public sealed class KoreanTmpFontRuntimeFix : MonoBehaviour
     {
         if (SharedFont != null) return SharedFont;
 
-        // 에디터 설치기가 생성한 프로젝트 포함 폰트를 최우선으로 사용한다.
-        // 이 에셋은 빌드에도 포함되므로 다른 PC에서도 한글이 깨지지 않는다.
         SharedFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/NotoSansKR SDF");
         if (SharedFont != null)
         {
@@ -88,6 +86,7 @@ public sealed class KoreanTmpFontRuntimeFix : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
         EnsureFont();
+        TmpUiCanvas.ConfigureAll();
         ApplyToAllText();
     }
 
@@ -104,7 +103,18 @@ public sealed class KoreanTmpFontRuntimeFix : MonoBehaviour
 
         foreach (TMP_Text text in FindObjectsByType<TMP_Text>(FindObjectsInactive.Include))
         {
-            if (text == null || text.font == SharedFont) continue;
+            if (text == null)
+            {
+                continue;
+            }
+
+            TmpUiCanvas.Sharpen(text);
+            TmpUiCanvas.Configure(text.canvas);
+            if (text.font == SharedFont)
+            {
+                continue;
+            }
+
             text.font = SharedFont;
             text.SetAllDirty();
         }

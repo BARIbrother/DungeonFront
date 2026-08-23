@@ -1,5 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEngine.InputSystem;
+#endif
 using TMPro;
 
 public class MachineCountHUD : MonoBehaviour
@@ -31,6 +33,7 @@ public class MachineCountHUD : MonoBehaviour
 
     private void Update()
     {
+#if UNITY_EDITOR
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null)
         {
@@ -48,6 +51,7 @@ public class MachineCountHUD : MonoBehaviour
         {
             RecallMachine1();
         }
+#endif
     }
 
     /// <summary>

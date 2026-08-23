@@ -17,8 +17,19 @@ using UnityEditor;
 public sealed class DialogueUI : MonoBehaviour
 {
     private const string PauseRequester = "DialogueUI";
-    // P를 1초 동안 누르면 현재 대화를 통째로 닫는다. 대사 중 timeScale=0이므로 unscaled time을 쓴다.
+#if UNITY_EDITOR
+    // P를 1초 동안 누르면 현재 대화를 통째로 닫는다. 에디터 전용. 대사 중 timeScale=0이므로 unscaled time을 쓴다.
     private const float SkipHoldDuration = 1f;
+#endif
+
+    [System.Serializable]
+    private struct PortraitEntry
+    {
+        public string CharacterId;
+        public Sprite Sprite;
+    }
+
+    [SerializeField] private PortraitEntry[] portraits;
 
     private static DialogueUI instance;
     public static event Action<string> OnDialogueClosed;
@@ -211,12 +222,14 @@ public sealed class DialogueUI : MonoBehaviour
     private TMP_Text nextText;
     private Image portraitImage;
     private Button nextButton;
+#if UNITY_EDITOR
     // P 홀드 스킵 게이지. 누르는 동안에만 화면 중앙 상단에 표시한다.
     private GameObject skipHoldGauge;
     private Image skipHoldFill;
     private float skipHoldTime;
     // 스킵 직후 같은 누름으로 다음 대화까지 넘어가지 않게 한다.
     private bool skipHoldConsumed;
+#endif
     private DialogueLine[] activeLines;
     private string activeEventId;
     private int lineIndex;
@@ -263,20 +276,26 @@ public sealed class DialogueUI : MonoBehaviour
     {
         if (Keyboard.current == null)
         {
+#if UNITY_EDITOR
             skipHoldConsumed = false;
             ResetSkipHoldVisual();
+#endif
             return;
         }
 
+#if UNITY_EDITOR
         if (!Keyboard.current.pKey.isPressed)
         {
             skipHoldConsumed = false;
             ResetSkipHoldVisual();
         }
+#endif
 
         if (!IsShowing)
         {
+#if UNITY_EDITOR
             ResetSkipHoldVisual();
+#endif
             return;
         }
 
@@ -297,6 +316,7 @@ public sealed class DialogueUI : MonoBehaviour
             }
         }
 
+#if UNITY_EDITOR
         if (!Keyboard.current.pKey.isPressed || skipHoldConsumed)
         {
             return;
@@ -310,6 +330,7 @@ public sealed class DialogueUI : MonoBehaviour
             ResetSkipHoldVisual();
             SkipActiveDialogue();
         }
+#endif
     }
 
     private void HandleStoryEvent(string eventId)
@@ -358,6 +379,7 @@ public sealed class DialogueUI : MonoBehaviour
         CloseActiveDialogue();
     }
 
+#if UNITY_EDITOR
     // 남은 줄을 재생하지 않고 현재 이벤트 대화를 종료한다. 스토리 훅은 정상 종료와 같다.
     private void SkipActiveDialogue()
     {
@@ -368,10 +390,13 @@ public sealed class DialogueUI : MonoBehaviour
 
         CloseActiveDialogue();
     }
+#endif
 
     private void CloseActiveDialogue()
     {
+#if UNITY_EDITOR
         ResetSkipHoldVisual();
+#endif
         string completedEvent = activeEventId;
         activeEventId = null;
         activeLines = null;
@@ -407,9 +432,9 @@ public sealed class DialogueUI : MonoBehaviour
 
         speakerText.text = line.speaker;
         bodyText.text = line.body;
-        bodyText.enableAutoSizing = true;
-        bodyText.fontSizeMin = line.rapid ? 11f : 16f;
-        bodyText.fontSizeMax = line.rapid ? 16f : 29f;
+        bodyText.enableAutoSizing = false;
+        bodyText.fontSize = line.rapid ? 16f : 26f;
+        bodyText.extraPadding = true;
         Sprite portrait = LoadPortrait(line.characterId);
         portraitImage.sprite = portrait;
         portraitImage.preserveAspect = true;
@@ -464,6 +489,7 @@ public sealed class DialogueUI : MonoBehaviour
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920, 1080);
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
+        TmpUiCanvas.Configure(dialogueCanvas);
 
         modal = CreatePanel("Modal", canvasObject.transform, new Color(0f, 0f, 0f, 0.62f));
         Stretch(modal.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -507,18 +533,21 @@ public sealed class DialogueUI : MonoBehaviour
         bodyText = CreateText("Body", box.transform, 26, TextAlignmentOptions.TopLeft, TmpUiStyle.BodyColor);
         TmpUiStyle.Apply(bodyText, TmpUiStyle.Role.Body);
         bodyText.textWrappingMode = TextWrappingModes.Normal;
-        bodyText.enableAutoSizing = true;
-        bodyText.fontSizeMin = 16f;
-        bodyText.fontSizeMax = 26f;
+        bodyText.enableAutoSizing = false;
+        bodyText.fontSize = 26f;
+        bodyText.extraPadding = true;
         Stretch(bodyText.rectTransform, new Vector2(0.23f, 0.22f), new Vector2(0.78f, 0.70f), Vector2.zero, Vector2.zero);
 
         nextButton = CreateButton("NextButton", box.transform, out nextText, "다음");
         Stretch(nextButton.GetComponent<RectTransform>(), new Vector2(0.81f, 0.08f), new Vector2(0.955f, 0.24f), Vector2.zero, Vector2.zero);
         nextButton.onClick.AddListener(Advance);
+#if UNITY_EDITOR
         CreateSkipHoldGauge(modal.transform);
+#endif
         modal.SetActive(false);
     }
 
+#if UNITY_EDITOR
     // 화면 중앙 상단의 작은 가로 게이지. P를 누르는 동안만 채운다.
     private void CreateSkipHoldGauge(Transform parent)
     {
@@ -581,6 +610,7 @@ public sealed class DialogueUI : MonoBehaviour
             skipHoldGauge.SetActive(false);
         }
     }
+#endif
 
     private static GameObject CreatePanel(string name, Transform parent, Color color)
     {
@@ -597,6 +627,8 @@ public sealed class DialogueUI : MonoBehaviour
         var text = textObject.GetComponent<TextMeshProUGUI>();
         TmpUiStyle.Apply(text, TmpUiStyle.Role.Body);
         text.fontSize = fontSize;
+        text.enableAutoSizing = false;
+        text.extraPadding = true;
         text.alignment = alignment;
         text.color = color;
         return text;
@@ -646,8 +678,15 @@ public sealed class DialogueUI : MonoBehaviour
             return cached;
         }
 
+        Sprite sprite = FindSerializedPortrait(characterId);
+        if (sprite != null)
+        {
+            portraitCache[characterId] = sprite;
+            return sprite;
+        }
+
         string resourcePath = $"Portraits/{characterId}_portrait";
-        Sprite sprite = Resources.Load<Sprite>(resourcePath);
+        sprite = Resources.Load<Sprite>(resourcePath);
         if (sprite == null)
         {
             Texture2D texture = Resources.Load<Texture2D>(resourcePath);
@@ -673,6 +712,24 @@ public sealed class DialogueUI : MonoBehaviour
 
         portraitCache[characterId] = sprite;
         return sprite;
+    }
+
+    private Sprite FindSerializedPortrait(string characterId)
+    {
+        if (portraits == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < portraits.Length; i++)
+        {
+            if (portraits[i].CharacterId == characterId)
+            {
+                return portraits[i].Sprite;
+            }
+        }
+
+        return null;
     }
 
     private readonly struct DialogueLine

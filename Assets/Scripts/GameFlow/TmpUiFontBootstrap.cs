@@ -10,6 +10,8 @@ public static class TmpUiFontBootstrap
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void AssignMissingUIFonts()
     {
+        TmpUiCanvas.ConfigureAll();
+
         TMP_FontAsset font = TmpUiStyle.ResolveFont();
         if (font == null)
         {
@@ -33,6 +35,8 @@ public static class TmpUiFontBootstrap
             {
                 TmpUiStyle.Apply(text, InferBootstrapRole(text));
             }
+
+            TmpUiCanvas.Sharpen(text);
         }
     }
 

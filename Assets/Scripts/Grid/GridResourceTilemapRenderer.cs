@@ -19,6 +19,15 @@ public class GridResourceTilemapRenderer : MonoBehaviour
 
     [SerializeField] private Sprite ironOreFallbackSprite;
 
+    [System.Serializable]
+    private struct ResourceSpriteFallback
+    {
+        public string ItemId;
+        public Sprite Sprite;
+    }
+
+    [SerializeField] private ResourceSpriteFallback[] fallbackSprites;
+
     private Dictionary<string, TileBase> tileLookup;
 
     private void Awake()
@@ -156,11 +165,6 @@ public class GridResourceTilemapRenderer : MonoBehaviour
             tileLookup = new Dictionary<string, TileBase>();
         }
 
-        if (tileLookup.ContainsKey("iron_ore"))
-        {
-            return;
-        }
-
 #if UNITY_EDITOR
         if (ironOreFallbackSprite == null)
         {
@@ -169,14 +173,29 @@ public class GridResourceTilemapRenderer : MonoBehaviour
         }
 #endif
 
-        if (ironOreFallbackSprite == null)
+        RegisterFallbackSprite("iron_ore", ironOreFallbackSprite);
+
+        if (fallbackSprites == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < fallbackSprites.Length; i++)
+        {
+            RegisterFallbackSprite(fallbackSprites[i].ItemId, fallbackSprites[i].Sprite);
+        }
+    }
+
+    private void RegisterFallbackSprite(string itemId, Sprite sprite)
+    {
+        if (string.IsNullOrEmpty(itemId) || sprite == null || tileLookup.ContainsKey(itemId))
         {
             return;
         }
 
         var runtimeTile = ScriptableObject.CreateInstance<Tile>();
-        runtimeTile.sprite = ironOreFallbackSprite;
-        tileLookup["iron_ore"] = runtimeTile;
+        runtimeTile.sprite = sprite;
+        tileLookup[itemId] = runtimeTile;
     }
 
     private bool ValidateSetup()

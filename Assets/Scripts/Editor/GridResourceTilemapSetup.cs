@@ -124,6 +124,13 @@ public static class GridResourceTilemapSetup
 
         Sprite oreSprite = AssetDatabase.LoadAssetAtPath<Sprite>(OreSpritePath);
         so.FindProperty("ironOreFallbackSprite").objectReferenceValue = oreSprite;
+
+        SerializedProperty fallbacks = so.FindProperty("fallbackSprites");
+        fallbacks.arraySize = 1;
+        SerializedProperty fallback = fallbacks.GetArrayElementAtIndex(0);
+        fallback.FindPropertyRelative("ItemId").stringValue = "iron_ore";
+        fallback.FindPropertyRelative("Sprite").objectReferenceValue = oreSprite;
+
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 }

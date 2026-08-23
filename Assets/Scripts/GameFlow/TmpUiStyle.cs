@@ -133,6 +133,12 @@ public static class TmpUiStyle
                 ApplyOutline(text, 0.18f);
                 break;
         }
+
+        text.extraPadding = true;
+        if (!text.enableAutoSizing)
+        {
+            text.fontSize = Mathf.Round(text.fontSize);
+        }
     }
 
     // 밝은 패널(배너·양피지)용. 검정 글씨 + 얇은 밝은 윤곽.

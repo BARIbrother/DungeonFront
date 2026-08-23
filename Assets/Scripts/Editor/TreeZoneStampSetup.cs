@@ -282,6 +282,12 @@ public static class TreeZoneStampSetup
 
         SerializedObject so = new SerializedObject(renderer);
         so.FindProperty("treeZoneStampSet").objectReferenceValue = set;
+        Sprite lockedZone = AssetDatabase.LoadAssetAtPath<Sprite>(LockedZonePath);
+        if (lockedZone != null)
+        {
+            so.FindProperty("lockedZoneSprite").objectReferenceValue = lockedZone;
+        }
+
         so.ApplyModifiedPropertiesWithoutUndo();
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);

@@ -2,7 +2,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.UI;
+#if UNITY_EDITOR
 using UnityEngine.InputSystem;
+#endif
 using System.Collections;
 
 public class GameOverController : MonoBehaviour
@@ -107,7 +109,8 @@ public class GameOverController : MonoBehaviour
     {
         BindSession();
 
-        // ⭐ [디버그 기능] 키보드 'G' 키 입력 시 강제 게임오버 발동 (테스트용)
+#if UNITY_EDITOR
+        // 에디터 전용. G로 강제 게임오버.
         if (Keyboard.current != null)
         {
             if (Keyboard.current.gKey.wasPressedThisFrame)
@@ -115,6 +118,7 @@ public class GameOverController : MonoBehaviour
                 TriggerGameOver("필수 의뢰를 완료하지 못했습니다");
             }
         }
+#endif
     }
 
     // 미납 판정·페널티는 QuestDeadlineController.EvaluateExpiredQuests가 담당한다.
