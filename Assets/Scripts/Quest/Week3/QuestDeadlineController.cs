@@ -54,10 +54,9 @@ public class QuestDeadlineController : MonoBehaviour
         if (phase == GamePhase.Prepare && session.day > observedDay)
         {
             // D-0은 "오늘 결산까지 제출 가능"이다.
-            // 다음 날로 넘어올 때 먼저 어제 D-0이었던 의뢰를 미납 처리한 뒤
-            // 나머지 의뢰의 D-day를 한 칸 줄인다.
-            EvaluateExpiredQuests();
+            // 다음 일차(Prepare) 진입 시 먼저 D-day를 줄인 뒤, 0 이하인 의뢰를 미납 처리한다.
             questManager.OnDayAdvanced(session.day - observedDay);
+            EvaluateExpiredQuests();
             observedDay = session.day;
         }
     }
@@ -83,8 +82,7 @@ public class QuestDeadlineController : MonoBehaviour
             QuestRuntimeInfo info = QuestRuntimeRegistry.GetOrCreate(quest);
             if (info.isMandatory)
             {
-                gameOverController?.TriggerGameOver();
-                GameOverController.Instance?.TriggerGameOver("필수 의뢰를 완료하지 못했습니다");
+                TriggerMandatoryQuestGameOver();
             }
             else
             {
@@ -93,6 +91,12 @@ public class QuestDeadlineController : MonoBehaviour
 
             questManager.ExpireQuest(quest);
         }
+    }
+
+    private void TriggerMandatoryQuestGameOver()
+    {
+        gameOverController?.TriggerGameOver();
+        GameOverController.Instance?.TriggerGameOver("필수 의뢰를 완료하지 못했습니다");
     }
 
     // 일반 의뢰 미납: 보상 명성의 0.5배를 차감한다.

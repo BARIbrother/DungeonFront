@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public abstract class Machine : MonoBehaviour
 {
@@ -564,7 +565,32 @@ public abstract class Machine : MonoBehaviour
 
     private static bool IsPointerOverUi()
     {
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+        {
+            return false;
+        }
+
+        Vector2 pointerPosition = Mouse.current != null
+            ? Mouse.current.position.ReadValue()
+            : (Vector2)Input.mousePosition;
+
+        var eventData = new PointerEventData(eventSystem)
+        {
+            position = pointerPosition,
+        };
+        var results = new List<RaycastResult>();
+        eventSystem.RaycastAll(eventData, results);
+        for (int i = 0; i < results.Count; i++)
+        {
+            GameObject hit = results[i].gameObject;
+            if (hit != null && hit.activeInHierarchy)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 배치·회수 모드 중에는 기계 클릭을 배치 시스템에 맡긴다.

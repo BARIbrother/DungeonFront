@@ -36,10 +36,19 @@ public sealed class KoreanTmpFontRuntimeFix : MonoBehaviour
     {
         if (SharedFont != null) return SharedFont;
 
+        // NotoSansKR SDF는 VF Thin + 두꺼운 outline에서 글리프 텍스처가 깨지기 쉽다.
+        // 테크트리·양피지 UI는 정적 NanumGothic을 우선한다.
+        SharedFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/NanumGothic SDF");
+        if (SharedFont != null)
+        {
+            Debug.Log("[KoreanFont] 프로젝트 NanumGothic TMP 폰트를 적용했습니다.");
+            return SharedFont;
+        }
+
         SharedFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/NotoSansKR SDF");
         if (SharedFont != null)
         {
-            Debug.Log("[KoreanFont] 프로젝트 Noto Sans KR TMP 폰트를 적용했습니다.");
+            Debug.Log("[KoreanFont] NanumGothic이 없어 Noto Sans KR TMP 폰트를 적용했습니다.");
             return SharedFont;
         }
 
@@ -86,6 +95,7 @@ public sealed class KoreanTmpFontRuntimeFix : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
         EnsureFont();
+        UiEventSystem.Ensure();
         TmpUiCanvas.ConfigureAll();
         ApplyToAllText();
     }

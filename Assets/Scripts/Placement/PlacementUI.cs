@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 // 배치 모드 하단 슬라이드바. 인벤 MachineInventoryEntry 목록을 표시하고 선택한다.
@@ -18,6 +17,7 @@ public class PlacementUI : MonoBehaviour
     private PlayerInventory playerInventory;
     private Canvas canvas;
     private CanvasScaler canvasScaler;
+    private GraphicRaycaster canvasRaycaster;
     private RectTransform slideRootRect;
     private RectTransform panelRect;
     private RectTransform pickupBarRect;
@@ -83,6 +83,16 @@ public class PlacementUI : MonoBehaviour
         {
             slideRootRect.anchoredPosition = new Vector2(0f, targetAnchoredY);
         }
+
+        SetBlockingInput(visible);
+    }
+
+    private void SetBlockingInput(bool blocking)
+    {
+        if (canvasRaycaster != null)
+        {
+            canvasRaycaster.enabled = blocking;
+        }
     }
 
     public void Refresh()
@@ -147,6 +157,11 @@ public class PlacementUI : MonoBehaviour
 
         if (canvas != null)
         {
+            if (canvasRaycaster == null)
+            {
+                canvasRaycaster = canvas.GetComponent<GraphicRaycaster>();
+            }
+
             ApplyCanvasFit();
             ApplySlideRootLayout();
             return;
@@ -159,7 +174,7 @@ public class PlacementUI : MonoBehaviour
         canvas.sortingOrder = 50;
         canvasScaler = canvasObject.AddComponent<CanvasScaler>();
         ApplyCanvasFit();
-        canvasObject.AddComponent<GraphicRaycaster>();
+        canvasRaycaster = canvasObject.AddComponent<GraphicRaycaster>();
 
         slideHeight = GetSlideHeight();
 
@@ -431,14 +446,7 @@ public class PlacementUI : MonoBehaviour
 
     private static void EnsureEventSystem()
     {
-        if (FindAnyObjectByType<EventSystem>() != null)
-        {
-            return;
-        }
-
-        var eventSystemObject = new GameObject("EventSystem");
-        eventSystemObject.AddComponent<EventSystem>();
-        eventSystemObject.AddComponent<InputSystemUIInputModule>();
+        UiEventSystem.Ensure();
     }
 
     private void CreateMachineButton(ItemDef_Machine definition, int count)

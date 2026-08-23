@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 // 맵 기계 클릭 시 현재 레시피·포트·인벤 UI.
@@ -14,6 +13,7 @@ public class MachineRecipeUI : MonoBehaviour
     private const float UiScale = 1.41421356f;
 
     private Canvas canvas;
+    private GraphicRaycaster canvasRaycaster;
     private GameObject modalRoot;
     private RectTransform panelRect;
     private RectTransform contentListRect;
@@ -33,6 +33,8 @@ public class MachineRecipeUI : MonoBehaviour
     private GameObject manaHeaderRoot;
     private int lastMachineViewHash;
     private int ignoreBackdropCloseUntilFrame = -1;
+
+    public static bool IsOpen => instance != null && instance.modalRoot != null && instance.modalRoot.activeSelf;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -113,8 +115,15 @@ public class MachineRecipeUI : MonoBehaviour
         SubscribeInventory();
         // 비활성 상태에서 레이아웃을 만들면 슬롯 크기가 안 잡히는 경우가 있다.
         ignoreBackdropCloseUntilFrame = Time.frameCount + 1;
+        if (canvas != null)
+        {
+            canvas.enabled = true;
+        }
+
         modalRoot.SetActive(true);
+        SetBlockingInput(true);
         RebuildContent();
+        Canvas.ForceUpdateCanvases();
     }
 
     private void OnBackdropClicked()
@@ -158,6 +167,16 @@ public class MachineRecipeUI : MonoBehaviour
         if (modalRoot != null)
         {
             modalRoot.SetActive(false);
+        }
+
+        SetBlockingInput(false);
+    }
+
+    private void SetBlockingInput(bool blocking)
+    {
+        if (canvasRaycaster != null)
+        {
+            canvasRaycaster.enabled = blocking;
         }
     }
 
@@ -1710,7 +1729,7 @@ public class MachineRecipeUI : MonoBehaviour
         canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         canvasObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920f, 1080f);
         canvasObject.GetComponent<CanvasScaler>().screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
-        canvasObject.AddComponent<GraphicRaycaster>();
+        canvasRaycaster = canvasObject.AddComponent<GraphicRaycaster>();
 
         modalRoot = new GameObject("RecipeModal");
         modalRoot.transform.SetParent(canvasObject.transform, false);
@@ -1873,13 +1892,6 @@ public class MachineRecipeUI : MonoBehaviour
 
     private static void EnsureEventSystem()
     {
-        if (FindAnyObjectByType<EventSystem>() != null)
-        {
-            return;
-        }
-
-        var eventSystemObject = new GameObject("EventSystem");
-        eventSystemObject.AddComponent<EventSystem>();
-        eventSystemObject.AddComponent<InputSystemUIInputModule>();
+        UiEventSystem.Ensure();
     }
 }

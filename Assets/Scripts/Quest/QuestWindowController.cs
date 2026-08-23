@@ -206,11 +206,12 @@ public class QuestWindowController : MonoBehaviour
         questCardPrefab = cardPrefab;
     }
 
-    // QuestOpenButton: 의뢰창을 연다. 닫기는 Close 버튼으로 한다.
+    // QuestOpenButton: 닫혀 있으면 연다. 열려 있으면 닫는다.
     public void OpenQuestWindow()
     {
         if (IsOpen)
         {
+            CloseQuestWindow();
             return;
         }
 

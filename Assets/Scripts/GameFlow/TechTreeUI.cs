@@ -771,10 +771,11 @@ public class TechTreeUI : MonoBehaviour
         nameRect.sizeDelta = new Vector2(0f, 28f);
         var nameLabel = TmpUiStyle.Create(nameObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.Top, true);
         nameLabel.fontSize = 14f;
-        nameLabel.color = Ink;
         nameLabel.text = node.name;
         nameLabel.textWrappingMode = TextWrappingModes.Normal;
         nameLabel.overflowMode = TextOverflowModes.Truncate;
+        ApplyParchmentInk(nameLabel);
+        nameLabel.color = Ink;
 
         nodeViews.Add(new NodeView
         {
@@ -862,8 +863,10 @@ public class TechTreeUI : MonoBehaviour
         {
             detailTitle.text = "기술을 고르세요";
             detailBody.text = "명예를 소모해 기계를 해금합니다.\n해금한 뒤에만 제작할 수 있습니다.";
-            ApplyDetailBodyInk(detailBody);
             detailCost.text = string.Empty;
+            ApplyParchmentInk(detailTitle);
+            ApplyParchmentInk(detailBody);
+            ApplyParchmentInk(detailCost);
             unlockButton.interactable = false;
             unlockLabel.text = "해금";
             return;
@@ -875,8 +878,10 @@ public class TechTreeUI : MonoBehaviour
         int honor = GetHonor();
         detailTitle.text = selectedNode.name;
         detailBody.text = BuildDetailBody(selectedNode, unlocked, canUnlock);
-        ApplyDetailBodyInk(detailBody);
         detailCost.text = FormatUnlockCost(selectedNode, unlocked, honor);
+        ApplyParchmentInk(detailTitle);
+        ApplyParchmentInk(detailBody);
+        ApplyParchmentInk(detailCost);
         if (unlocked)
         {
             unlockButton.interactable = false;
@@ -995,8 +1000,8 @@ public class TechTreeUI : MonoBehaviour
         return text.ToString();
     }
 
-    // 오른쪽 설명은 밝은 양피지 위 검정 본문. 크림 아웃라인이 글자를 흐리지 않게 끈다.
-    private static void ApplyDetailBodyInk(TMP_Text text)
+    // 양피지 위 텍스트: 검정 잉크, outline 없음 (atlas padding 부족 시 outline이 텍스처를 깨뜨림).
+    private static void ApplyParchmentInk(TMP_Text text)
     {
         if (text == null)
         {
@@ -1004,8 +1009,14 @@ public class TechTreeUI : MonoBehaviour
         }
 
         text.color = Color.black;
+        text.fontStyle = FontStyles.Bold;
         text.outlineWidth = 0f;
         text.outlineColor = Color.clear;
+        text.extraPadding = true;
+        if (!text.enableAutoSizing)
+        {
+            text.fontSize = Mathf.Round(text.fontSize);
+        }
     }
 
     private static bool HasLockedQuestGrantParent(TechTreeCatalog.Node node)
@@ -1204,6 +1215,7 @@ public class TechTreeUI : MonoBehaviour
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
         canvasObject.AddComponent<GraphicRaycaster>();
+        TmpUiCanvas.Configure(overlayCanvas);
 
         modalRoot = new GameObject("TechTreeModal");
         modalRoot.transform.SetParent(canvasObject.transform, false);
@@ -1299,7 +1311,7 @@ public class TechTreeUI : MonoBehaviour
         titleRect.anchoredPosition = Vector2.zero;
         detailTitle = TmpUiStyle.Create(titleObject, TmpUiStyle.Role.Title, TextAlignmentOptions.MidlineLeft, true);
         detailTitle.fontSize = 24f;
-        detailTitle.color = Color.black;
+        ApplyParchmentInk(detailTitle);
         var detailTitleRect = detailTitle.rectTransform;
         detailTitleRect.offsetMin = new Vector2(8f, 0f);
         detailTitleRect.offsetMax = new Vector2(-8f, 0f);
@@ -1333,7 +1345,7 @@ public class TechTreeUI : MonoBehaviour
         bodyRect.sizeDelta = new Vector2(0f, 0f);
         detailBody = TmpUiStyle.Create(bodyObject, TmpUiStyle.Role.Body, TextAlignmentOptions.TopLeft, true);
         detailBody.fontSize = 18f;
-        ApplyDetailBodyInk(detailBody);
+        ApplyParchmentInk(detailBody);
         detailBody.textWrappingMode = TextWrappingModes.Normal;
         detailBody.overflowMode = TextOverflowModes.Overflow;
         var bodyFitter = bodyObject.AddComponent<ContentSizeFitter>();
@@ -1358,7 +1370,7 @@ public class TechTreeUI : MonoBehaviour
         costRect.sizeDelta = new Vector2(0f, 56f);
         detailCost = TmpUiStyle.Create(costObject, TmpUiStyle.Role.Caption, TextAlignmentOptions.BottomLeft, true);
         detailCost.fontSize = 18f;
-        detailCost.color = Color.black;
+        ApplyParchmentInk(detailCost);
         detailCost.textWrappingMode = TextWrappingModes.Normal;
         detailCost.overflowMode = TextOverflowModes.Truncate;
         var detailCostRect = detailCost.rectTransform;

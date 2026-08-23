@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 // 해금된 기계를 골드+재료로 즉시 구매한다. 1키로 연다.
@@ -14,6 +13,7 @@ public class MachineCraftUI : MonoBehaviour
     private static MachineCraftUI instance;
 
     private Canvas canvas;
+    private GraphicRaycaster canvasRaycaster;
     private GameObject modalRoot;
     private RectTransform listRect;
     private TMP_Text titleText;
@@ -23,8 +23,11 @@ public class MachineCraftUI : MonoBehaviour
     private MachineDatabase machineDatabase;
     private PlayerInventory playerInventory;
     private bool isOpen;
+    private int ignoreBackdropCloseUntilFrame = -1;
 
-    public static bool IsOpen => instance != null && instance.isOpen;
+    public static bool IsOpen => instance != null && instance.IsModalVisible;
+
+    private bool IsModalVisible => modalRoot != null && modalRoot.activeSelf;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -47,7 +50,7 @@ public class MachineCraftUI : MonoBehaviour
     public static void Toggle(MachineDatabase database, PlayerInventory inventory)
     {
         EnsureInstance();
-        if (instance.isOpen)
+        if (instance.IsModalVisible)
         {
             instance.Hide();
             return;
@@ -215,8 +218,26 @@ public class MachineCraftUI : MonoBehaviour
         }
 
         RebuildRows();
+        ignoreBackdropCloseUntilFrame = Time.frameCount + 1;
+        if (canvas != null)
+        {
+            canvas.enabled = true;
+        }
+
         modalRoot.SetActive(true);
         isOpen = true;
+        SetBlockingInput(true);
+        Canvas.ForceUpdateCanvases();
+    }
+
+    private void OnBackdropClicked()
+    {
+        if (Time.frameCount <= ignoreBackdropCloseUntilFrame)
+        {
+            return;
+        }
+
+        Hide();
     }
 
     public void Hide()
@@ -227,6 +248,16 @@ public class MachineCraftUI : MonoBehaviour
         if (modalRoot != null)
         {
             modalRoot.SetActive(false);
+        }
+
+        SetBlockingInput(false);
+    }
+
+    private void SetBlockingInput(bool blocking)
+    {
+        if (canvasRaycaster != null)
+        {
+            canvasRaycaster.enabled = blocking;
         }
     }
 
@@ -412,7 +443,7 @@ public class MachineCraftUI : MonoBehaviour
         canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         canvasObject.GetComponent<CanvasScaler>().referenceResolution = new Vector2(1920f, 1080f);
         canvasObject.GetComponent<CanvasScaler>().screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
-        canvasObject.AddComponent<GraphicRaycaster>();
+        canvasRaycaster = canvasObject.AddComponent<GraphicRaycaster>();
 
         modalRoot = new GameObject("CraftModal");
         modalRoot.transform.SetParent(canvasObject.transform, false);
@@ -432,6 +463,9 @@ public class MachineCraftUI : MonoBehaviour
         var backdropImage = backdropObject.AddComponent<Image>();
         backdropImage.color = new Color(0f, 0f, 0f, 0.45f);
         backdropImage.raycastTarget = true;
+        var backdropButton = backdropObject.AddComponent<Button>();
+        backdropButton.transition = Selectable.Transition.None;
+        backdropButton.onClick.AddListener(OnBackdropClicked);
 
         var panelObject = new GameObject("CraftPanel");
         panelObject.transform.SetParent(modalRoot.transform, false);
@@ -569,13 +603,6 @@ public class MachineCraftUI : MonoBehaviour
 
     private static void EnsureEventSystem()
     {
-        if (FindAnyObjectByType<EventSystem>() != null)
-        {
-            return;
-        }
-
-        var eventSystemObject = new GameObject("EventSystem");
-        eventSystemObject.AddComponent<EventSystem>();
-        eventSystemObject.AddComponent<InputSystemUIInputModule>();
+        UiEventSystem.Ensure();
     }
 }

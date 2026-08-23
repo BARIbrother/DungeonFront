@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -463,7 +464,33 @@ public class PlacementController : MonoBehaviour
 
     private bool IsPointerOverUi()
     {
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+        EventSystem eventSystem = EventSystem.current;
+        if (eventSystem == null)
+        {
+            return false;
+        }
+
+        Mouse mouse = Mouse.current;
+        Vector2 pointerPosition = mouse != null
+            ? mouse.position.ReadValue()
+            : (Vector2)Input.mousePosition;
+
+        var eventData = new PointerEventData(eventSystem)
+        {
+            position = pointerPosition,
+        };
+        var results = new List<RaycastResult>();
+        eventSystem.RaycastAll(eventData, results);
+        for (int i = 0; i < results.Count; i++)
+        {
+            GameObject hit = results[i].gameObject;
+            if (hit != null && hit.activeInHierarchy)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Vector3 GetMouseWorldPosition()

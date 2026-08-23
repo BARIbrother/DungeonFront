@@ -3,6 +3,8 @@ using UnityEngine;
 // 틱 대신 플레이어 클릭으로 workSpeed만큼 진행하는 수작업 기계.
 public class HandmadeMachine : Machine
 {
+    private const int ManualWorkSpeedMultiplier = 5;
+
     public override Vector2Int GetFootprintSize() => new Vector2Int(2, 1);
 
     private void Awake()
@@ -27,9 +29,16 @@ public class HandmadeMachine : Machine
 
     public override bool SupportsManualWorkClick() => true;
 
-    // 키 입력 1회: WIP가 없으면 시작하고, workSpeed만큼 진행한다. 진행에 성공하면 true.
+    public bool IsManualWorkAllowedInCurrentPhase() => IsProductionPhase();
+
+    // 키 입력 1회: WIP가 없으면 시작하고, workSpeed×5만큼 진행한다. 생산 단계에서만 가능.
     public override bool TryAdvanceManualClick()
     {
+        if (!IsProductionPhase())
+        {
+            return false;
+        }
+
         if (IsBroken || currentRecipe == null || currentRecipe.recipeTime <= 0)
         {
             return false;
@@ -51,7 +60,14 @@ public class HandmadeMachine : Machine
         }
 
         int progressBefore = progressTicks;
-        AdvanceProductionWork(workSpeed);
+        int manualWork = workSpeed * ManualWorkSpeedMultiplier;
+        AdvanceProductionWork(manualWork);
         return progressTicks != progressBefore || !hasActiveWip;
+    }
+
+    private static bool IsProductionPhase()
+    {
+        GameSessionState session = GameSessionState.Instance;
+        return session == null || session.Phase == GamePhase.Production;
     }
 }

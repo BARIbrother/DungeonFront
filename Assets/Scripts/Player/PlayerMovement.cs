@@ -319,7 +319,7 @@ public class PlayerMovement : MonoBehaviour
 
         ClearPendingRepair();
         Machine handmadeTarget = FindNearestMachineWithinOneCell(
-            machine => machine is HandmadeMachine);
+            machine => machine is HandmadeMachine handmade && handmade.IsManualWorkAllowedInCurrentPhase());
         if (handmadeTarget != null)
         {
             BeginHammerSwing(handmadeTarget, HammerTargetKind.HandmadeMachine);
