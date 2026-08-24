@@ -266,7 +266,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 519420028}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3f8b21c4d5e64a7b9c0d1e2f3a4b5c6d, type: 3}
+  m_Script: {fileID: 11500000, guid: 9c4e7a2b1f8d4560a3e9c7b5d2f1a8e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerFollowCamera
   gridManager: {fileID: 2133904198}

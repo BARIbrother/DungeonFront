@@ -8,11 +8,11 @@ using UnityEngine.InputSystem;
 // Dev Mode 패널 (F8). 에디터 Play 모드에서만 동작한다.
 public class QuestSystemDebugPanel : MonoBehaviour
 {
+#if UNITY_EDITOR
     [Header("Dev Mode (F8)")]
     [FormerlySerializedAs("enableDebugPanel")]
     [SerializeField] private bool enableDevMode = true;
 
-#if UNITY_EDITOR
     private static QuestSystemDebugPanel instance;
 
     [SerializeField] private QuestManager questManager;

@@ -74,7 +74,7 @@ public class TickManager : MonoBehaviour
 
         Instance = this;
         ticksPerSecond = TicksPerSecond;
-        tickInterval = 1f / TicksPerSecond;
+        tickInterval = 1f / ticksPerSecond;
     }
 
     private void Start()
