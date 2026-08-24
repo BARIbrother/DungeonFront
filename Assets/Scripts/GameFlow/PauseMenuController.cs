@@ -62,10 +62,33 @@ public sealed class PauseMenuController : MonoBehaviour
             return;
         }
 
+        // 레시피북·의뢰창이 열려 있으면 일시정지 대신 그 창만 닫는다.
+        if (!menuVisible && TryCloseForegroundWindow())
+        {
+            return;
+        }
+
         SetMenuVisible(!menuVisible);
     }
 
     public void Resume() => SetMenuVisible(false);
+
+    private static bool TryCloseForegroundWindow()
+    {
+        if (RecipeBookUI.IsOpen)
+        {
+            RecipeBookUI.Toggle();
+            return true;
+        }
+
+        if (QuestWindowController.Instance != null && QuestWindowController.Instance.IsOpen)
+        {
+            QuestWindowController.Instance.CloseQuestWindow();
+            return true;
+        }
+
+        return false;
+    }
 
     private void SetMenuVisible(bool visible)
     {

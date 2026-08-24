@@ -146,10 +146,12 @@ public class PlayerFollowCamera : MonoBehaviour
             || InventoryUI.IsOpen
             || TechTreeUI.IsOpen
             || RecipeBookUI.IsOpen
+            || MachineRecipeUI.IsOpen
             || DialogueUI.IsOpen
             || TutorialPanelUI.IsOpen
             || (QuestWindowController.Instance != null && QuestWindowController.Instance.IsOpen)
-            || (GameOverController.Instance != null && GameOverController.Instance.IsGameOver))
+            || (GameOverController.Instance != null && GameOverController.Instance.IsGameOver)
+            || UiEventSystem.IsPointerOverUi())
         {
             return true;
         }

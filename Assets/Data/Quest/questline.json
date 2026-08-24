@@ -7,20 +7,20 @@
       "id": "Q001",
       "title": "첫 번째 시험",
       "clientName": "감사관 이브",
-      "content": "첫 번째 과제는 대장장이의 기본 중의 기본, 철을 다루는 것입니다. 당신이 이 정도 과제도 수행하지 못 한다면 합격은 물 건너간 일이라 봐야겠죠. 기본 3종을 10개씩 납품해 보시죠.",
+      "content": "첫 번째 과제는 대장장이의 기본 중의 기본, 철을 다루는 것입니다. 당신이 이 정도 과제도 수행하지 못 한다면 합격은 물 건너간 일이라 봐야겠죠. 기본 3종을 5개씩 납품해 보시죠.",
       "deadlineDays": 1,
       "requiredItems": [
         {
           "itemcode": "iron_ore",
-          "number": 10
+          "number": 5
         },
         {
           "itemcode": "iron_ingot",
-          "number": 10
+          "number": 5
         },
         {
           "itemcode": "iron_plate",
-          "number": 10
+          "number": 5
         }
       ],
       "reward": [

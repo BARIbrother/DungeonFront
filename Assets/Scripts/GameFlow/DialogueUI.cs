@@ -239,6 +239,10 @@ public sealed class DialogueUI : MonoBehaviour
     public bool IsShowing => activeLines != null;
     public static bool IsOpen => instance != null && instance.IsShowing;
 
+    // 같은 프레임에 대화가 닫힌 뒤 PlayerMovement가 스페이스를 수리/수작업으로 받지 않게 한다.
+    private static int confirmConsumedFrame = -1;
+    public static bool ConsumedAdvanceThisFrame => confirmConsumedFrame == Time.frameCount;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
@@ -303,6 +307,7 @@ public sealed class DialogueUI : MonoBehaviour
             || Keyboard.current.enterKey.wasPressedThisFrame
             || Keyboard.current.numpadEnterKey.wasPressedThisFrame)
         {
+            confirmConsumedFrame = Time.frameCount;
             AudioManager audio = AudioManager.Instance;
             if (audio != null && audio.Catalog != null)
             {

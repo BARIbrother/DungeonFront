@@ -144,11 +144,12 @@ public static class TutorialActionLock
                 return action == Action.Move || action == Action.InteractMachine;
 
             case Gate.WaitMachineBroken:
-                // 001E00020(「그런데, 왜…」) 이후 고장 이벤트만 기다린다. 그 사이 생산·UI는 막지 않는다.
+                // 고장 발생만 기다린다. 배치(B)·UI 등 조작을 강제하지 않는다.
                 return true;
 
             case Gate.WaitMachineRepaired:
-                return action == Action.Move || action == Action.Repair;
+                // 수리 안내 중에도 B키 등으로 막히지 않게 조작을 강제하지 않는다.
+                return true;
 
             default:
                 return false;

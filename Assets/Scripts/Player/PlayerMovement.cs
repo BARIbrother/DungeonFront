@@ -155,8 +155,11 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // TEMP: 모션 검수용. 기계 없이 스페이스만 눌러도 수리 모션을 재생한다.
-        TryInteractNearbyMachine(keyboard);
+        // 수리 모션 중 스페이스 연타는 애니를 처음부터 다시 시작해 타격 타이밍이 깨진다.
+        if (!IsPlayingRepair())
+        {
+            TryInteractNearbyMachine(keyboard);
+        }
 
         if (IsPlayingRepair())
         {
@@ -282,7 +285,9 @@ public class PlayerMovement : MonoBehaviour
         if (keyboard == null
             || !keyboard.spaceKey.wasPressedThisFrame
             || DialogueUI.IsOpen
-            || TutorialPanelUI.IsOpen)
+            || DialogueUI.ConsumedAdvanceThisFrame
+            || TutorialPanelUI.IsOpen
+            || TutorialPanelUI.ConsumedAdvanceThisFrame)
         {
             return;
         }
