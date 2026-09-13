@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3188b21b206c4552848d56916d014e9, type: 3}
+  m_Name: Smelter_3
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDef_Machine
+  id: Smelter_3
+  displayName: "\uACE0\uC5F4 \uC6A9\uAD11\uB85C"
+  icon: {fileID: 21300000, guid: 1363406789219f94f868c93ffbae2843, type: 3}
+  category: 0
+  enchantmentSlotCount: 0
+  machineTypeId: Smelter
+  requiresManualWork: 0
+  machinePrefab: {fileID: 9012345678901234001, guid: c3afb5f50ef936b4886ab5bf4ca588a7, type: 3}

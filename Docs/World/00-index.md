@@ -1,8 +1,9 @@
 # 세계관 정본 (World)
 
 > **정본**: 이 폴더  
+> **문서 안내**: [../00_info.md](../00_info.md)  
 > **채우는 방식**: 대화로 항목을 확정 → 해당 파일에 반영  
-> **게임플레이 설계**: [../00-vision.md](../00-vision.md)  
+> **게임플레이 설계 (전시 MVP)**: [../00-vision.md](../00-vision.md) · **개편**: [../redesign-direction.md](../redesign-direction.md)  
 > **스토리·이벤트**: [../04-story.md](../04-story.md)  
 > **대사 초안**: [../Dialogue/](../Dialogue/)
 
